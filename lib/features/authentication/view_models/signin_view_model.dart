@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
@@ -364,6 +364,31 @@ class SignInViewModel extends ChangeNotifier {
         Preferences.doctorId, response.data!.id.toString());
 
     Provider.of<chat.AuthProvider>(context, listen: false).handleSignIn();
+
+    // Best-effort, same pattern as getToken(): push notifications are a
+    // nice-to-have, never a login blocker. AstraApiService.storeFcmToken()
+    // existed with no caller anywhere in this app before this; registering
+    // it right after a successful login is the earliest point both the
+    // Astra-issued doctorId and a cached FCM token are available together.
+    _registerFcmToken();
+  }
+
+  Future<void> _registerFcmToken() async {
+    try {
+      final doctorId = SharedPreferenceHelper.getString(Preferences.doctorId);
+      if (doctorId.isEmpty) return;
+
+      String? token =
+          SharedPreferenceHelper.getString(Preferences.messageToken);
+      if (token.isEmpty) {
+        token = await FirebaseMessaging.instance.getToken();
+      }
+      if (token == null || token.isEmpty) return;
+
+      await AstraApiService().storeFcmToken(token, doctorId);
+    } catch (e) {
+      debugPrint('Astra FCM token registration failed (non-fatal): $e');
+    }
   }
 
   Future<BaseModel<LoginResponse>> callApiForLogin(BuildContext context) async {

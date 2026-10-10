@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:doctro/network/apis.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/preferences.dart';
 
 /// Legacy Astra Service - Maintained for backward compatibility
 ///
@@ -29,12 +31,25 @@ class AstraService {
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        // Add Firebase Auth Token
-        User? user = FirebaseAuth.instance.currentUser;
-        if (user != null) {
-          String? token = await user.getIdToken();
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+        // Prefer the Astra-issued session token (from /auth/login) once we
+        // have one: most Astra endpoints validate that token specifically
+        // and reject a raw Firebase ID token (see the identical pattern in
+        // astra_api_service.dart and core/astra/services/astra_service.dart
+        // - this file was the one sibling still missing it, confirmed to
+        // break searchPatients() against the real backend's
+        // require_doctor() dependency).
+        final String appToken =
+            SharedPreferenceHelper.getString(Preferences.auth_token);
+        if (appToken.isNotEmpty && appToken != 'N_A') {
+          options.headers['Authorization'] = 'Bearer $appToken';
+        } else {
+          // No Astra session token yet - fall back to the Firebase ID token.
+          User? user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            String? token = await user.getIdToken();
+            if (token != null) {
+              options.headers['Authorization'] = 'Bearer $token';
+            }
           }
         }
         if (options.headers['Content-Type'] == null) {
