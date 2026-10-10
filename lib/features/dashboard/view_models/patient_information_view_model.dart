@@ -63,6 +63,7 @@ class PatientInformationViewModel extends ChangeNotifier {
   int isInsured = 0;
   String policyInsurerName = "";
   String policyNumber = "";
+  String? astraCaseId;
 
   bool isLoading = true;
 
@@ -192,6 +193,7 @@ class PatientInformationViewModel extends ChangeNotifier {
       isInsured = response.data!.isInsured!;
       policyInsurerName = response.data!.policyInsurerName ?? "";
       policyNumber = response.data!.policyNumber ?? "";
+      astraCaseId = response.data!.astraCaseId;
 
       appointmentStatus == 'Approve' ? hideButton = false : hideButton = true;
       appointmentStatus == 'pending' ? hideButton = true : hideButton = false;
