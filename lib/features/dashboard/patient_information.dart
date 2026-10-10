@@ -6,6 +6,7 @@ import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/astra_case_progress_card.dart';
 import 'package:doctro/widgets/astra_fill_display.dart';
 import 'package:doctro/widgets/glass_surface.dart';
 import 'package:doctro/widgets/osler_button.dart';
@@ -151,6 +152,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
           final policyNumber = vm.policyNumber;
           final hideButton = vm.hideButton;
           final astraFillData = vm.astraFillData;
+          final astraCaseId = vm.astraCaseId;
 
           return FadeTransition(
             opacity: _fadeAnim,
@@ -358,6 +360,10 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                       ],
                                     ),
                                   ),
+
+                                  if (astraCaseId != null &&
+                                      astraCaseId.isNotEmpty)
+                                    AstraCaseProgressCard(caseId: astraCaseId),
 
                                   // Firestore stream for Chat User details
                                   // (resolved lazily on chat-button tap to

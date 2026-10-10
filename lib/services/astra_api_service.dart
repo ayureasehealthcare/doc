@@ -1135,6 +1135,41 @@ class AstraApiService {
   }
 
   // ============================================================
+  // COMPANION CASE
+  // ============================================================
+
+  /// Get the Astra companion case tied to a consultation - the AI
+  /// companion's journey/progress for a patient's treatment, created at
+  /// booking time by the patient app (astra_case_id on the Laravel
+  /// appointment) and bound to this doctor from the moment of creation.
+  ///
+  /// GET /api/companion/case/{case_id} is unauthenticated at the route
+  /// level (no Depends() auth, just rate limiting) - it's keyed by the
+  /// case id itself, not a bearer token - so this intentionally bypasses
+  /// the normal Firebase/app-token interceptor rather than risk a 401 on
+  /// a route that was never gated that way.
+  ///
+  /// Returns the raw `case` object (id, journey_id, user_id, doctor_id,
+  /// diagnosis, status, progress_percentage, adherence_score,
+  /// treatment_duration_days, created_at, updated_at, ...) or null if the
+  /// case doesn't exist (404) or the request otherwise fails - this is a
+  /// best-effort companion panel, never a reason to block the appointment
+  /// detail screen from rendering.
+  Future<Map<String, dynamic>?> getCompanionCase(String caseId) async {
+    try {
+      final path = Apis.astra_companion_case.replaceAll('{case_id}', caseId);
+      final response = await Dio(BaseOptions(baseUrl: baseUrl)).get(path);
+      final data = response.data;
+      if (data is Map && data['success'] == true && data['case'] is Map) {
+        return Map<String, dynamic>.from(data['case']);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ============================================================
   // HELPER METHODS
   // ============================================================
 

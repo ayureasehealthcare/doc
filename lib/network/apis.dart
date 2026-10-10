@@ -190,4 +190,8 @@ class Apis {
   // Health Checks
   static const String astra_health = "health";
   static const String astra_health_ready = "health/ready";
+
+  // Companion Case (journey/progress tied to a consultation - note this
+  // is under /api/companion, not /api/v1 like the routes above)
+  static const String astra_companion_case = "api/companion/case/{case_id}";
 }

@@ -50,6 +50,11 @@ class Data {
   int? isInsured;
   String? policyInsurerName;
   String? policyNumber;
+  // Stitched onto the appointment by the patient app at booking time (see
+  // astra_consultation_link.dart in the patient repo) - not returned by
+  // the backend until the Laravel link_appointment_astra_case route is
+  // live, so this is null for any appointment booked before that.
+  String? astraCaseId;
 
   Data({
     this.id,
@@ -79,6 +84,7 @@ class Data {
     this.isInsured,
     this.policyInsurerName,
     this.policyNumber,
+    this.astraCaseId,
   });
 
   Data.fromJson(Map<String, dynamic> json) {
@@ -109,6 +115,7 @@ class Data {
     isInsured = json['is_insured'];
     policyInsurerName = json['policy_insurer_name'];
     policyNumber = json['policy_number'];
+    astraCaseId = json['astra_case_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -139,6 +146,7 @@ class Data {
     data['is_insured'] = isInsured;
     data['policy_insurer_name'] = policyInsurerName;
     data['policy_number'] = policyNumber;
+    data['astra_case_id'] = astraCaseId;
     if (user != null) {
       data['user'] = user!.toJson();
     }
