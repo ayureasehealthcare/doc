@@ -103,35 +103,6 @@ class AstraConfig {
   /// Retry delay in milliseconds
   static const int retryDelayMs = 1000;
 
-  // ============================================================
-  // TRUSTED HOSTS (for SSL bypass in development)
-  // ============================================================
-
-  /// List of trusted hosts where SSL certificate validation is bypassed
-  /// WARNING: Only for development/testing. Never use in production.
-  static const List<String> trustedHosts = [
-    'astra.ayureze.in',
-    '82.25.105.156',
-  ];
-
-  /// Check if a host is trusted for SSL bypass
-  static bool isTrustedHost(String host) {
-    return trustedHosts.any((trusted) => host.contains(trusted));
-  }
-
-  // ============================================================
-  // ROLE & AUTHENTICATION
-  // ============================================================
-
-  /// Doctor role identifier
-  static const String roleDoctor = 'doctor';
-
-  /// Patient role identifier
-  static const String rolePatient = 'patient';
-
-  /// Header name for role specification
-  static const String roleHeader = 'X-Role';
-
   /// Header name for authorization
   static const String authHeader = 'Authorization';
 
@@ -208,12 +179,6 @@ class AstraConfig {
 
   /// Enable logging
   static const bool enableLogging = kDebugMode;
-
-  /// Enable DNS fallback for connection issues
-  static const bool enableDnsFallback = true;
-
-  /// Enable IPv4 fallback for connection issues
-  static const bool enableIpv4Fallback = true;
 
   // ============================================================
   // MESSAGE LIMITS

@@ -32,12 +32,6 @@ void main() {
       );
     });
 
-    test('should recognize trusted hosts', () {
-      expect(AstraConfig.isTrustedHost('astra.ayureze.in'), true);
-      expect(AstraConfig.isTrustedHost('82.25.105.156'), true);
-      expect(AstraConfig.isTrustedHost('other.com'), false);
-    });
-
     test('should have correct timeout values', () {
       expect(AstraConfig.connectTimeoutSeconds, 45);
       expect(AstraConfig.receiveTimeoutSeconds, 90);

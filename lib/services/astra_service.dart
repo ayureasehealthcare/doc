@@ -55,7 +55,6 @@ class AstraService {
         if (options.headers['Content-Type'] == null) {
           options.headers['Content-Type'] = 'application/json';
         }
-        options.headers['X-Role'] = 'doctor';
         return handler.next(options);
       },
       onError: (error, handler) {
