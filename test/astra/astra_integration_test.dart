@@ -16,12 +16,6 @@ void main() {
       expect(AstraConfig.brainChat.isNotEmpty, true);
       expect(AstraConfig.prescriptionCreate.isNotEmpty, true);
     });
-
-    test('should have correct role configuration', () {
-      expect(AstraConfig.roleDoctor, 'doctor');
-      expect(AstraConfig.rolePatient, 'patient');
-      expect(AstraConfig.roleHeader, 'X-Role');
-    });
   });
 
   group('Conversation to Action Integration', () {

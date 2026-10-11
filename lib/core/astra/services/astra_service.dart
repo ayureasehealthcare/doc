@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dio/io.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:doctro/core/constants/prefConstatnt.dart';
 import 'package:doctro/core/constants/preferences.dart';
@@ -42,31 +41,12 @@ class AstraService {
       receiveTimeout: Duration(seconds: AstraConfig.receiveTimeoutSeconds),
     ));
 
-    // Configure for mobile network resilience
-    _configureForMobileNetworks();
-
     // Add interceptors for auth and logging
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: _onRequest,
       onResponse: _onResponse,
       onError: _onError,
     ));
-  }
-
-  void _configureForMobileNetworks() {
-    // Configure HTTP client adapter for better mobile connectivity
-    if (_dio.httpClientAdapter is IOHttpClientAdapter) {
-      final adapter = _dio.httpClientAdapter as IOHttpClientAdapter;
-      adapter.createHttpClient = () {
-        final client = HttpClient();
-        client.connectionTimeout =
-            Duration(seconds: AstraConfig.connectTimeoutSeconds);
-        client.badCertificateCallback = (cert, host, port) {
-          return AstraConfig.isTrustedHost(host);
-        };
-        return client;
-      };
-    }
   }
 
   // ============================================================
@@ -102,9 +82,6 @@ class AstraService {
     if (options.headers['Content-Type'] == null) {
       options.headers['Content-Type'] = 'application/json';
     }
-
-    // Add role header
-    options.headers['X-Role'] = AstraConfig.roleDoctor;
 
     // Log request
     AstraLogger.logRequest(
@@ -149,18 +126,6 @@ class AstraService {
       statusCode: error.response?.statusCode,
     );
 
-    // Try DNS/IPv4 fallback for connection errors
-    if (_isConnectionLevelError(error) && AstraConfig.enableDnsFallback) {
-      try {
-        final fallbackResponse = await _tryFallback(error.requestOptions);
-        if (fallbackResponse != null) {
-          return handler.resolve(fallbackResponse);
-        }
-      } catch (e) {
-        // Fallback failed, continue with original error
-      }
-    }
-
     return handler.next(error);
   }
 
@@ -175,65 +140,6 @@ class AstraService {
         text.contains('failed host lookup') ||
         text.contains('network is unreachable') ||
         text.contains('timed out');
-  }
-
-  Future<Response<dynamic>?> _tryFallback(RequestOptions options) async {
-    if (!AstraConfig.enableIpv4Fallback) return null;
-
-    try {
-      final Uri uri = Uri.parse('${options.baseUrl}${options.path}');
-      final String host = uri.host;
-
-      final addresses = await InternetAddress.lookup(
-        host,
-        type: InternetAddressType.IPv4,
-      );
-
-      if (addresses.isEmpty) return null;
-
-      final String ipBaseUrl = '${uri.scheme}://${addresses.first.address}';
-
-      final fallbackDio = Dio(BaseOptions(
-        baseUrl: ipBaseUrl,
-        connectTimeout: Duration(seconds: AstraConfig.connectTimeoutSeconds),
-        receiveTimeout: Duration(seconds: AstraConfig.receiveTimeoutSeconds),
-        headers: {'Host': host},
-      ));
-
-      // Copy over the auth headers
-      if (options.headers['Authorization'] != null) {
-        fallbackDio.options.headers['Authorization'] =
-            options.headers['Authorization'];
-      }
-      fallbackDio.options.headers['X-Role'] = AstraConfig.roleDoctor;
-      fallbackDio.options.headers['Content-Type'] = 'application/json';
-
-      // Configure for SSL bypass
-      if (fallbackDio.httpClientAdapter is IOHttpClientAdapter) {
-        final adapter = fallbackDio.httpClientAdapter as IOHttpClientAdapter;
-        adapter.createHttpClient = () {
-          final client = HttpClient();
-          client.connectionTimeout =
-              Duration(seconds: AstraConfig.connectTimeoutSeconds);
-          client.badCertificateCallback = (_, __, ___) => true;
-          return client;
-        };
-      }
-
-      final response = await fallbackDio.request(
-        options.path,
-        data: options.data,
-        queryParameters: options.queryParameters,
-        options: Options(
-          method: options.method,
-          headers: options.headers,
-        ),
-      );
-
-      return response;
-    } catch (e) {
-      return null;
-    }
   }
 
   // ============================================================
