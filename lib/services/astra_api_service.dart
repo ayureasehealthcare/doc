@@ -53,13 +53,25 @@ class AstraApiService {
           options.headers['Authorization'] = 'Bearer $appToken';
         } else {
           // No Astra session token yet (e.g. the /auth/login exchange call
-          // itself) - fall back to the Firebase ID token.
-          User? user = FirebaseAuth.instance.currentUser;
-          if (user != null) {
-            String? token = await user.getIdToken();
-            if (token != null) {
-              options.headers['Authorization'] = 'Bearer $token';
+          // itself) - fall back to the Firebase ID token. Guarded: accessing
+          // FirebaseAuth.instance throws synchronously if Firebase hasn't
+          // been initialized (e.g. StartupGate's own widget tests, which
+          // boot the dashboard shell directly without Firebase.initializeApp()
+          // to avoid platform channels) - an uncaught throw here inside this
+          // async onRequest callback never properly rejects the request, so
+          // the call just hangs instead of failing, which previously showed
+          // up as a `pumpAndSettle` timeout rather than a clean error.
+          try {
+            User? user = FirebaseAuth.instance.currentUser;
+            if (user != null) {
+              String? token = await user.getIdToken();
+              if (token != null) {
+                options.headers['Authorization'] = 'Bearer $token';
+              }
             }
+          } catch (_) {
+            // No Firebase session available - proceed unauthenticated and
+            // let the server reject with 401 rather than hanging here.
           }
         }
         // Set default content type for JSON requests
@@ -215,6 +227,25 @@ class AstraApiService {
     try {
       final response =
           await _dio.get('/api/v1/api/doctors/$doctorId/dashboard-stats');
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Doctor's own appointments. Confirmed live 2026-10-13 against the real
+  /// backend: `/api/v1/appointments/my` previously 403'd for a doctor
+  /// token ("Insufficient role") because it only accepted patient/admin
+  /// roles and filtered by patient_id; both were fixed server-side to
+  /// accept a doctor token and filter by doctor_id instead. Returns
+  /// `{"appointments": [...]}`, each item a raw `consultations` row
+  /// (consultation_id, patient_id, doctor_id, doctor_name,
+  /// appointment_date, consultation_type, status, payment_status,
+  /// created_at) - no patient name, no today/tomorrow/upcoming split;
+  /// callers bucket by appointment_date themselves.
+  Future<Map<String, dynamic>> getMyAppointments() async {
+    try {
+      final response = await _dio.get('/api/v1/appointments/my');
       return response.data;
     } catch (e) {
       throw _handleError(e);

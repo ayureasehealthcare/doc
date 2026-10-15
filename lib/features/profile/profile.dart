@@ -23,6 +23,7 @@ import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
+import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
 import 'package:doctro/widgets/osler_toast.dart';
@@ -478,88 +479,38 @@ class _ProfileScreen extends State<ProfileScreen> {
     return BaseModel()..data = response;
   }
 
+  // The legacy REST endpoint this used to call (Apis.doctor_profile) is
+  // permanently dead - confirmed 404 on the real backend. The real doctor
+  // record lives at GET /api/v1/api/doctors/{doctor_id} (AstraApiService.
+  // getDoctorProfile, confirmed live 2026-10-13 with a real test account)
+  // and only has name/email/phone/gender/dob/specialization/photo_url/
+  // certificate_url/is_face_verified - none of the richer Laravel-era
+  // fields this screen also edits (hospital, education/certificate lists,
+  // fees, timeslot, based-on, popularity). Those controllers are simply
+  // left at their default empty text rather than force-unwrapping a field
+  // that no longer exists in the response.
   Future<BaseModel<DoctorProfile>> doctorProfile() async {
-    DoctorProfile response;
-
     try {
-      response =
-          await RestClient(await RetroApi().dioData(context)).doctorProfile();
-      if (!mounted) return BaseModel()..data = response;
-
-      var convertDegree;
-      var eduCertificate;
-      if (response.data!.education != null) {
-        convertDegree = json.decode(response.data!.education!);
+      final doctorId = SharedPreferenceHelper.getString(Preferences.doctorId);
+      if (doctorId.isEmpty) {
+        return BaseModel()
+          ..setException(
+              ServerError.withError(error: Exception('No doctor id saved')));
       }
 
-      if (response.data!.certificate != null) {
-        eduCertificate = json.decode(response.data!.certificate!);
-      }
-      _pName.text = response.data!.name!;
-      showFormat = response.data!.dob;
+      final json = await AstraApiService().getDoctorProfile(doctorId);
+      final data = json['data'] is Map
+          ? Map<String, dynamic>.from(json['data'])
+          : <String, dynamic>{};
+      if (!mounted) return BaseModel()..data = DoctorProfile.fromJson(json);
 
-      _genderSelect = response.data!.gender!;
+      _pName.text = (data['name'] as String?) ?? _pName.text;
+      _genderSelect = (data['gender'] as String?) ?? _genderSelect;
 
-      if (convertDegree != null) {
-        for (int i = 0; i < convertDegree.length; i++) {
-          if (_pDegree.text.isEmpty) {
-            _pDegree.text = _pDegree.text + convertDegree[i]['degree'];
-          } else {
-            _pDegree.text = '${_pDegree.text},' + convertDegree[i]['degree'];
-          }
-          if (_pCollege.text.isEmpty) {
-            _pCollege.text = _pCollege.text + convertDegree[i]['college'];
-          } else {
-            _pCollege.text = '${_pCollege.text},' + convertDegree[i]['college'];
-          }
-          if (_pCollegeYear.text.isEmpty) {
-            _pCollegeYear.text = _pCollegeYear.text + convertDegree[i]['year'];
-          } else {
-            _pCollegeYear.text =
-                '${_pCollegeYear.text},' + convertDegree[i]['year'];
-          }
-        }
-      }
-
-      if (eduCertificate != null) {
-        for (int i = 0; i < eduCertificate.length; i++) {
-          if (_pCertificate.text.isEmpty) {
-            _pCertificate.text =
-                _pCertificate.text + eduCertificate[i]['certificate'];
-          } else {
-            _pCertificate.text =
-                '${_pCertificate.text},' + eduCertificate[i]['certificate'];
-          }
-
-          if (_pCertificateYear.text.isEmpty) {
-            _pCertificateYear.text =
-                _pCertificateYear.text + eduCertificate[i]['certificate_year'];
-          } else {
-            _pCertificateYear.text = '${_pCertificateYear.text},' +
-                eduCertificate[i]['certificate_year'];
-          }
-        }
-      }
-
-      if (response.data!.experience != null) {
-        _pExperience.text = response.data!.experience!;
-      }
-
-      if (response.data!.appointmentFees != null) {
-        _aAppointmentFees.text = response.data!.appointmentFees!;
-      }
-      if (response.data!.videoAppointmentFees != null) {
-        _vAppointmentFees.text = response.data!.videoAppointmentFees!;
-      }
-
-      if (response.data!.desc != null) {
-        _pDesc.text = response.data!.desc!;
-      }
-
-      if (response.data!.dob != null && response.data!.dob!.isNotEmpty) {
-        String rawDob = response.data!.dob!;
+      final rawDob = data['dob'] as String?;
+      if (rawDob != null && rawDob.isNotEmpty) {
+        showFormat = rawDob;
         try {
-          // If yyyy-MM-dd
           if (rawDob.contains("-") && rawDob.indexOf("-") == 4) {
             DateTime parsedDate = DateFormat('yyyy-MM-dd').parse(rawDob);
             _pDob.text = DateFormat('dd-MM-yyyy').format(parsedDate);
@@ -577,34 +528,11 @@ class _ProfileScreen extends State<ProfileScreen> {
         }
       }
 
-      _pTimeSlot.text = response.data!.timeslot!;
-      _pStartTime.text = response.data!.startTime!;
-      _pEndTime.text = response.data!.endTime!;
-      _pBasedOn.text = response.data!.basedOn!;
-
-      _selectedPopular = response.data!.isPopular.toString();
-
-      if (response.data!.hospitalId != null) {
-        List<String> list = response.data!.hospitalId!.split(",");
-        for (int i = 0; i < hospitalReq.length; i++) {
-          for (int j = 0; j < list.length; j++) {
-            if (int.parse(list[j]) == hospitalReq[i].id) {
-              setState(() {
-                hospitalReq[i].isSelected = true;
-              });
-            }
-          }
-        }
-      }
-
-      // Removed treatment settings as it is removed from UI
-
       setState(() {});
+      return BaseModel()..data = DoctorProfile.fromJson(json);
     } catch (error) {
-      // print("Exception occur: $error stackTrace: $stacktrace");
       return BaseModel()..setException(ServerError.withError(error: error));
     }
-    return BaseModel()..data = response;
   }
 
   Future<BaseModel<Hospitals>> hospital() async {

@@ -11,10 +11,7 @@ import 'package:doctro/core/constants/prefConstatnt.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/models/payment.dart';
-import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
-import 'package:doctro/network/network_api.dart';
-import 'package:doctro/network/server_error.dart';
 import 'package:doctro/features/authentication/SignIn.dart';
 import 'package:doctro/widgets/modern_drawer.dart';
 import 'package:flutter/material.dart';
@@ -428,50 +425,23 @@ class _PaymentScreen extends State<PaymentScreen> {
     );
   }
 
+  // The legacy itemized-payments endpoint (Apis.payment) is permanently
+  // dead - confirmed 404 on the real backend - and there is no replacement:
+  // the real backend's doctor-facing finance route
+  // (/api/v1/finance/wallet/summary, used by loadWalletStats() for the
+  // wallet card above) only returns scalar totals, not a per-consultation
+  // transaction list. Rather than keep attempting a network call that can
+  // never succeed, this stays an empty list until the backend exposes a
+  // real per-transaction endpoint for doctors.
   Future<BaseModel<Payment>> paymentsFunction() async {
-    Payment response;
-    try {
-      paymentsRequest.clear();
-      _userPayment.clear();
-      response =
-          await RestClient(await RetroApi().dioData(context)).paymentRequest();
-      if (!mounted) return BaseModel()..data = response;
+    paymentsRequest.clear();
+    _userPayment.clear();
+    if (mounted) {
       setState(() {
-        paymentsRequest.addAll(response.paymentData!);
-        _userPayment.addAll(response.paymentData!);
-
         sum = 0;
-        for (int i = 0; i < paymentsRequest.length; i++) {
-          sum += double.parse(paymentsRequest[i].amount!);
-        }
       });
-    } catch (error) {
-      return BaseModel()..setException(ServerError.withError(error: error));
     }
-    return BaseModel()..data = response;
-  }
-
-  Future<BaseModel<Payment>> allMedicinesReq() async {
-    Payment response;
-    try {
-      paymentsRequest.clear();
-      _userPayment.clear();
-      response =
-          await RestClient(await RetroApi().dioData(context)).paymentRequest();
-      if (!mounted) return BaseModel()..data = response;
-      setState(() {
-        paymentsRequest.addAll(response.paymentData!);
-        _userPayment.addAll(response.paymentData!);
-
-        sum = 0;
-        for (int i = 0; i < paymentsRequest.length; i++) {
-          sum += double.parse(paymentsRequest[i].amount!);
-        }
-      });
-    } catch (error) {
-      return BaseModel()..setException(ServerError.withError(error: error));
-    }
-    return BaseModel()..data = response;
+    return BaseModel()..data = Payment();
   }
 
   showAlertDialog(BuildContext context) {

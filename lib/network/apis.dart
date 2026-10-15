@@ -35,7 +35,10 @@ class Apis {
   static const String all_medicines = "allMedicines";
   static const String resend_otp = "resendOtp/{id}";
   static const String videoCallAddHistory = "add_call_history";
-  static const String videoCallShowHistory = "video_call_history";
+  // Confirmed live (2026-10-13, real test doctor account): GET
+  // https://astra.ayureze.in/api/v1/video/history returns
+  // {success, data: []} - matches VideoCallHistoryShowModel.fromJson shape.
+  static const String videoCallShowHistory = "video/history";
   static const String generateDoctorAgoraToken = "generateDoctorAgoraToken";
   static const String updatePatientVcall = "updatePatientVcall";
 
