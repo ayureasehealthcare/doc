@@ -1,14 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doctro/features/consultation/chat/constants/firestore_constants.dart';
 import 'package:doctro/features/consultation/chat/models/message_chat.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
-import 'package:doctro/core/constants/preferences.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:doctro/core/config/env.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatProvider {
@@ -73,51 +68,20 @@ class ChatProvider {
     });
   }
 
+  /// Push notifications for a new chat message are intentionally not sent
+  /// from the client. This used to POST directly to
+  /// https://fcm.googleapis.com/fcm/send with the legacy FCM server key
+  /// (Env.firebaseServerKey) as a bearer credential - that key can push to
+  /// every device in the Firebase project, so embedding it in a client
+  /// binary at all is the risk, regardless of whether a build's
+  /// --dart-define actually sets one today. Per this app's own build
+  /// docs (Env's server-authority keys must never reach a client build),
+  /// sending this notification needs to move to the backend - e.g. a
+  /// `POST /chat/notify` the backend calls FCM from - which doesn't exist
+  /// yet. No-ops until that's built; the chat message itself still sends
+  /// via Firestore in sendMessage() above regardless.
   void sendNotification(String content, String token, String userId, int type,
-      String userImage, String userName) async {
-    // Resolve the FCM server key from env (preferred) or compile-time flag.
-    final String serverKey = Env.firebaseServerKey;
-    if (token.isEmpty || serverKey.isEmpty) {
-      // Cannot send push without a valid server key / recipient token.
-      return;
-    }
-    try {
-      final response = await http.post(
-        Uri.parse('https://fcm.googleapis.com/fcm/send'),
-        headers: <String, String>{
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverKey',
-        },
-        body: jsonEncode(
-          <String, dynamic>{
-            'notification': <String, dynamic>{
-              'body': type == 1 ? "Image" : content,
-              'title': SharedPreferenceHelper.getString(Preferences.name),
-              'click_action': 'FLUTTER_NOTIFICATION_CLICK',
-            },
-            'priority': 'high',
-            'data': <String, dynamic>{
-              'screen': 'screen',
-              'doctorId': userId,
-              'doctorImage':
-                  SharedPreferenceHelper.getString(Preferences.image),
-              'doctorName': SharedPreferenceHelper.getString(Preferences.name),
-              'doctorToken':
-                  SharedPreferenceHelper.getString(Preferences.messageToken)
-            },
-            "to": token,
-          },
-        ),
-      );
-      if (response.statusCode == 200) {
-        // print("sucess");
-      } else {
-        // print("not send");
-      }
-    } catch (e) {
-      // print("error push notification");
-    }
-  }
+      String userImage, String userName) {}
 }
 
 class TypeMessage {

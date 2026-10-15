@@ -13,16 +13,6 @@ class SharedPreferenceHelper {
   static const List<String> _sensitiveKeys = [
     Preferences.auth_token,
     Preferences.refresh_token,
-    Preferences.stripeSecretKey,
-    Preferences.stripPublicKey,
-    Preferences.razor_key,
-    Preferences.flutterWave_key,
-    Preferences.flutterWave_encryption_key,
-    Preferences.payStack_public_key,
-    Preferences.payPal_sandbox_key,
-    Preferences.payPal_production_key,
-    Preferences.paypal_client_key,
-    Preferences.paypal_secret_key,
     Preferences.password,
   ];
 

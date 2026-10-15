@@ -40,7 +40,6 @@ class ModernDrawer extends StatelessWidget {
           Column(
             children: [
               Container(
-                height: 260,
                 width: double.infinity,
                 padding: const EdgeInsets.only(
                     top: 54, left: 22, right: 22, bottom: 22),

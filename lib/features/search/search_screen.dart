@@ -116,8 +116,13 @@ class _SearchScreenState extends State<SearchScreen> {
                     controller: _controller,
                     autofocus: true,
                     onChanged: (value) => setState(() => _query = value),
+                    style: const TextStyle(color: AyurezeTheme.forestDeep),
                     decoration: InputDecoration(
                       hintText: 'Search',
+                      hintStyle: TextStyle(
+                          color: AyurezeTheme.forestDeep.withValues(
+                        alpha: 0.6,
+                      )),
                       filled: true,
                       fillColor: Colors.white,
                       contentPadding: const EdgeInsets.symmetric(

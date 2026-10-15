@@ -40,7 +40,7 @@ class OslerDropdown extends StatelessWidget {
           hint: Text(hint, style: TextStyle(color: AyurezeTheme.textSecondary)),
           decoration: InputDecoration(
             filled: true,
-            fillColor: AyurezeTheme.oslerGray10,
+            fillColor: AyurezeTheme.surfaceMuted,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             prefixIcon: prefixIcon != null

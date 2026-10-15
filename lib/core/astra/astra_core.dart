@@ -38,9 +38,6 @@ export 'suggestions/suggestions.dart';
 /// Workflow - Automated prescription workflow handling
 export 'workflow/workflow.dart';
 
-/// Voice - Sarvam AI voice integration
-export '../voice/voice.dart';
-
 /// Polish - Production-ready utilities
 export 'polish/polish.dart';
 

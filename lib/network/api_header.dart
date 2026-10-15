@@ -31,12 +31,6 @@ class RetroApi {
     dio.options.receiveTimeout = Duration(seconds: 30);
 
     final token = SharedPreferenceHelper.getString(Preferences.auth_token);
-    final refreshToken =
-        SharedPreferenceHelper.getString(Preferences.refresh_token);
-    final expiresIn = SharedPreferenceHelper.getInt(Preferences.expiresIn);
-    final savedAt = SharedPreferenceHelper.getInt('token_saved_at');
-    logger.w(
-        'token: $token, refreshToken: $refreshToken, expiresIn: $expiresIn, savedAt: $savedAt');
 
     final isLoggedIn =
         SharedPreferenceHelper.getBoolean(Preferences.is_logged_in);

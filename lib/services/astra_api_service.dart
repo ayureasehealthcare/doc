@@ -1137,7 +1137,8 @@ class AstraApiService {
   /// detail screen from rendering.
   Future<Map<String, dynamic>?> getCompanionCase(String caseId) async {
     try {
-      final path = Apis.astra_companion_case.replaceAll('{case_id}', caseId);
+      final path = Apis.astra_companion_case
+          .replaceAll('{case_id}', Uri.encodeComponent(caseId));
       final response = await Dio(BaseOptions(baseUrl: baseUrl)).get(path);
       final data = response.data;
       if (data is Map && data['success'] == true && data['case'] is Map) {

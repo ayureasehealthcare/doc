@@ -242,8 +242,8 @@ class AstraService {
   /// Get prescription by ID
   Future<Map<String, dynamic>> getPrescription(String prescriptionId) async {
     try {
-      final url =
-          AstraConfig.prescriptionGet.replaceAll('{id}', prescriptionId);
+      final url = AstraConfig.prescriptionGet
+          .replaceAll('{id}', Uri.encodeComponent(prescriptionId));
       final response = await _getWithRetry(url);
       return _parseResponse(response);
     } catch (e) {
@@ -256,7 +256,7 @@ class AstraService {
     try {
       final url = AstraConfig.prescriptionPatient.replaceAll(
         '{patient_id}',
-        patientId,
+        Uri.encodeComponent(patientId),
       );
       final response = await _getWithRetry(url);
       return _parseList(response);
@@ -287,7 +287,8 @@ class AstraService {
   /// Search patients
   Future<List<dynamic>> searchPatients(String searchTerm) async {
     try {
-      final url = AstraConfig.patientSearch.replaceAll('{term}', searchTerm);
+      final url = AstraConfig.patientSearch
+          .replaceAll('{term}', Uri.encodeComponent(searchTerm));
       final response = await _getWithRetry(url);
       return _parseList(response);
     } catch (e) {
@@ -298,7 +299,8 @@ class AstraService {
   /// Get patient profile
   Future<Map<String, dynamic>> getPatientProfile(String patientId) async {
     try {
-      final url = AstraConfig.patientProfile.replaceAll('{id}', patientId);
+      final url = AstraConfig.patientProfile
+          .replaceAll('{id}', Uri.encodeComponent(patientId));
       final response = await _getWithRetry(url);
       return _parseResponse(response);
     } catch (e) {

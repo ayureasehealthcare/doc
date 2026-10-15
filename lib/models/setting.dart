@@ -40,14 +40,6 @@ class Data {
   int? razor;
   int? flutterwave;
   int? paystack;
-  String? stripePublicKey;
-  String? stripeSecretKey;
-  String? paypalSandboxKey;
-  String? paypalProducationKey;
-  String? razorKey;
-  String? flutterwaveKey;
-  String? flutterwaveEncryptionKey;
-  String? paystackPublicKey;
   String? timezone;
   int? defaultCommission;
   int? pharamacyCommission;
@@ -56,17 +48,6 @@ class Data {
   int? verification;
   int? usingMail;
   int? usingMsg;
-  String? twilioAuthToken;
-  String? twilioAccId;
-  String? twilioPhoneNo;
-  String? mailMailer;
-  String? mailHost;
-  String? mailPort;
-  String? mailUsername;
-  String? mailPassword;
-  String? mailEncryption;
-  String? mailFromAddress;
-  String? mailFromName;
   String? cancelReason;
   int? radius;
   String? clinicContent;
@@ -89,8 +70,6 @@ class Data {
   String? companyWhite;
   String? logo;
   String? favicon;
-  String? paypalClientId;
-  String? paypalSecretKey;
 
   Data(
       {this.id,
@@ -110,14 +89,6 @@ class Data {
       this.razor,
       this.flutterwave,
       this.paystack,
-      this.stripePublicKey,
-      this.stripeSecretKey,
-      this.paypalSandboxKey,
-      this.paypalProducationKey,
-      this.razorKey,
-      this.flutterwaveKey,
-      this.flutterwaveEncryptionKey,
-      this.paystackPublicKey,
       this.timezone,
       this.defaultCommission,
       this.pharamacyCommission,
@@ -126,17 +97,6 @@ class Data {
       this.verification,
       this.usingMail,
       this.usingMsg,
-      this.twilioAuthToken,
-      this.twilioAccId,
-      this.twilioPhoneNo,
-      this.mailMailer,
-      this.mailHost,
-      this.mailPort,
-      this.mailUsername,
-      this.mailPassword,
-      this.mailEncryption,
-      this.mailFromAddress,
-      this.mailFromName,
       this.cancelReason,
       this.radius,
       this.clinicContent,
@@ -158,9 +118,7 @@ class Data {
       this.agoraAppId,
       this.companyWhite,
       this.logo,
-      this.favicon,
-      this.paypalClientId,
-      this.paypalSecretKey});
+      this.favicon});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -180,14 +138,6 @@ class Data {
     razor = json['razor'];
     flutterwave = json['flutterwave'];
     paystack = json['paystack'];
-    stripePublicKey = json['stripe_public_key'];
-    stripeSecretKey = json['stripe_secret_key'];
-    paypalSandboxKey = json['paypal_sandbox_key'];
-    paypalProducationKey = json['paypal_producation_key'];
-    razorKey = json['razor_key'];
-    flutterwaveKey = json['flutterwave_key'];
-    flutterwaveEncryptionKey = json['flutterwave_encryption_key'];
-    paystackPublicKey = json['paystack_public_key'];
     timezone = json['timezone'];
     defaultCommission = json['default_commission'];
     pharamacyCommission = json['pharamacy_commission'];
@@ -196,17 +146,6 @@ class Data {
     verification = json['verification'];
     usingMail = json['using_mail'];
     usingMsg = json['using_msg'];
-    twilioAuthToken = json['twilio_auth_token'];
-    twilioAccId = json['twilio_acc_id'];
-    twilioPhoneNo = json['twilio_phone_no'];
-    mailMailer = json['mail_mailer'];
-    mailHost = json['mail_host'];
-    mailPort = json['mail_port'];
-    mailUsername = json['mail_username'];
-    mailPassword = json['mail_password'];
-    mailEncryption = json['mail_encryption'];
-    mailFromAddress = json['mail_from_address'];
-    mailFromName = json['mail_from_name'];
     cancelReason = json['cancel_reason'];
     radius = json['radius'];
     clinicContent = json['clinic_content'];
@@ -229,8 +168,6 @@ class Data {
     companyWhite = json['companyWhite'];
     logo = json['logo'];
     favicon = json['favicon'];
-    paypalClientId = json['paypal_client_id'];
-    paypalSecretKey = json['paypal_secret_key'];
   }
 
   Map<String, dynamic> toJson() {
@@ -252,14 +189,6 @@ class Data {
     data['razor'] = razor;
     data['flutterwave'] = flutterwave;
     data['paystack'] = paystack;
-    data['stripe_public_key'] = stripePublicKey;
-    data['stripe_secret_key'] = stripeSecretKey;
-    data['paypal_sandbox_key'] = paypalSandboxKey;
-    data['paypal_producation_key'] = paypalProducationKey;
-    data['razor_key'] = razorKey;
-    data['flutterwave_key'] = flutterwaveKey;
-    data['flutterwave_encryption_key'] = flutterwaveEncryptionKey;
-    data['paystack_public_key'] = paystackPublicKey;
     data['timezone'] = timezone;
     data['default_commission'] = defaultCommission;
     data['pharamacy_commission'] = pharamacyCommission;
@@ -268,17 +197,6 @@ class Data {
     data['verification'] = verification;
     data['using_mail'] = usingMail;
     data['using_msg'] = usingMsg;
-    data['twilio_auth_token'] = twilioAuthToken;
-    data['twilio_acc_id'] = twilioAccId;
-    data['twilio_phone_no'] = twilioPhoneNo;
-    data['mail_mailer'] = mailMailer;
-    data['mail_host'] = mailHost;
-    data['mail_port'] = mailPort;
-    data['mail_username'] = mailUsername;
-    data['mail_password'] = mailPassword;
-    data['mail_encryption'] = mailEncryption;
-    data['mail_from_address'] = mailFromAddress;
-    data['mail_from_name'] = mailFromName;
     data['cancel_reason'] = cancelReason;
     data['radius'] = radius;
     data['clinic_content'] = clinicContent;
@@ -301,8 +219,6 @@ class Data {
     data['companyWhite'] = companyWhite;
     data['logo'] = logo;
     data['favicon'] = favicon;
-    data['paypal_client_id'] = paypalClientId;
-    data['paypal_secret_key'] = paypalSecretKey;
     return data;
   }
 }

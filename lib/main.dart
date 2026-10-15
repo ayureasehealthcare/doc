@@ -391,14 +391,6 @@ class _MyAppState extends State<MyApp> {
     try {
       response = await RestClient(RetroApi2().dioData2()).settingRequest();
       if (SharedPreferenceHelper.getBoolean(Preferences.is_logged_in) == true) {
-        if (response.data!.stripeSecretKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.stripeSecretKey, response.data!.stripeSecretKey!);
-        }
-        if (response.data!.stripePublicKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.stripPublicKey, response.data!.stripePublicKey!);
-        }
         if (response.data!.currencySymbol != null) {
           SharedPreferenceHelper.setString(
               Preferences.currency_symbol, response.data!.currencySymbol!);

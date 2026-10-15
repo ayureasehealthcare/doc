@@ -213,7 +213,7 @@ class AstraConfig {
       String endpoint, Map<String, String> params) {
     String url = endpoint;
     params.forEach((key, value) {
-      url = url.replaceAll('{$key}', value);
+      url = url.replaceAll('{$key}', Uri.encodeComponent(value));
     });
     return buildUrl(url);
   }

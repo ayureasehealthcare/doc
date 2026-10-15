@@ -163,47 +163,6 @@ class LoginHomeViewModel extends ChangeNotifier {
             Preferences.agoraAppId, response.data!.agoraAppId!);
       }
       if (SharedPreferenceHelper.getBoolean(Preferences.is_logged_in) == true) {
-        if (response.data!.stripeSecretKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.stripeSecretKey, response.data!.stripeSecretKey!);
-        }
-        if (response.data!.stripePublicKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.stripPublicKey, response.data!.stripePublicKey!);
-        }
-        if (response.data!.flutterwaveEncryptionKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.flutterWave_encryption_key,
-              response.data!.flutterwaveEncryptionKey!);
-        }
-        if (response.data!.flutterwaveKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.flutterWave_key, response.data!.flutterwaveKey!);
-        }
-        if (response.data!.paystackPublicKey != null) {
-          SharedPreferenceHelper.setString(Preferences.payStack_public_key,
-              response.data!.paystackPublicKey!);
-        }
-        if (response.data!.razorKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.razor_key, response.data!.razorKey!);
-        }
-        if (response.data!.paypalProducationKey != null) {
-          SharedPreferenceHelper.setString(Preferences.payPal_production_key,
-              response.data!.paypalProducationKey!);
-        }
-        if (response.data!.paypalSandboxKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.payPal_sandbox_key, response.data!.paypalSandboxKey!);
-        }
-        if (response.data!.paypalClientId != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.paypal_client_key, response.data!.paypalClientId!);
-        }
-        if (response.data!.paypalSecretKey != null) {
-          SharedPreferenceHelper.setString(
-              Preferences.paypal_secret_key, response.data!.paypalSecretKey!);
-        }
         if (response.data!.currencySymbol != null) {
           SharedPreferenceHelper.setString(
               Preferences.currency_symbol, response.data!.currencySymbol!);
