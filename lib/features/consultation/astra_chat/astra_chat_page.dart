@@ -7,6 +7,7 @@ import 'package:doctro/core/astra/astra_core.dart';
 import 'package:doctro/core/astra/widgets/widgets.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 import 'package:doctro/widgets/osler_loader.dart';
 
 /// Astra AI Chat Page
@@ -189,6 +190,30 @@ class _AstraChatPageState extends State<AstraChatPage> {
         ],
       ),
       centerTitle: true,
+      // Every reply on this screen is Astra's, so it is labelled once here
+      // rather than on each bubble.
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(36),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: AyurezeTheme.spaceSm),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const ContentOriginBadge(origin: ContentOrigin.astraSuggestion),
+              const SizedBox(width: AyurezeTheme.spaceSm),
+              Flexible(
+                child: Text(
+                  'Replies are not clinical decisions',
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AyurezeTheme.textSecondary,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       actions: [
         // More options
         PopupMenuButton<String>(

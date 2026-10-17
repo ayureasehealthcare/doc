@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/core/astra/suggestions/suggestion_model.dart';
 import 'package:doctro/core/astra/navigation/app_router.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 
 /// AI Suggestions Card Widget
 ///
@@ -99,6 +100,7 @@ class AISuggestionsCard extends StatelessWidget {
               ),
             ),
           ),
+          const ContentOriginBadge(origin: ContentOrigin.astraSuggestion),
           _buildCollapsibleButton(context),
         ],
       ),

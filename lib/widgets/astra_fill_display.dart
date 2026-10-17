@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/services/astra_api_service.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 
 /// Widget to display Astra Fill health intake records submitted by patient
 /// This shows symptoms, vitals, medical history that patient filled in their app
@@ -208,6 +209,11 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                                 ?.copyWith(
                                   color: AyurezeTheme.purple,
                                 ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.only(top: AyurezeTheme.spaceXs),
+                            child: ContentOriginBadge(
+                                origin: ContentOrigin.astraSuggestion),
                           ),
                           if (timestamp.isNotEmpty)
                             Text(
@@ -626,6 +632,8 @@ class AstraFillCompactWidget extends StatelessWidget {
                   ),
               ],
             ),
+            const SizedBox(height: AyurezeTheme.spaceXs),
+            const ContentOriginBadge(origin: ContentOrigin.astraSuggestion),
             ...[
               SizedBox(height: 8),
               Text(

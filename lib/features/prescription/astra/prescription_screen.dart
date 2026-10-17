@@ -3,6 +3,7 @@ import 'package:doctro/core/constants/app_icons.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_card.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
@@ -75,6 +76,11 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
     super.dispose();
   }
 
+  /// The diagnosis text Astra pre-filled from the patient's intake, so the
+  /// field can say whether it still shows Astra's draft or the doctor's own
+  /// words.
+  String? _astraDiagnosisDraft;
+
   void _processAstraFillData(Map<String, dynamic> astraFill) {
     if (astraFill['extracted_symptoms'] != null) {
       dynamic symptoms = astraFill['extracted_symptoms'];
@@ -83,6 +89,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
             (symptoms is List) ? symptoms.join(', ') : symptoms.toString();
         _diagnosisController.text =
             "Possible condition related to: $symptomsText";
+        _astraDiagnosisDraft = _diagnosisController.text;
       }
     }
   }
@@ -401,6 +408,35 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                                 icon: HugeIcons.strokeRoundedStethoscope02,
                                 color: AyurezeTheme.healingGreen100),
                           ),
+                        ),
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _diagnosisController,
+                          builder: (context, value, _) {
+                            final origin = ContentOrigin.forDraft(value.text,
+                                astraDraft: _astraDiagnosisDraft);
+                            if (origin == null) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  top: AyurezeTheme.spaceSm),
+                              child: Row(
+                                children: [
+                                  ContentOriginBadge(origin: origin),
+                                  if (origin ==
+                                      ContentOrigin.astraSuggestion) ...[
+                                    const SizedBox(width: AyurezeTheme.spaceSm),
+                                    Expanded(
+                                      child: Text(
+                                        "Drafted from the patient's intake. "
+                                        "Review before prescribing.",
+                                        style: textTheme.bodySmall?.copyWith(
+                                            color: AyurezeTheme.textSecondary),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 20),
                         Text(
