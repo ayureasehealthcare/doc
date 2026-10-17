@@ -12,6 +12,7 @@ import 'package:doctro/widgets/glass_surface.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_loader.dart';
 import 'package:doctro/widgets/osler_toast.dart';
+import 'package:doctro/widgets/patient_wellness_section.dart';
 
 import 'package:doctro/features/prescription/astra/prescription_screen.dart';
 import 'package:doctro/features/consultation/chat/constants/firestore_constants.dart';
@@ -651,6 +652,15 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                         ),
 
                                       const SizedBox(height: 16),
+
+                                      // TODO(astra-backend): keyed on the
+                                      // Laravel user id, same as Astra Fill
+                                      // above; confirm the wellness endpoint
+                                      // uses that id and not an Astra uid.
+                                      if (userId != null)
+                                        PatientWellnessSection(
+                                          patientId: userId.toString(),
+                                        ),
 
                                       _buildInfoCard(
                                         context,

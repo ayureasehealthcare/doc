@@ -197,4 +197,11 @@ class Apis {
   // Companion Case (journey/progress tied to a consultation - note this
   // is under /api/companion, not /api/v1 like the routes above)
   static const String astra_companion_case = "api/companion/case/{case_id}";
+
+  // NOT LIVE YET - TODO(astra-backend). Path taken from the feature brief
+  // ("something like GET /api/companion/wellness/{patient_id}"); it is not
+  // in the astra repo or confirmed against the live OpenAPI spec. Gated off
+  // by AstraApiService.wellnessEndpointLive until it is.
+  static const String astra_companion_wellness =
+      "api/companion/wellness/{patient_id}";
 }

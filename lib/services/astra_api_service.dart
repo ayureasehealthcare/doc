@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:doctro/models/patient_wellness.dart';
 import 'package:doctro/network/apis.dart';
 import 'package:doctro/core/constants/prefConstatnt.dart';
 import 'package:doctro/core/constants/preferences.dart';
@@ -1174,6 +1175,37 @@ class AstraApiService {
       final data = response.data;
       if (data is Map && data['success'] == true && data['case'] is Map) {
         return Map<String, dynamic>.from(data['case']);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ============================================================
+  // COMPANION: PATIENT WELLNESS (endpoint not live yet)
+  // ============================================================
+
+  /// TODO(astra-backend): flip to true once
+  /// GET /api/companion/wellness/{patient_id} exists in astra, after
+  /// checking its response against [PatientWellness.fromJson].
+  static const bool wellnessEndpointLive = false;
+
+  /// The patient's self-reported wellness log and goals, or null when it
+  /// isn't available (endpoint not live, 404, or any other failure) - the
+  /// caller shows a "not available yet" state, never fabricated data.
+  ///
+  /// Uses the authenticated client, unlike [getCompanionCase]: this is the
+  /// patient's own tracking data, so it should not be readable by id alone.
+  Future<PatientWellness?> getPatientWellness(String patientId) async {
+    if (!wellnessEndpointLive) return null;
+    try {
+      final path = Apis.astra_companion_wellness
+          .replaceAll('{patient_id}', Uri.encodeComponent(patientId));
+      final response = await _dio.get(path);
+      final data = response.data;
+      if (data is Map) {
+        return PatientWellness.fromJson(Map<String, dynamic>.from(data));
       }
       return null;
     } catch (e) {
