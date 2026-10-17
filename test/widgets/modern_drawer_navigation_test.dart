@@ -18,6 +18,8 @@ Widget _buildApp() {
     ),
     routes: {
       'search': (context) => const Scaffold(body: Text('Search screen')),
+      'reviewQueue': (context) =>
+          const Scaffold(body: Text('Review queue screen')),
       'loginHome': (context) => const Scaffold(body: Text('Home screen')),
       'AppointmentHistoryScreen': (context) => const Scaffold(),
       'cancelAppoitmentRoutes': (context) => const Scaffold(),
@@ -75,5 +77,13 @@ void main() {
     await tester.pumpAndSettle();
     _drainKnownInkAssertion(tester);
     expect(find.text('Search screen'), findsOneWidget);
+  });
+
+  testWidgets('Review queue routes to the review queue screen', (tester) async {
+    await _openDrawer(tester);
+    await tester.tap(find.text('Review queue'));
+    await tester.pumpAndSettle();
+    _drainKnownInkAssertion(tester);
+    expect(find.text('Review queue screen'), findsOneWidget);
   });
 }

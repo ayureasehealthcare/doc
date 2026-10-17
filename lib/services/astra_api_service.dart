@@ -3,6 +3,7 @@ import 'package:path/path.dart' as p;
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:doctro/models/autopilot_action.dart';
 import 'package:doctro/models/patient_wellness.dart';
 import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/network/apis.dart';
@@ -1230,6 +1231,37 @@ class AstraApiService {
   Future<SharingConsent> getSharingConsent(
       String doctorId, String patientId) async {
     return SharingConsent.unknown;
+  }
+
+  // ============================================================
+  // COMPANION: AUTOPILOT REVIEW QUEUE (no endpoint yet)
+  // ============================================================
+  //
+  // TODO(astra-backend): STUBS. The pending-actions, acknowledge and
+  // dismiss routes are being added to astra separately; none exist today,
+  // and neither their paths nor their response shapes have been agreed.
+  // So these make no request and define no path constants. Wire them up
+  // (and add AutopilotAction.fromJson) against the real contract.
+
+  /// Autopilot actions awaiting [doctorId]'s awareness or sign-off. Empty
+  /// until the backend exists, which the review queue shows as "nothing to
+  /// review".
+  Future<List<AutopilotAction>> getPendingAutopilotActions(
+      String doctorId) async {
+    return const [];
+  }
+
+  /// Marks an action as seen/approved by the doctor. Returns whether the
+  /// server accepted it; the stub always reports failure, so nothing is
+  /// ever shown as handled when it wasn't.
+  Future<bool> acknowledgeAutopilotAction(String actionId) async {
+    return false;
+  }
+
+  /// Dismisses an action as not relevant. Same contract as
+  /// [acknowledgeAutopilotAction].
+  Future<bool> dismissAutopilotAction(String actionId) async {
+    return false;
   }
 
   // ============================================================

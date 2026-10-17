@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:doctro/features/autopilot/review_queue_screen.dart';
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/widgets/glass_surface.dart';
@@ -160,6 +161,12 @@ class ModernDrawer extends StatelessWidget {
                             .toString(),
                         () => Navigator.popAndPushNamed(
                             context, 'notifications')),
+                    _drawerItem(
+                        context,
+                        HugeIcons.strokeRoundedTaskDone01,
+                        "Review queue",
+                        () => Navigator.popAndPushNamed(
+                            context, ReviewQueueScreen.routeName)),
                     _drawerItem(
                         context,
                         HugeIcons.strokeRoundedSearch01,
