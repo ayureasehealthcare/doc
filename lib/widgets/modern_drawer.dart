@@ -258,47 +258,55 @@ class ModernDrawer extends StatelessWidget {
       child: GlassSurface(
         radius: AyurezeTheme.radius2xl,
         blur: 8,
-        child: ListTile(
-          leading: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: isDestructive
-                  ? AyurezeTheme.danger.withValues(alpha: 0.1)
-                  : AyurezeTheme.surfaceMuted,
-              borderRadius: BorderRadius.circular(14),
+        // ListTile paints its ripple on the nearest Material; without this
+        // one, the glass surface's fill hides it.
+        child: Material(
+          type: MaterialType.transparency,
+          child: ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AyurezeTheme.radius2xl),
             ),
-            child: HugeIcon(
-                icon: icon,
+            leading: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
                 color: isDestructive
-                    ? AyurezeTheme.danger
-                    : AyurezeTheme.textPrimary,
-                size: 20),
-          ),
-          title: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    ? AyurezeTheme.danger.withValues(alpha: 0.1)
+                    : AyurezeTheme.surfaceMuted,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: HugeIcon(
+                  icon: icon,
                   color: isDestructive
                       ? AyurezeTheme.danger
                       : AyurezeTheme.textPrimary,
-                  fontWeight: FontWeight.w700,
+                  size: 20),
+            ),
+            title: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDestructive
+                        ? AyurezeTheme.danger
+                        : AyurezeTheme.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (badge != null) ...[badge, const SizedBox(width: 8)],
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 14,
+                  color: isDestructive
+                      ? AyurezeTheme.danger.withValues(alpha: 0.7)
+                      : AyurezeTheme.textSecondary,
                 ),
+              ],
+            ),
+            onTap: onTap,
+            dense: true,
           ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (badge != null) ...[badge, const SizedBox(width: 8)],
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 14,
-                color: isDestructive
-                    ? AyurezeTheme.danger.withValues(alpha: 0.7)
-                    : AyurezeTheme.textSecondary,
-              ),
-            ],
-          ),
-          onTap: onTap,
-          dense: true,
         ),
       ),
     );
