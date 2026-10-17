@@ -13,6 +13,7 @@ import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_loader.dart';
 import 'package:doctro/widgets/osler_toast.dart';
 import 'package:doctro/widgets/patient_wellness_section.dart';
+import 'package:doctro/widgets/sharing_consent_guard.dart';
 
 import 'package:doctro/features/prescription/astra/prescription_screen.dart';
 import 'package:doctro/features/consultation/chat/constants/firestore_constants.dart';
@@ -155,7 +156,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
           final astraFillData = vm.astraFillData;
           final astraCaseId = vm.astraCaseId;
 
-          return FadeTransition(
+          final content = FadeTransition(
             opacity: _fadeAnim,
             child: SlideTransition(
               position: _slideAnim,
@@ -837,6 +838,13 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                 ],
               ),
             ),
+          );
+
+          // Companion case/journey data (the Astra case card, wellness) is
+          // shown under a consent check - never assuming full access.
+          return SharingConsentGuard(
+            patientId: userId?.toString(),
+            child: content,
           );
         },
       ),

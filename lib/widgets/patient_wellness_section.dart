@@ -3,10 +3,12 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 
 import 'package:doctro/models/patient_wellness.dart';
+import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/widgets/osler_card.dart';
 import 'package:doctro/widgets/osler_tag.dart';
+import 'package:doctro/widgets/sharing_consent_guard.dart';
 
 typedef WellnessLoader = Future<PatientWellness?> Function(String patientId);
 
@@ -17,6 +19,9 @@ typedef WellnessLoader = Future<PatientWellness?> Function(String patientId);
 /// into their own app, not clinical measurements, and must never read as
 /// vitals. When the data isn't available (the backend endpoint isn't live
 /// yet, or the fetch failed) it says so instead of hiding or inventing it.
+///
+/// Needs a [SharingConsentGuard] (or [SharingConsentScope]) above it that
+/// reports full sharing; without one it shows a "not shared" state.
 class PatientWellnessSection extends StatefulWidget {
   final String patientId;
 
@@ -40,11 +45,20 @@ class PatientWellnessSection extends StatefulWidget {
 class _PatientWellnessSectionState extends State<PatientWellnessSection> {
   PatientWellness? _wellness;
   bool _loading = true;
+  bool _requested = false;
+  SharingConsent _consent = SharingConsent.unknown;
 
   @override
-  void initState() {
-    super.initState();
-    _load();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The wellness log goes beyond the consultation itself, so it is only
+    // fetched once the patient has shared their full record with this
+    // doctor - never on an unknown or limited answer.
+    _consent = SharingConsentScope.of(context);
+    if (_consent.isFull && !_requested) {
+      _requested = true;
+      _load();
+    }
   }
 
   Future<void> _load() async {
@@ -112,6 +126,14 @@ class _PatientWellnessSectionState extends State<PatientWellnessSection> {
   }
 
   Widget _buildBody(BuildContext context) {
+    if (!_consent.isFull) {
+      return _message(
+        context,
+        'Not shared with you',
+        'The patient hasn\'t turned on full-record sharing with you, so '
+            'their wellness log isn\'t shown.',
+      );
+    }
     if (_loading) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: AyurezeTheme.spaceSm),

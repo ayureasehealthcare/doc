@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:doctro/models/patient_wellness.dart';
+import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/network/apis.dart';
 import 'package:doctro/core/constants/prefConstatnt.dart';
 import 'package:doctro/core/constants/preferences.dart';
@@ -1211,6 +1212,24 @@ class AstraApiService {
     } catch (e) {
       return null;
     }
+  }
+
+  // ============================================================
+  // COMPANION: DOCTOR-SHARING CONSENT (no endpoint yet)
+  // ============================================================
+
+  /// Whether [patientId] has shared their full record with [doctorId].
+  ///
+  /// TODO(astra-backend): STUB. No consent endpoint exists in astra (the
+  /// patient app stores the toggle on-device only), and no route has been
+  /// agreed, so this deliberately makes no request and has no path
+  /// constant. It always returns [SharingConsent.unknown], which every
+  /// caller treats as limited sharing. Once the companion astra work adds
+  /// the route, call it here and parse with [SharingConsent.fromJson];
+  /// keep failures mapping to unknown, never to full.
+  Future<SharingConsent> getSharingConsent(
+      String doctorId, String patientId) async {
+    return SharingConsent.unknown;
   }
 
   // ============================================================

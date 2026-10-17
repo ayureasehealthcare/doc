@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:doctro/models/patient_wellness.dart';
+import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/widgets/patient_wellness_section.dart';
+import 'package:doctro/widgets/sharing_consent_guard.dart';
 
-Widget _host(WellnessLoader loader) => MaterialApp(
+Widget _host(WellnessLoader loader,
+        {SharingConsent consent = SharingConsent.full}) =>
+    MaterialApp(
       home: Scaffold(
-        body: SingleChildScrollView(
-          child: PatientWellnessSection(patientId: '42', loader: loader),
+        body: SharingConsentScope(
+          consent: consent,
+          child: SingleChildScrollView(
+            child: PatientWellnessSection(patientId: '42', loader: loader),
+          ),
         ),
       ),
     );
@@ -74,5 +81,38 @@ void main() {
     expect(find.text('Active goals'), findsOneWidget);
     expect(find.text('Sleep 7+ hours'), findsOneWidget);
     expect(find.text('Walk daily'), findsNothing);
+  });
+
+  testWidgets('withholds the log unless consent is full, without fetching',
+      (tester) async {
+    for (final consent in [SharingConsent.limited, SharingConsent.unknown]) {
+      var calls = 0;
+      await tester.pumpWidget(_host((_) async {
+        calls++;
+        return const PatientWellness();
+      }, consent: consent));
+      await tester.pump();
+
+      expect(calls, 0, reason: '$consent must not fetch');
+      expect(find.text('Not shared with you'), findsOneWidget);
+      expect(find.text('Patient-reported'), findsOneWidget);
+    }
+  });
+
+  testWidgets('fetches once consent upgrades to full', (tester) async {
+    var calls = 0;
+    Future<PatientWellness?> loader(String _) async {
+      calls++;
+      return const PatientWellness();
+    }
+
+    await tester.pumpWidget(_host(loader, consent: SharingConsent.unknown));
+    await tester.pump();
+    expect(calls, 0);
+
+    await tester.pumpWidget(_host(loader));
+    await tester.pump();
+    expect(calls, 1);
+    expect(find.text('No wellness entries'), findsOneWidget);
   });
 }
