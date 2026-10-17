@@ -9,7 +9,7 @@ Flutter telehealth app for doctors. Branch: `astra-ai-integration`.
 # sandbox recycles $HOME mid-session and wipes anything installed there.
 export PATH="/workspace/tools/flutter/bin:$PATH"
 flutter analyze                                   # expect 0 errors, 0 warnings
-flutter test                                      # 132 tests
+flutter test                                      # 211 tests
 flutter build web --release
 dart format lib test
 ```
@@ -328,3 +328,34 @@ fingerprint, or Google Sign-In breaks again on every subsequent build.
 `AuthProvider.signInWithGoogle` (`lib/features/consultation/chat/providers/auth_provider.dart`)
 logs the real exception via `debugPrint` on failure - check logcat/CI logs
 there before assuming a new failure is code, not a fingerprint mismatch.
+
+## Companion features awaiting astra endpoints
+
+Four doctor-side counterparts of patient-app features are built against
+stubs in `AstraApiService`, because the backend routes don't exist yet
+(the astra repo is empty and the live OpenAPI spec was not reachable when
+they were written). Each stub makes **no request** and is marked
+`TODO(astra-backend)`. Do not "fix" them by guessing a route.
+
+| Feature | Stub | Today | To light up |
+|---|---|---|---|
+| Wellness section (patient screen, illness tab) | `getPatientWellness` | `null` -> "Not available yet" | flip `wellnessEndpointLive`; check `PatientWellness.fromJson` keys |
+| Sharing consent | `getSharingConsent` | `unknown` -> limited-sharing banner | call the real route, parse with `SharingConsent.fromJson` |
+| Review queue (`ReviewQueueScreen`) | `getPendingAutopilotActions`, `acknowledge…`, `dismiss…` | `[]` / `false` | add routes + `AutopilotAction.fromJson` |
+
+Only the wellness path (`Apis.astra_companion_wellness`) exists as a
+constant, because the brief named it. Model parsers mirror the patient
+app's local JSON keys (`sleep_hours`, `share_full_record`, ...) and are
+unconfirmed against any server.
+
+Consent rules: `SharingConsentGuard` wraps the patient detail body and is
+the single place consent is checked. Anything other than an explicit
+`SharingConsent.full` (loading, limited, unknown, failure, missing ids)
+shows the banner, and descendants read it via `SharingConsentScope.of`,
+which defaults to `unknown` with no guard above. Keep failures mapping to
+`unknown`, never `full`.
+
+Content origin: label Astra output with `ContentOriginBadge` (same
+"Astra suggestion" / "Doctor-approved" wording as the patient app), once
+per card or screen, not per line. For a field Astra pre-fills, use
+`ContentOrigin.forDraft` so the label flips when the doctor edits it.
