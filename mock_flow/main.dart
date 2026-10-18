@@ -1,0 +1,225 @@
+// Mock flow harness - NOT part of the app. Runs the four companion
+// features' real widgets against in-memory mock services, because the
+// astra endpoints they target don't exist yet.
+//
+//   flutter run -d chrome -t mock_flow/main.dart
+//   flutter build web -t mock_flow/main.dart
+import 'package:flutter/material.dart';
+
+import 'package:doctro/features/autopilot/review_queue_screen.dart';
+import 'package:doctro/features/prescription/astra/prescription_screen.dart';
+import 'package:doctro/models/autopilot_action.dart';
+import 'package:doctro/models/patient_wellness.dart';
+import 'package:doctro/models/sharing_consent.dart';
+import 'package:doctro/services/astra_api_service.dart';
+import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/astra_fill_display.dart';
+import 'package:doctro/widgets/patient_wellness_section.dart';
+import 'package:doctro/widgets/sharing_consent_guard.dart';
+
+const _astraFill = {
+  'chief_complaint': 'Persistent dry cough and mild fever',
+  'duration': '6 days',
+  'extracted_symptoms': ['dry cough', 'mild fever', 'fatigue'],
+  'severity_score': 5,
+  'sleep': 'Disturbed by coughing',
+  'appetite': 'Reduced',
+  'timestamp': '2026-10-17T09:30:00Z',
+};
+
+PatientWellness _mockWellness() {
+  final today = DateTime.now();
+  return PatientWellness(
+    entries: [
+      for (var i = 0; i < 9; i++)
+        WellnessEntry(
+          dateKey: WellnessEntryKey.of(today.subtract(Duration(days: i))),
+          sleepHours: const [6.5, 7.0, 5.5, 8.0, 7.5, 6.0, 7.0, 6.5, 8.0][i],
+          movementMinutes: [20, 35, 0, 45, 30, 15, 25, 40, 10][i],
+          relaxationMinutes: i.isEven ? 15 : null,
+          mood: [4, 3, 2, 5, 4, 3, 4, 3, 5][i],
+        ),
+    ],
+    goals: const [
+      WellnessGoal(id: 'g1', title: 'Sleep 7+ hours'),
+      WellnessGoal(id: 'g2', title: 'Walk 30 minutes daily'),
+      WellnessGoal(id: 'g3', title: 'Morning pranayama', achieved: true),
+    ],
+  );
+}
+
+extension WellnessEntryKey on WellnessEntry {
+  static String of(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+}
+
+/// In-memory review queue. The item whose id is 'fail' is rejected by the
+/// "server" so the error path can be seen.
+class _MockQueue {
+  final List<AutopilotAction> items = [
+    AutopilotAction(
+      id: 'gap-1',
+      kind: AutopilotActionKind.careGap,
+      title: 'No symptom check-in for 5 days',
+      detail: 'Patient has missed daily check-ins since starting the '
+          'prescribed course.',
+      patientName: 'Demo Patient A',
+      createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+      requiresSignOff: true,
+    ),
+    AutopilotAction(
+      id: 'fu-1',
+      kind: AutopilotActionKind.followUp,
+      title: 'Suggest a 2-week follow-up',
+      detail: 'Course ends in 3 days; Astra suggests a review consultation.',
+      patientName: 'Demo Patient B',
+      createdAt: DateTime.now().subtract(const Duration(days: 1)),
+    ),
+    const AutopilotAction(
+      id: 'fail',
+      kind: AutopilotActionKind.other,
+      title: 'Mock: the server rejects this item',
+      detail: 'Acknowledging or dismissing this one fails on purpose, to '
+          'show that it stays in the queue.',
+      patientName: 'Demo Patient C',
+    ),
+  ];
+
+  Future<List<AutopilotAction>> load(String _) async {
+    await Future<void>.delayed(const Duration(milliseconds: 400));
+    return List.of(items);
+  }
+
+  Future<bool> resolve(String id) async {
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+    if (id == 'fail') return false;
+    items.removeWhere((a) => a.id == id);
+    return true;
+  }
+}
+
+void main() => runApp(const MockFlowApp());
+
+class MockFlowApp extends StatelessWidget {
+  const MockFlowApp({super.key});
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        title: 'Doctor app - mock flow',
+        debugShowCheckedModeBanner: false,
+        theme: AyurezeTheme.lightTheme(),
+        home: const _Home(),
+      );
+}
+
+class _Home extends StatelessWidget {
+  const _Home();
+
+  @override
+  Widget build(BuildContext context) {
+    void go(Widget page) =>
+        Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    Widget tile(String key, String title, String subtitle, Widget page) =>
+        ListTile(
+          key: Key(key),
+          title: Text(title),
+          subtitle: Text(subtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => go(page),
+        );
+
+    final queue = _MockQueue();
+    return Scaffold(
+      appBar: AppBar(title: const Text('Mock flow')),
+      body: ListView(
+        children: [
+          tile(
+              'case-full',
+              '1. Patient case - full sharing',
+              'Mock consent: full. Wellness log visible.',
+              const _PatientCase(consent: SharingConsent.full)),
+          tile(
+              'case-limited',
+              '2. Patient case - limited sharing',
+              'Mock consent: limited. Banner, wellness withheld.',
+              const _PatientCase(consent: SharingConsent.limited)),
+          tile(
+              'case-stub',
+              '3. Patient case - today\'s stubs',
+              'Real AstraApiService stubs: consent unknown.',
+              const _PatientCase(consent: null)),
+          tile(
+              'rx',
+              '4. Prescription - Astra-drafted diagnosis',
+              'Badge flips when the doctor edits the diagnosis.',
+              const PrescriptionScreen(
+                patientId: 'demo-1',
+                patientName: 'Demo Patient A',
+                doctorId: 'demo-doctor',
+                astraFillData: _astraFill,
+              )),
+          tile(
+              'queue-mock',
+              '5. Review queue - mock backend',
+              'Acknowledge / dismiss; the third item fails on purpose.',
+              ReviewQueueScreen(
+                doctorId: 'demo-doctor',
+                loader: queue.load,
+                onAcknowledge: queue.resolve,
+                onDismiss: queue.resolve,
+              )),
+          tile(
+              'queue-stub',
+              '6. Review queue - today\'s stubs',
+              'Real AstraApiService stub: empty list.',
+              const ReviewQueueScreen(doctorId: 'demo-doctor')),
+        ],
+      ),
+    );
+  }
+}
+
+/// Stand-in for the patient detail screen: the same guard and sections,
+/// without the Laravel appointment API the real screen needs.
+class _PatientCase extends StatelessWidget {
+  /// null = use the real (stubbed) AstraApiService.
+  final SharingConsent? consent;
+
+  const _PatientCase({required this.consent});
+
+  @override
+  Widget build(BuildContext context) {
+    final mocked = consent != null;
+    return Scaffold(
+      backgroundColor: AyurezeTheme.canvas,
+      appBar: AppBar(title: const Text('Demo Patient A')),
+      body: SharingConsentGuard(
+        patientId: 'demo-1',
+        doctorId: 'demo-doctor',
+        loader: mocked
+            ? (_, __) async {
+                await Future<void>.delayed(const Duration(milliseconds: 500));
+                return consent!;
+              }
+            : null,
+        child: ListView(
+          padding: const EdgeInsets.all(AyurezeTheme.spaceLg),
+          children: [
+            const AstraFillDisplayWidget(
+              patientId: 'demo-1',
+              preloadedData: _astraFill,
+            ),
+            const SizedBox(height: AyurezeTheme.spaceLg),
+            PatientWellnessSection(
+              patientId: 'demo-1',
+              loader: mocked
+                  ? (_) async => _mockWellness()
+                  : AstraApiService().getPatientWellness,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
