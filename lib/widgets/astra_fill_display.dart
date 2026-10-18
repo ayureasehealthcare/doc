@@ -182,73 +182,83 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                   borderRadius: BorderRadius.vertical(
                       top: Radius.circular(AyurezeTheme.radiusLg)),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: EdgeInsets.all(AyurezeTheme.spaceSm),
-                      decoration: BoxDecoration(
-                        color: AyurezeTheme.purple,
-                        borderRadius:
-                            BorderRadius.circular(AyurezeTheme.radiusSm),
-                      ),
-                      child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedSparkles,
-                          color: Colors.white,
-                          size: 20),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Astra AI Health Intake",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: AyurezeTheme.purple,
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(AyurezeTheme.spaceSm),
+                          decoration: BoxDecoration(
+                            color: AyurezeTheme.purple,
+                            borderRadius:
+                                BorderRadius.circular(AyurezeTheme.radiusSm),
+                          ),
+                          child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedSparkles,
+                              color: Colors.white,
+                              size: 20),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Astra AI Health Intake",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: AyurezeTheme.purple,
+                                    ),
+                              ),
+                              if (timestamp.isNotEmpty)
+                                Text(
+                                  "Submitted by patient",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                          color: AyurezeTheme.textSecondary),
                                 ),
+                            ],
                           ),
-                          const Padding(
-                            padding: EdgeInsets.only(top: AyurezeTheme.spaceXs),
-                            child: ContentOriginBadge(
-                                origin: ContentOrigin.astraSuggestion),
-                          ),
-                          if (timestamp.isNotEmpty)
-                            Text(
-                              "Submitted by patient",
+                        ),
+                        if (severityScore != null)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _getSeverityColor(severityScore),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              "Severity: $severityScore/10",
                               style: Theme.of(context)
                                   .textTheme
                                   .bodySmall
-                                  ?.copyWith(color: AyurezeTheme.textSecondary),
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (severityScore != null)
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: _getSeverityColor(severityScore),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "Severity: $severityScore/10",
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  ?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
+                            ),
+                          ),
+                        SizedBox(width: 8),
+                        HugeIcon(
+                          icon: _isExpanded
+                              ? HugeIcons.strokeRoundedArrowUp01
+                              : HugeIcons.strokeRoundedArrowDown01,
+                          color: AyurezeTheme.purple,
                         ),
-                      ),
-                    SizedBox(width: 8),
-                    HugeIcon(
-                      icon: _isExpanded
-                          ? HugeIcons.strokeRoundedArrowUp01
-                          : HugeIcons.strokeRoundedArrowDown01,
-                      color: AyurezeTheme.purple,
+                      ],
+                    ),
+                    // Own line: beside the severity pill the title column is
+                    // too narrow and the badge overflowed under it.
+                    const Padding(
+                      padding: EdgeInsets.only(top: AyurezeTheme.spaceSm),
+                      child: ContentOriginBadge(
+                          origin: ContentOrigin.astraSuggestion),
                     ),
                   ],
                 ),
