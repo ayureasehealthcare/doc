@@ -66,7 +66,7 @@ class CommonFunction {
         //timeInSecForIosWeb: 1,
         backgroundColor: Colors.black54,
         textColor: Colors.white,
-        fontSize: 16.0);
+        fontSize: AyurezeTheme.textLg);
   }
 
   static hideDialog(BuildContext context) {

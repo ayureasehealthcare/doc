@@ -110,8 +110,9 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
             Expanded(
               child: Text(
                 "No health intake data available. Patient hasn't filled Astra form yet.",
-                style:
-                    TextStyle(color: AyurezeTheme.textSecondary, fontSize: 13),
+                style: TextStyle(
+                    color: AyurezeTheme.textSecondary,
+                    fontSize: AyurezeTheme.textMd),
               ),
             ),
           ],
@@ -236,7 +237,8 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                                 horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
                               color: _getSeverityColor(severityScore),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius:
+                                  BorderRadius.circular(AyurezeTheme.radiusXl),
                             ),
                             child: Text(
                               "Severity: $severityScore/10",
@@ -453,7 +455,8 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                           EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: chipColor,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius:
+                            BorderRadius.circular(AyurezeTheme.radiusXl),
                         border:
                             Border.all(color: textColor.withValues(alpha: 0.3)),
                       ),
@@ -461,7 +464,7 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                         item,
                         style: TextStyle(
                             color: textColor,
-                            fontSize: 13,
+                            fontSize: AyurezeTheme.textMd,
                             fontWeight: FontWeight.w500),
                       ),
                     ))
@@ -537,7 +540,7 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                 ?.copyWith(color: AyurezeTheme.textSecondary)),
         Text(value,
             style: TextStyle(
-                fontSize: 13,
+                fontSize: AyurezeTheme.textMd,
                 fontWeight: FontWeight.bold,
                 color: AyurezeTheme.textPrimary)),
       ],
@@ -637,7 +640,8 @@ class AstraFillCompactWidget extends StatelessWidget {
                         vertical: AyurezeTheme.spaceXs),
                     decoration: BoxDecoration(
                       color: _getSeverityColor(severityScore),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius:
+                          BorderRadius.circular(AyurezeTheme.radiusMd),
                     ),
                     child: Text(
                       "$severityScore/10",
@@ -653,7 +657,9 @@ class AstraFillCompactWidget extends StatelessWidget {
               SizedBox(height: 8),
               Text(
                 "Symptoms: ${symptoms.join(', ')}",
-                style: TextStyle(fontSize: 13, color: AyurezeTheme.textPrimary),
+                style: TextStyle(
+                    fontSize: AyurezeTheme.textMd,
+                    color: AyurezeTheme.textPrimary),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),

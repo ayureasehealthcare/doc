@@ -97,8 +97,8 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
                     children: [
                       Text(
                         "Welcome, Dr. ${widget.doctorName}!",
-                        style: AyurezeTheme.font(
-                            28, FontWeight.w800, AyurezeTheme.textPrimary,
+                        style: AyurezeTheme.font(AyurezeTheme.text3xl,
+                            FontWeight.w800, AyurezeTheme.textPrimary,
                             letterSpacing: -1),
                         textAlign: TextAlign.center,
                       ),
@@ -210,7 +210,7 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
           child: Text(
             value,
             style: AyurezeTheme.font(
-              isPrimary ? 18 : 14,
+              isPrimary ? AyurezeTheme.textXl : AyurezeTheme.textMd,
               isPrimary || isStatus ? FontWeight.w800 : FontWeight.w500,
               isStatus
                   ? AyurezeTheme.warning

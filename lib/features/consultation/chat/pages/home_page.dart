@@ -207,7 +207,8 @@ class HomePageState extends State<HomePage> {
           child: Row(
             children: <Widget>[
               Material(
-                borderRadius: const BorderRadius.all(Radius.circular(25)),
+                borderRadius: const BorderRadius.all(
+                    Radius.circular(AyurezeTheme.radiusPill)),
                 clipBehavior: Clip.hardEdge,
                 child: userChat.photoUrl.isNotEmpty
                     ? Image.network(

@@ -168,6 +168,55 @@ void main() {
     });
   });
 
+  group('in-call surfaces (always dark)', () {
+    test('callForeground clears AA on both ends of the waiting gradient', () {
+      // The waiting text used textPrimary, which is dark ink in light mode:
+      // 1.45:1 on teal-900.
+      for (final stop in AyurezeTheme.callWaitingGradient.colors) {
+        expect(
+          contrastRatio(
+              AyurezeTheme.callForeground.toARGB32(), stop.toARGB32()),
+          greaterThanOrEqualTo(4.5),
+          reason: 'on $stop',
+        );
+      }
+      expect(
+        contrastRatio(AyurezeTheme.callForeground.toARGB32(),
+            AyurezeTheme.callBackground.toARGB32()),
+        greaterThanOrEqualTo(4.5),
+      );
+    });
+  });
+
+  group('type scale', () {
+    test('the textTheme is built on the size tokens, in both modes', () {
+      for (final raw in [
+        AyurezeTheme.lightTheme(),
+        AyurezeTheme.darkTheme(),
+      ]) {
+        // As Theme.of(context) sees it: sizes the theme leaves unset
+        // (bodySmall, labelSmall) come from the typography geometry.
+        final theme = ThemeData.localize(
+            raw, raw.typography.geometryThemeFor(ScriptCategory.englishLike));
+        final t = theme.textTheme;
+        expect(t.headlineLarge!.fontSize, AyurezeTheme.text3xl);
+        expect(t.headlineMedium!.fontSize, AyurezeTheme.text2xl);
+        expect(t.titleLarge!.fontSize, AyurezeTheme.textXl);
+        expect(t.titleMedium!.fontSize, AyurezeTheme.textLg);
+        expect(t.bodyLarge!.fontSize, AyurezeTheme.textBase);
+        expect(t.bodyMedium!.fontSize, AyurezeTheme.textMd);
+        expect(t.bodySmall!.fontSize, AyurezeTheme.textSm);
+        expect(t.labelSmall!.fontSize, AyurezeTheme.textXs);
+      }
+    });
+
+    test('app bar titles are the same size in light and dark mode', () {
+      // Were 22 (light) vs 18 (dark), so titles jumped on a theme switch.
+      expect(AyurezeTheme.lightTheme().appBarTheme.titleTextStyle!.fontSize,
+          AyurezeTheme.darkTheme().appBarTheme.titleTextStyle!.fontSize);
+    });
+  });
+
   group('brand accent pairs (shade 100 foreground on shade 10 tint)', () {
     const List<List<Object>> pairs = [
       [

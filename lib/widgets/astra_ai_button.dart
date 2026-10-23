@@ -166,10 +166,10 @@ class AstraAIInlineButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
         child: Container(
           padding: const EdgeInsets.symmetric(
               horizontal: AyurezeTheme.spaceMd, vertical: AyurezeTheme.spaceSm),
@@ -187,7 +187,7 @@ class AstraAIInlineButton extends StatelessWidget {
                 style: TextStyle(
                   color: AyurezeTheme.healingGreen50,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: AyurezeTheme.textMd,
                 ),
               ),
             ],

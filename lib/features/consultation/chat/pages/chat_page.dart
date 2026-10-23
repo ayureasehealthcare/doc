@@ -299,8 +299,8 @@ class ChatPageState extends State<ChatPage> {
                               padding: WidgetStateProperty.all<EdgeInsets>(
                                   EdgeInsets.zero)),
                           child: Material(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(8)),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(AyurezeTheme.radiusSm)),
                             clipBehavior: Clip.hardEdge,
                             child: Image.network(
                               messageChat.content,
@@ -312,7 +312,7 @@ class ChatPageState extends State<ChatPage> {
                                   decoration: BoxDecoration(
                                     color: AyurezeTheme.border,
                                     borderRadius: BorderRadius.all(
-                                      Radius.circular(8),
+                                      Radius.circular(AyurezeTheme.radiusSm),
                                     ),
                                   ),
                                   width: 200,
@@ -344,7 +344,7 @@ class ChatPageState extends State<ChatPage> {
                                     fit: BoxFit.cover,
                                   ),
                                   borderRadius: const BorderRadius.all(
-                                    Radius.circular(8),
+                                    Radius.circular(AyurezeTheme.radiusSm),
                                   ),
                                   clipBehavior: Clip.hardEdge,
                                 );
@@ -381,7 +381,7 @@ class ChatPageState extends State<ChatPage> {
                   isLastMessageLeft(index)
                       ? Material(
                           borderRadius: const BorderRadius.all(
-                            Radius.circular(18),
+                            Radius.circular(AyurezeTheme.radiusLg),
                           ),
                           clipBehavior: Clip.hardEdge,
                           child: Image.network(
@@ -461,7 +461,8 @@ class ChatPageState extends State<ChatPage> {
                                         decoration: BoxDecoration(
                                           color: AyurezeTheme.border,
                                           borderRadius: BorderRadius.all(
-                                            Radius.circular(8),
+                                            Radius.circular(
+                                                AyurezeTheme.radiusSm),
                                           ),
                                         ),
                                         width: 200,
@@ -494,7 +495,7 @@ class ChatPageState extends State<ChatPage> {
                                         fit: BoxFit.cover,
                                       ),
                                       borderRadius: const BorderRadius.all(
-                                        Radius.circular(8),
+                                        Radius.circular(AyurezeTheme.radiusSm),
                                       ),
                                       clipBehavior: Clip.hardEdge,
                                     ),
@@ -503,7 +504,7 @@ class ChatPageState extends State<ChatPage> {
                                     fit: BoxFit.cover,
                                   ),
                                   borderRadius: const BorderRadius.all(
-                                      Radius.circular(8)),
+                                      Radius.circular(AyurezeTheme.radiusSm)),
                                   clipBehavior: Clip.hardEdge,
                                 ),
                               ),

@@ -9,7 +9,7 @@ Flutter telehealth app for doctors. Branch: `astra-ai-integration`.
 # sandbox recycles $HOME mid-session and wipes anything installed there.
 export PATH="/workspace/tools/flutter/bin:$PATH"
 flutter analyze                                   # expect 0 errors, 0 warnings
-flutter test                                      # 211 tests
+flutter test                                      # 225 tests
 flutter build web --release
 dart format lib test
 ```
@@ -126,24 +126,24 @@ depending on who wrote them. The Osler kit was migrated to the tokens;
 feature screens still largely hardcode, so expect mixed usage and
 converge on the tokens when you touch a file.
 
-## Screen layout: the kit is under-used
+## Screen layout and the Osler kit
 
-31 files have a `Scaffold`. Seven use **zero** Osler widgets: the chat
-`chat_page` / `home_page` / `full_photo_page`, `video_Call`,
-`videocallhistory`, `pdf_viewer_page`, and `app_shell` (a container, so
-expected). `login_home` and `cancel_appointment` have since moved onto the
-kit. New work on the chat and video screens should do the same rather
-than adding more hand-rolled Flutter.
+31 files have a `Scaffold`. All feature screens now build their loading,
+empty and error states, cards, toasts and overlay loaders from the kit
+(`OslerLoadingView`, `OslerStateView`, `OslerCard`, `OslerToast`,
+`OslerOverlayLoader`). Two use no Osler widgets, by design: `video_Call`
+(call controls over live video) and `app_shell` (a container). Do not
+hand-roll a spinner, empty state or toast in a screen - reach for the kit.
 
 `profile.dart` is ~2,200 lines - by far the largest file. Treat edits
 there carefully and prefer extracting a section over growing it.
 
-Drift, measured (Oct 2026): feature screens have **no** hardcoded
-`fontSize:` or `BorderRadius.circular(<number>)` left, and only a 1px
-hairline margin among raw `EdgeInsets`. What remains lives in shared
-widgets and `lib/core/astra`: 38 `fontSize:`, 41 radii, ~40 raw
-`EdgeInsets`, 20 literal `Color(0x..)` (mostly `astra_dark_mode.dart`
-and the deliberately dark in-call `video_Call` screen).
+Drift, measured (Oct 2026): **no** literal font sizes or radii remain
+outside `lib/theme/` - every `fontSize:`, `AyurezeTheme.font(<size>)` and
+`(Border)Radius.circular(<n>)` uses a token. Inside the theme, ten radii
+are still off-scale (nine `20`, one `32`) because they shape every themed
+component; moving them is a design decision, not a cleanup. About 40 raw
+`EdgeInsets` remain in shared widgets and `lib/core/astra`.
 
 ## Conventions
 
@@ -154,9 +154,15 @@ and the deliberately dark in-call `video_Call` screen).
   as a **surface** (card, tray, avatar background). Judging these by
   count rather than by role led to an overstated bug list once already -
   see the Dark mode section for the test that actually decides it.
-- The theme defines text styles (`headlineLarge` … `labelLarge`). Prefer
-  `Theme.of(context).textTheme.*` over a literal `fontSize:` — screens
-  are clean; 38 remain in shared widgets and `lib/core/astra`.
+- The theme defines text styles (`headlineLarge` … `labelLarge`), built on
+  a size scale (`textXs` 11, `textSm` 12, `textMd` 14, `textBase` 15,
+  `textLg` 16, `textXl` 20, `text2xl` 24, `text3xl` 32). Prefer
+  `Theme.of(context).textTheme.*`; where there is no context (const
+  styles, painters) use `fontSize: AyurezeTheme.textMd` - never a bare
+  number. `theme_contrast_test.dart` checks the textTheme matches the scale.
+- The video call screen is dark in both themes on purpose. Use the
+  `call*` tokens there (`callBackground`, `callWaitingGradient`,
+  `callForeground`), never `textPrimary`, which is dark ink in light mode.
 - Guard `BuildContext` use after any `await` with `if (!mounted) return;`
   (or `context.mounted` in view models). This was a genuine crash source
   across the auth and video-call flows.

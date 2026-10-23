@@ -74,7 +74,7 @@ class OslerModal {
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AyurezeTheme.textXl,
                   fontWeight: FontWeight.w800,
                   color: AyurezeTheme.textPrimary,
                 ),

@@ -72,8 +72,8 @@ class AstraChatBubble extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: _getBackgroundColor(),
                     borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(20),
-                      topRight: const Radius.circular(20),
+                      topLeft: const Radius.circular(AyurezeTheme.radiusXl),
+                      topRight: const Radius.circular(AyurezeTheme.radiusXl),
                       bottomLeft: Radius.circular(isUser ? 20 : 4),
                       bottomRight: Radius.circular(isUser ? 4 : 20),
                     ),
@@ -174,11 +174,17 @@ class AstraChatBubble extends StatelessWidget {
         em: baseStyle?.copyWith(fontStyle: FontStyle.italic),
         listBullet: baseStyle,
         h1: baseStyle?.copyWith(
-            fontSize: 20, fontWeight: FontWeight.bold, height: 1.6),
+            fontSize: AyurezeTheme.textXl,
+            fontWeight: FontWeight.bold,
+            height: 1.6),
         h2: baseStyle?.copyWith(
-            fontSize: 18, fontWeight: FontWeight.bold, height: 1.6),
+            fontSize: AyurezeTheme.textLg,
+            fontWeight: FontWeight.bold,
+            height: 1.6),
         h3: baseStyle?.copyWith(
-            fontSize: 16, fontWeight: FontWeight.bold, height: 1.6),
+            fontSize: AyurezeTheme.textBase,
+            fontWeight: FontWeight.bold,
+            height: 1.6),
         code: baseStyle?.copyWith(
           fontFamily: 'monospace',
           backgroundColor: Colors.black.withValues(alpha: 0.06),
@@ -213,7 +219,7 @@ class AstraChatBubble extends StatelessWidget {
                 ? '${(message.streamProgress! * 100).toInt()}%'
                 : 'Typing...',
             style: const TextStyle(
-              fontSize: 12,
+              fontSize: AyurezeTheme.textSm,
               color: Colors.grey,
             ),
           ),
@@ -234,7 +240,7 @@ class AstraChatBubble extends StatelessWidget {
         padding: const EdgeInsets.only(top: 12),
         child: InkWell(
           onTap: () => onActionTap?.call(action.type.name, action.params),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AyurezeTheme.spaceLg,
@@ -244,7 +250,7 @@ class AstraChatBubble extends StatelessWidget {
               color: AstraConfig.enableLogging
                   ? Colors.green.shade100
                   : Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -260,7 +266,7 @@ class AstraChatBubble extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.green.shade700,
                     fontWeight: FontWeight.w500,
-                    fontSize: 13,
+                    fontSize: AyurezeTheme.textMd,
                   ),
                 ),
                 const SizedBox(width: 4),

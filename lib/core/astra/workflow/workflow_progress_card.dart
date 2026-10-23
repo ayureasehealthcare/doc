@@ -162,7 +162,7 @@ class _PrescriptionWorkflowProgressState
                 Text(
                   _workflow.status.label,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AyurezeTheme.textMd,
                     color: _workflow.status.color,
                     fontWeight: FontWeight.w500,
                   ),
@@ -273,7 +273,7 @@ class _PrescriptionWorkflowProgressState
           ),
           const SizedBox(height: 8),
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AyurezeTheme.radiusPill),
             child: LinearProgressIndicator(
               value: _workflow.progress / 100,
               backgroundColor: Colors.grey.shade200,
@@ -310,7 +310,7 @@ class _PrescriptionWorkflowProgressState
                 Text(
                   task.name,
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: AyurezeTheme.textMd,
                     fontWeight: FontWeight.w500,
                     color: AyurezeTheme.textPrimary,
                   ),
@@ -465,7 +465,7 @@ class _PrescriptionWorkflowProgressState
                   Text(
                     label,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: AyurezeTheme.textMd,
                       color: AyurezeTheme.textPrimary,
                     ),
                   ),

@@ -157,6 +157,19 @@ class AyurezeTheme {
   static const double radiusPill = 999; // fully rounded / pills
 
   // Spacing scale, in the 4pt rhythm the screens mostly follow already.
+  // Type size scale. The theme's textTheme is built from these, so a
+  // literal TextStyle(fontSize: AyurezeTheme.textMd) lands on the same
+  // steps as Theme.of(context).textTheme.* - prefer the textTheme where a
+  // BuildContext is handy, these where it isn't (const styles, painters).
+  static const double textXs = 11; // labelSmall
+  static const double textSm = 12; // bodySmall
+  static const double textMd = 14; // bodyMedium, labelLarge
+  static const double textBase = 15; // bodyLarge
+  static const double textLg = 16; // titleMedium
+  static const double textXl = 20; // titleLarge
+  static const double text2xl = 24; // headlineMedium
+  static const double text3xl = 32; // headlineLarge
+
   static const double spaceXs = 4;
   static const double spaceSm = 8;
   static const double spaceMd = 12;
@@ -211,28 +224,29 @@ class AyurezeTheme {
           .apply(fontFamily: fontFamily)
           .copyWith(
             headlineLarge: font(
-              32,
+              text3xl,
               FontWeight.w800,
               lightTextPrimary,
               height: 1.05,
             ),
             headlineMedium: font(
-              24,
+              text2xl,
               FontWeight.w800,
               lightTextPrimary,
               height: 1.15,
             ),
-            titleLarge: font(20, FontWeight.w700, lightTextPrimary),
-            titleMedium: font(16, FontWeight.w700, lightTextPrimary),
-            bodyLarge: font(15, FontWeight.w500, lightTextPrimary, height: 1.4),
+            titleLarge: font(textXl, FontWeight.w700, lightTextPrimary),
+            titleMedium: font(textLg, FontWeight.w700, lightTextPrimary),
+            bodyLarge:
+                font(textBase, FontWeight.w500, lightTextPrimary, height: 1.4),
             bodyMedium: font(
-              14,
+              textMd,
               FontWeight.w500,
               lightTextSecondary,
               height: 1.35,
             ),
             labelLarge: font(
-              14,
+              textMd,
               FontWeight.w700,
               lightTextPrimary,
               letterSpacing: 0.2,
@@ -245,7 +259,7 @@ class AyurezeTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: font(22, FontWeight.w800, lightTextPrimary),
+        titleTextStyle: font(textXl, FontWeight.w800, lightTextPrimary),
       ),
       cardTheme: CardThemeData(
         color: lightSurface,
@@ -253,7 +267,7 @@ class AyurezeTheme {
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(radius2xl),
           side: const BorderSide(color: lightBorder),
         ),
       ),
@@ -263,9 +277,9 @@ class AyurezeTheme {
           foregroundColor: Colors.white,
           minimumSize: const Size.fromHeight(56),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(radiusPill),
           ),
-          textStyle: font(15, FontWeight.w700, Colors.white),
+          textStyle: font(textBase, FontWeight.w700, Colors.white),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -277,14 +291,14 @@ class AyurezeTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
-          textStyle: font(15, FontWeight.w700, lightTextPrimary),
+          textStyle: font(textBase, FontWeight.w700, lightTextPrimary),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: lightSurface,
-        hintStyle: font(14, FontWeight.w500, lightTextSecondary),
-        labelStyle: font(14, FontWeight.w500, lightTextSecondary),
+        hintStyle: font(textMd, FontWeight.w500, lightTextSecondary),
+        labelStyle: font(textMd, FontWeight.w500, lightTextSecondary),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
           vertical: 18,
@@ -312,11 +326,12 @@ class AyurezeTheme {
         selectedColor: healingGreen50,
         secondarySelectedColor: healingGreen50,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        labelStyle: font(13, FontWeight.w700, healingGreen100),
-        secondaryLabelStyle: font(13, FontWeight.w700, healingGreen100),
+        labelStyle: font(textMd, FontWeight.w700, healingGreen100),
+        secondaryLabelStyle: font(textMd, FontWeight.w700, healingGreen100),
         brightness: Brightness.light,
         side: BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusPill)),
       ),
     );
   }
@@ -338,7 +353,7 @@ class AyurezeTheme {
   static BoxDecoration panelDecoration() {
     return BoxDecoration(
       color: surface,
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(radius2xl),
       border: Border.all(color: border),
       boxShadow: const [
         BoxShadow(
@@ -353,7 +368,7 @@ class AyurezeTheme {
   static BoxDecoration mutedPanelDecoration() {
     return BoxDecoration(
       color: surfaceMuted,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(radiusXl),
       border: Border.all(color: border),
     );
   }
@@ -391,34 +406,35 @@ class AyurezeTheme {
           .apply(fontFamily: fontFamily)
           .copyWith(
             headlineLarge: font(
-              32,
+              text3xl,
               FontWeight.w800,
               darkTextPrimary,
               height: 1.05,
             ),
             headlineMedium: font(
-              24,
+              text2xl,
               FontWeight.w800,
               darkTextPrimary,
               height: 1.15,
             ),
-            titleLarge: font(20, FontWeight.w700, darkTextPrimary),
-            titleMedium: font(16, FontWeight.w700, darkTextPrimary),
-            bodyLarge: font(15, FontWeight.w500, darkTextPrimary, height: 1.4),
+            titleLarge: font(textXl, FontWeight.w700, darkTextPrimary),
+            titleMedium: font(textLg, FontWeight.w700, darkTextPrimary),
+            bodyLarge:
+                font(textBase, FontWeight.w500, darkTextPrimary, height: 1.4),
             bodyMedium: font(
-              14,
+              textMd,
               FontWeight.w500,
               darkTextSecondary,
               height: 1.35,
             ),
-            labelLarge: font(14, FontWeight.w700, darkTextPrimary),
+            labelLarge: font(textMd, FontWeight.w700, darkTextPrimary),
           ),
       appBarTheme: AppBarTheme(
         backgroundColor: darkSurface,
         foregroundColor: darkTextPrimary,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: font(18, FontWeight.w700, darkTextPrimary),
+        titleTextStyle: font(textXl, FontWeight.w800, darkTextPrimary),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -427,9 +443,9 @@ class AyurezeTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(radiusLg),
           ),
-          textStyle: font(15, FontWeight.w700, Colors.white),
+          textStyle: font(textBase, FontWeight.w700, Colors.white),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -438,9 +454,9 @@ class AyurezeTheme {
           side: const BorderSide(color: healingGreen50, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(radiusLg),
           ),
-          textStyle: font(15, FontWeight.w700, healingGreen50),
+          textStyle: font(textBase, FontWeight.w700, healingGreen50),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -451,22 +467,22 @@ class AyurezeTheme {
           vertical: 18,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: darkBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: healingGreen50, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: remoteRed50),
         ),
-        hintStyle: font(14, FontWeight.w500, darkTextSecondary),
+        hintStyle: font(textMd, FontWeight.w500, darkTextSecondary),
       ),
       cardTheme: CardThemeData(
         color: darkSurface,
@@ -485,7 +501,8 @@ class AyurezeTheme {
       drawerTheme: const DrawerThemeData(backgroundColor: darkSurface),
       dialogTheme: DialogThemeData(
         backgroundColor: darkSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusXl)),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: healingGreenFill,
@@ -493,7 +510,7 @@ class AyurezeTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: darkSurfaceMuted,
-        labelStyle: font(13, FontWeight.w700, darkTextPrimary),
+        labelStyle: font(textMd, FontWeight.w700, darkTextPrimary),
       ),
       tabBarTheme: TabBarThemeData(
         labelColor: healingGreen50,
@@ -505,7 +522,7 @@ class AyurezeTheme {
   static BoxDecoration darkPanelDecoration() {
     return BoxDecoration(
       color: const Color(0xFF2D2D2D),
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(radius2xl),
       border: Border.all(color: const Color(0xFF4D4D4D)),
       boxShadow: const [
         BoxShadow(
@@ -539,9 +556,9 @@ class AyurezeTheme {
       ),
       filled: true,
       fillColor: surface,
-      labelStyle: font(14, FontWeight.w500, textSecondary),
+      labelStyle: font(textMd, FontWeight.w500, textSecondary),
       hintStyle: font(
-        14,
+        textMd,
         FontWeight.w500,
         textSecondary.withValues(alpha: 0.6),
       ),
@@ -576,6 +593,9 @@ class AyurezeTheme {
     colors: [Color(0xFF0F766E), Color(0xFF134E4A)], // teal-700 -> teal-900
   );
   static const Color callTileShadow = Color(0x55000000);
+  // Text and icons drawn straight on the call background. NOT textPrimary:
+  // that flips to dark ink in light mode, 1.45:1 on the teal gradient.
+  static const Color callForeground = Colors.white;
 
   /// The signature multi-stop brand gradient for hero surfaces that want more
   /// depth than `heroDecoration`'s flat two-stop gradient - the dashboard

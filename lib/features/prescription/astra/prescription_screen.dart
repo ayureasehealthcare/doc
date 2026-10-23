@@ -344,7 +344,8 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
       isScrollControlled: true,
       backgroundColor: AyurezeTheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AyurezeTheme.radius2xl)),
       ),
       builder: (context) => SearchMedicineSheet(
         onSelect: (medicine) {

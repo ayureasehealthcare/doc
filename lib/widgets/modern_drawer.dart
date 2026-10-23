@@ -95,7 +95,7 @@ class ModernDrawer extends StatelessWidget {
                       phone ?? "",
                       style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.74),
-                          fontSize: 13),
+                          fontSize: AyurezeTheme.textMd),
                     ),
                     const SizedBox(height: 14),
                     Container(
@@ -280,7 +280,7 @@ class ModernDrawer extends StatelessWidget {
                 color: isDestructive
                     ? AyurezeTheme.danger.withValues(alpha: 0.1)
                     : AyurezeTheme.surfaceMuted,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg),
               ),
               child: HugeIcon(
                   icon: icon,

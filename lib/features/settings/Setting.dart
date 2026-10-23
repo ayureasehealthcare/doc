@@ -62,7 +62,7 @@ class _SettingScreenState extends State<SettingScreen> {
           title: Text(
             getTranslated(context, AppString.drawer_setting).toString(),
             style: AyurezeTheme.font(
-              20,
+              AyurezeTheme.textXl,
               FontWeight.w800,
               AyurezeTheme.textPrimary,
             ),
@@ -332,7 +332,7 @@ class _SettingScreenState extends State<SettingScreen> {
                     Text(
                       hasName ? "Dr. $name" : "Doctor",
                       style: AyurezeTheme.font(
-                        17,
+                        AyurezeTheme.textLg,
                         FontWeight.w800,
                         Colors.white,
                       ),
@@ -344,7 +344,7 @@ class _SettingScreenState extends State<SettingScreen> {
                       Text(
                         specialization,
                         style: AyurezeTheme.font(
-                          13,
+                          AyurezeTheme.textMd,
                           FontWeight.w500,
                           Colors.white.withValues(alpha: 0.78),
                         ),
@@ -366,7 +366,8 @@ class _SettingScreenState extends State<SettingScreen> {
                 ),
                 child: Text(
                   "Workspace",
-                  style: AyurezeTheme.font(11, FontWeight.w700, Colors.white),
+                  style: AyurezeTheme.font(
+                      AyurezeTheme.textXs, FontWeight.w700, Colors.white),
                 ),
               ),
             ],
@@ -375,7 +376,7 @@ class _SettingScreenState extends State<SettingScreen> {
           Text(
             "Tune how your Ayureze desk behaves day to day.",
             style: AyurezeTheme.font(
-              22,
+              AyurezeTheme.text2xl,
               FontWeight.w800,
               Colors.white,
               height: 1.05,
@@ -385,7 +386,7 @@ class _SettingScreenState extends State<SettingScreen> {
           Text(
             "Appearance, patient call controls, account security, and support live here.",
             style: AyurezeTheme.font(
-              14,
+              AyurezeTheme.textMd,
               FontWeight.w500,
               Colors.white.withValues(alpha: 0.78),
               height: 1.4,
@@ -406,7 +407,7 @@ class _SettingScreenState extends State<SettingScreen> {
           child: Text(
             title.toUpperCase(),
             style: AyurezeTheme.font(
-              12,
+              AyurezeTheme.textSm,
               FontWeight.w800,
               AyurezeTheme.textSecondary,
               letterSpacing: 1.1,
@@ -455,7 +456,8 @@ class _SettingScreenState extends State<SettingScreen> {
       leading: OslerTooltip(message: title, child: _iconBadge(icon, color)),
       title: Text(
         title,
-        style: AyurezeTheme.font(15, FontWeight.w700, AyurezeTheme.textPrimary),
+        style: AyurezeTheme.font(
+            AyurezeTheme.textBase, FontWeight.w700, AyurezeTheme.textPrimary),
       ),
       subtitle: subtitle != null
           ? Padding(
@@ -463,7 +465,7 @@ class _SettingScreenState extends State<SettingScreen> {
               child: Text(
                 subtitle,
                 style: AyurezeTheme.font(
-                  12,
+                  AyurezeTheme.textSm,
                   FontWeight.w500,
                   AyurezeTheme.textSecondary,
                 ),
@@ -505,7 +507,7 @@ class _SettingScreenState extends State<SettingScreen> {
         title: Text(
           title,
           style: AyurezeTheme.font(
-            15,
+            AyurezeTheme.textBase,
             FontWeight.w700,
             AyurezeTheme.textPrimary,
           ),

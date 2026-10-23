@@ -66,7 +66,7 @@ class _AstraCaseProgressCardState extends State<AstraCaseProgressCard> {
                 'Astra Companion',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
-                  fontSize: 14,
+                  fontSize: AyurezeTheme.textMd,
                   color: AyurezeTheme.textPrimary,
                 ),
               ),
@@ -79,12 +79,14 @@ class _AstraCaseProgressCardState extends State<AstraCaseProgressCard> {
             const SizedBox(height: AyurezeTheme.spaceSm),
             Text(
               diagnosis,
-              style: TextStyle(fontSize: 13, color: AyurezeTheme.textSecondary),
+              style: TextStyle(
+                  fontSize: AyurezeTheme.textMd,
+                  color: AyurezeTheme.textSecondary),
             ),
           ],
           const SizedBox(height: AyurezeTheme.spaceMd),
           ClipRRect(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(AyurezeTheme.radiusPill),
             child: LinearProgressIndicator(
               value: (progress.toDouble() / 100).clamp(0.0, 1.0),
               minHeight: 6,
@@ -99,13 +101,15 @@ class _AstraCaseProgressCardState extends State<AstraCaseProgressCard> {
               Text(
                 '${progress.toStringAsFixed(0)}% through treatment'
                 '${durationDays != null ? ' ($durationDays days)' : ''}',
-                style:
-                    TextStyle(fontSize: 11, color: AyurezeTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: AyurezeTheme.textXs,
+                    color: AyurezeTheme.textSecondary),
               ),
               Text(
                 'Adherence ${adherence.toStringAsFixed(0)}%',
-                style:
-                    TextStyle(fontSize: 11, color: AyurezeTheme.textSecondary),
+                style: TextStyle(
+                    fontSize: AyurezeTheme.textXs,
+                    color: AyurezeTheme.textSecondary),
               ),
             ],
           ),

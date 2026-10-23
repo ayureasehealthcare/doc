@@ -40,7 +40,7 @@ class OslerOverlayLoader extends StatelessWidget {
           padding: const EdgeInsets.all(AyurezeTheme.space2xl),
           decoration: BoxDecoration(
             color: AyurezeTheme.surface,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

@@ -404,10 +404,12 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                               ),
                               labelColor: AyurezeTheme.textPrimary,
                               unselectedLabelColor: AyurezeTheme.textSecondary,
-                              labelStyle: AyurezeTheme.font(13, FontWeight.w700,
-                                  AyurezeTheme.textPrimary),
-                              unselectedLabelStyle: AyurezeTheme.font(13,
-                                  FontWeight.w500, AyurezeTheme.textSecondary),
+                              labelStyle: AyurezeTheme.font(AyurezeTheme.textMd,
+                                  FontWeight.w700, AyurezeTheme.textPrimary),
+                              unselectedLabelStyle: AyurezeTheme.font(
+                                  AyurezeTheme.textMd,
+                                  FontWeight.w500,
+                                  AyurezeTheme.textSecondary),
                               tabs: [
                                 Tab(
                                   text: getTranslated(
@@ -861,7 +863,8 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
       context: context,
       backgroundColor: AyurezeTheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AyurezeTheme.radiusXl)),
       ),
       builder: (BuildContext bc) {
         return SafeArea(

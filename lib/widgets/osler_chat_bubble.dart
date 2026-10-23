@@ -46,8 +46,8 @@ class OslerChatBubble extends StatelessWidget {
                     ? AyurezeTheme.healingGreen50
                     : AyurezeTheme.surfaceMuted,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
+                  topLeft: const Radius.circular(AyurezeTheme.radiusXl),
+                  topRight: const Radius.circular(AyurezeTheme.radiusXl),
                   bottomLeft: Radius.circular(isMe ? 20 : 4),
                   bottomRight: Radius.circular(isMe ? 4 : 20),
                 ),
@@ -70,7 +70,7 @@ class OslerChatBubble extends StatelessWidget {
                         Text(
                           time!,
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: AyurezeTheme.textXs,
                             color: isMe
                                 ? Colors.white70
                                 : AyurezeTheme.textSecondary,

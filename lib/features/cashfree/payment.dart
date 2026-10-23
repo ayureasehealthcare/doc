@@ -554,8 +554,8 @@ class _PaymentScreen extends State<PaymentScreen> {
           const SizedBox(height: 4),
           Text(
             "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${availableBalance.toStringAsFixed(2)}",
-            style: AyurezeTheme.font(
-                28, FontWeight.w800, AyurezeTheme.textPrimary),
+            style: AyurezeTheme.font(AyurezeTheme.text3xl, FontWeight.w800,
+                AyurezeTheme.textPrimary),
           ),
           const SizedBox(height: 16),
           Row(

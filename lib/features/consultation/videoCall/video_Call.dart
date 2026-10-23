@@ -203,7 +203,7 @@ class _VideoCallState extends State<VideoCall> {
                 child: HugeIcon(
                     icon: HugeIcons.strokeRoundedUser,
                     size: 50,
-                    color: AyurezeTheme.textSecondary),
+                    color: AyurezeTheme.callForeground.withValues(alpha: 0.8)),
               ),
               const SizedBox(height: 25),
               ScalingText(
@@ -214,8 +214,8 @@ class _VideoCallState extends State<VideoCall> {
                         ? getTranslated(context, AppString.ringing).toString()
                         : getTranslated(context, AppString.connect_call)
                             .toString(),
-                style: AyurezeTheme.font(
-                    18, FontWeight.w500, AyurezeTheme.textPrimary,
+                style: AyurezeTheme.font(AyurezeTheme.textXl, FontWeight.w500,
+                    AyurezeTheme.callForeground,
                     letterSpacing: 0.5),
               ),
             ],

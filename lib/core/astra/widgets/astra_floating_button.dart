@@ -215,10 +215,10 @@ class AstraMiniButton extends StatelessWidget {
       button: true,
       child: Material(
         color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
         child: InkWell(
           onTap: onTap ?? () => AstraFloatingButton.openAstraChat(),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
           child: Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: AyurezeTheme.spaceMd,
@@ -237,7 +237,7 @@ class AstraMiniButton extends StatelessWidget {
                   style: TextStyle(
                     color: AyurezeTheme.healingGreen50,
                     fontWeight: FontWeight.w500,
-                    fontSize: 13,
+                    fontSize: AyurezeTheme.textMd,
                   ),
                 ),
               ],
