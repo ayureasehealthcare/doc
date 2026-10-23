@@ -566,6 +566,17 @@ class AyurezeTheme {
     );
   }
 
+  // In-call (video) surfaces. Deliberately dark in BOTH themes - a call
+  // UI stays dark so video is the brightest thing on screen - so these are
+  // constants, not dark-aware getters.
+  static const Color callBackground = darkCanvas;
+  static const LinearGradient callWaitingGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF0F766E), Color(0xFF134E4A)], // teal-700 -> teal-900
+  );
+  static const Color callTileShadow = Color(0x55000000);
+
   /// The signature multi-stop brand gradient for hero surfaces that want more
   /// depth than `heroDecoration`'s flat two-stop gradient - the dashboard
   /// header, onboarding, and other "first thing you see" moments.

@@ -191,11 +191,7 @@ class _VideoCallState extends State<VideoCall> {
     } else {
       return Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0F766E), Color(0xFF134E4A)],
-          ),
+          gradient: AyurezeTheme.callWaitingGradient,
         ),
         child: Center(
           child: Column(
@@ -239,7 +235,7 @@ class _VideoCallState extends State<VideoCall> {
       child: PIPView(
         builder: (context, isFloating) {
           return Scaffold(
-            backgroundColor: const Color(0xFF1A1A1A),
+            backgroundColor: AyurezeTheme.callBackground,
             body: Consumer2<VideoCallViewModel, OverlayHandlerProvider>(
               builder: (context, viewModel, overlayProvider, _) {
                 return Stack(
@@ -326,7 +322,7 @@ class _VideoCallState extends State<VideoCall> {
                                   width: 1.5),
                               boxShadow: const [
                                 BoxShadow(
-                                    color: Color(0x55000000),
+                                    color: AyurezeTheme.callTileShadow,
                                     blurRadius: 10,
                                     spreadRadius: 2)
                               ],
