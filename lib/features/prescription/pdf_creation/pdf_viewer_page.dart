@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
@@ -41,13 +42,10 @@ class PdfViewerPage extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 900),
           child: path != null
               ? SfPdfViewer.file(path!)
-              : Center(
-                  child: Text(
-                    "No PDF document loaded",
-                    style: textTheme.bodyLarge?.copyWith(
-                      color: AyurezeTheme.textSecondary,
-                    ),
-                  ),
+              : const OslerStateView(
+                  icon: HugeIcons.strokeRoundedFile01,
+                  title: "No PDF document loaded",
+                  tone: OslerStateTone.muted,
                 ),
         ),
       ),

@@ -11,6 +11,9 @@ import 'package:doctro/features/consultation/chat/providers/auth_provider.dart';
 import 'package:doctro/features/consultation/chat/providers/chat_provider.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/osler_loader.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
+import 'package:doctro/widgets/osler_toast.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/core/utils/safe_parse.dart';
 import 'package:doctro/features/dashboard/login_home.dart';
@@ -19,13 +22,11 @@ import 'package:firebase_auth/firebase_auth.dart' as FA;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../widgets/widgets.dart';
 import 'pages.dart';
 
 class ChatPage extends StatefulWidget {
@@ -249,9 +250,8 @@ class ChatPageState extends State<ChatPage> {
       listScrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      Fluttertoast.showToast(
-          msg: getTranslated(context, AppString.nothing_send).toString(),
-          backgroundColor: AyurezeTheme.textSecondary);
+      OslerToast.warning(
+          context, getTranslated(context, AppString.nothing_send).toString());
     }
   }
 
@@ -630,7 +630,9 @@ class ChatPageState extends State<ChatPage> {
 
   Widget buildLoading() {
     return Positioned(
-      child: isLoading ? LoadingView() : const SizedBox.shrink(),
+      child: isLoading
+          ? const OslerOverlayLoader(message: 'Loading workspace...')
+          : const SizedBox.shrink(),
     );
   }
 
@@ -716,26 +718,20 @@ class ChatPageState extends State<ChatPage> {
                       controller: listScrollController,
                     );
                   } else {
-                    return Center(
-                        child: ScreenEntrance(
-                      child: Text(getTranslated(context, AppString.no_message)
-                          .toString()),
-                    ));
+                    return ScreenEntrance(
+                      child: OslerStateView(
+                        icon: HugeIcons.strokeRoundedMessage01,
+                        title: getTranslated(context, AppString.no_message)
+                            .toString(),
+                      ),
+                    );
                   }
                 } else {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: AyurezeTheme.healingGreen50,
-                    ),
-                  );
+                  return const OslerLoadingView();
                 }
               },
             )
-          : Center(
-              child: CircularProgressIndicator(
-                color: AyurezeTheme.healingGreen50,
-              ),
-            ),
+          : const OslerLoadingView(),
     );
   }
 
@@ -793,7 +789,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         isLoading = false;
       });
-      Fluttertoast.showToast(msg: e.message ?? e.toString());
+      OslerToast.error(context, e.message ?? e.toString());
     }
   }
 
@@ -813,7 +809,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         isLoading = false;
       });
-      Fluttertoast.showToast(msg: e.message ?? e.toString());
+      OslerToast.error(context, e.message ?? e.toString());
     }
   }
 }

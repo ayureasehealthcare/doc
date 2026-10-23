@@ -10,16 +10,17 @@ import 'package:doctro/features/consultation/chat/utils/utilities.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/osler_card.dart';
+import 'package:doctro/widgets/osler_loader.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/features/dashboard/login_home.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/models.dart';
-import '../widgets/widgets.dart';
 import 'pages.dart';
 
 class HomePage extends StatefulWidget {
@@ -144,18 +145,14 @@ class HomePageState extends State<HomePage> {
                               controller: listScrollController,
                             );
                           } else {
-                            return Center(
-                              child: Text(
-                                  getTranslated(context, AppString.no_user)
-                                      .toString()),
+                            return OslerStateView(
+                              icon: HugeIcons.strokeRoundedUserGroup,
+                              title: getTranslated(context, AppString.no_user)
+                                  .toString(),
                             );
                           }
                         } else {
-                          return Center(
-                            child: CircularProgressIndicator(
-                              color: AyurezeTheme.healingGreen50,
-                            ),
-                          );
+                          return const OslerLoadingView();
                         }
                       },
                     ),
@@ -163,7 +160,9 @@ class HomePageState extends State<HomePage> {
                 ],
               ),
               Positioned(
-                child: isLoading ? LoadingView() : const SizedBox.shrink(),
+                child: isLoading
+                    ? const OslerOverlayLoader(message: 'Loading workspace...')
+                    : const SizedBox.shrink(),
               )
             ],
           ),
@@ -179,116 +178,108 @@ class HomePageState extends State<HomePage> {
       if (currentUserId == null && userChat.id == currentUserId) {
         return const SizedBox.shrink();
       } else {
-        final item = Container(
+        final item = OslerCard(
           margin: const EdgeInsets.only(
               bottom: AyurezeTheme.spaceMd,
               left: AyurezeTheme.spaceXs,
               right: AyurezeTheme.spaceXs),
-          child: TextButton(
-            onPressed: () {
-              HapticFeedback.selectionClick();
-              if (Utilities.isKeyboardShowing()) {
-                Utilities.closeKeyboard(context);
-              }
+          padding: const EdgeInsets.all(AyurezeTheme.spaceMd),
+          backgroundColor: AyurezeTheme.surfaceMuted,
+          // OslerCard adds the press scale and haptic tick itself.
+          onTap: () {
+            if (Utilities.isKeyboardShowing()) {
+              Utilities.closeKeyboard(context);
+            }
 
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ChatPage(
-                    peerId: userChat.id,
-                    peerAvatar: userChat.photoUrl,
-                    peerNickname: userChat.nickname,
-                    token: userChat.token,
-                    isNavigate: 'chatHome',
-                  ),
-                ),
-              );
-            },
-            style: ButtonStyle(
-              backgroundColor:
-                  WidgetStateProperty.all<Color>(AyurezeTheme.surfaceMuted),
-              shape: WidgetStateProperty.all<OutlinedBorder>(
-                const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatPage(
+                  peerId: userChat.id,
+                  peerAvatar: userChat.photoUrl,
+                  peerNickname: userChat.nickname,
+                  token: userChat.token,
+                  isNavigate: 'chatHome',
                 ),
               ),
-            ),
-            child: Row(
-              children: <Widget>[
-                Material(
-                  borderRadius: const BorderRadius.all(Radius.circular(25)),
-                  clipBehavior: Clip.hardEdge,
-                  child: userChat.photoUrl.isNotEmpty
-                      ? Image.network(
-                          userChat.photoUrl,
-                          fit: BoxFit.cover,
-                          width: 50,
-                          height: 50,
-                          loadingBuilder: (BuildContext context, Widget child,
-                              ImageChunkEvent? loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return SizedBox(
-                              width: 50,
-                              height: 50,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: AyurezeTheme.healingGreen50,
-                                  value: loadingProgress.expectedTotalBytes !=
-                                              null &&
-                                          loadingProgress.expectedTotalBytes !=
-                                              null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
+            );
+          },
+          child: Row(
+            children: <Widget>[
+              Material(
+                borderRadius: const BorderRadius.all(Radius.circular(25)),
+                clipBehavior: Clip.hardEdge,
+                child: userChat.photoUrl.isNotEmpty
+                    ? Image.network(
+                        userChat.photoUrl,
+                        fit: BoxFit.cover,
+                        width: 50,
+                        height: 50,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AyurezeTheme.healingGreenFill,
+                                value: loadingProgress.expectedTotalBytes !=
+                                            null &&
+                                        loadingProgress.expectedTotalBytes !=
+                                            null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
                               ),
-                            );
-                          },
-                          errorBuilder: (context, object, stackTrace) {
-                            return HugeIcon(
-                              icon: HugeIcons.strokeRoundedUserCircle,
-                              size: 50,
-                              color: AyurezeTheme.textSecondary,
-                            );
-                          },
-                        )
-                      : HugeIcon(
-                          icon: HugeIcons.strokeRoundedUserCircle,
-                          size: 50,
-                          color: AyurezeTheme.textSecondary,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, object, stackTrace) {
+                          return HugeIcon(
+                            icon: HugeIcons.strokeRoundedUserCircle,
+                            size: 50,
+                            color: AyurezeTheme.textSecondary,
+                          );
+                        },
+                      )
+                    : HugeIcon(
+                        icon: HugeIcons.strokeRoundedUserCircle,
+                        size: 50,
+                        color: AyurezeTheme.textSecondary,
+                      ),
+              ),
+              Flexible(
+                child: Container(
+                  margin: const EdgeInsets.only(left: AyurezeTheme.spaceXl),
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.fromLTRB(
+                            AyurezeTheme.spaceMd, 0, 0, AyurezeTheme.spaceXs),
+                        child: Text(
+                          userChat.nickname,
+                          maxLines: 1,
+                          style: TextStyle(color: AyurezeTheme.textPrimary),
                         ),
-                ),
-                Flexible(
-                  child: Container(
-                    margin: const EdgeInsets.only(left: AyurezeTheme.spaceXl),
-                    child: Column(
-                      children: <Widget>[
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          margin: const EdgeInsets.fromLTRB(
-                              AyurezeTheme.spaceMd, 0, 0, AyurezeTheme.spaceXs),
-                          child: Text(
-                            userChat.nickname,
-                            maxLines: 1,
-                            style: TextStyle(color: AyurezeTheme.textPrimary),
-                          ),
+                      ),
+                      Container(
+                        alignment: Alignment.centerLeft,
+                        margin: const EdgeInsets.fromLTRB(
+                            AyurezeTheme.spaceMd, 0, 0, 0),
+                        child: Text(
+                          userChat.content,
+                          maxLines: 1,
+                          style: TextStyle(color: AyurezeTheme.textPrimary),
                         ),
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          margin: const EdgeInsets.fromLTRB(
-                              AyurezeTheme.spaceMd, 0, 0, 0),
-                          child: Text(
-                            userChat.content,
-                            maxLines: 1,
-                            style: TextStyle(color: AyurezeTheme.textPrimary),
-                          ),
-                        )
-                      ],
-                    ),
+                      )
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
 
