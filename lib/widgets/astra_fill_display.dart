@@ -162,7 +162,12 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg),
           gradient: LinearGradient(
-            colors: [AyurezeTheme.purple.withValues(alpha: 0.05), Colors.white],
+            // Ends on the themed surface, not white: a white end stranded the
+            // dark-mode (light) text on a near-white corner.
+            colors: [
+              AyurezeTheme.purple.withValues(alpha: 0.05),
+              AyurezeTheme.surface,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -331,7 +336,7 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                                 "${hasBp ? '⚠️ Blood Pressure\n' : ''}"
                                 "${pastHistory.toString().isNotEmpty ? 'Details: $pastHistory' : ''}"
                             .trim(),
-                        iconColor: AyurezeTheme.forestDeep,
+                        iconColor: AyurezeTheme.iconPrimary,
                       ),
 
                     // Previous Treatment
@@ -572,7 +577,7 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
       title: "Medical History",
       items: conditions,
       chipColor: AyurezeTheme.surfaceMuted,
-      textColor: AyurezeTheme.forestDeep,
+      textColor: AyurezeTheme.textPrimary,
     );
   }
 

@@ -45,7 +45,7 @@ class _ViewAllAppointmentState extends State<ViewAllNotification> {
         leading: IconButton(
           icon: HugeIcon(
             icon: AppIcons.back,
-            color: AyurezeTheme.forestDeep,
+            color: AyurezeTheme.iconPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -116,7 +116,8 @@ class _ViewAllAppointmentState extends State<ViewAllNotification> {
                 if (patientNotification.isEmpty)
                   GlassSurface(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 36),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AyurezeTheme.space3xl + AyurezeTheme.spaceXs),
                     child: Column(
                       children: [
                         Image.asset("assets/images/no-data.png", height: 88),

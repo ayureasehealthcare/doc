@@ -18,7 +18,7 @@ class FullPhotoPage extends StatelessWidget {
         elevation: 0,
         title: Text(
           getTranslated(context, AppString.full_photo).toString(),
-          style: TextStyle(color: AyurezeTheme.forestDeep),
+          style: TextStyle(color: AyurezeTheme.textPrimary),
         ),
         centerTitle: true,
         leading: InkWell(

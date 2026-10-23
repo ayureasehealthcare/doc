@@ -198,7 +198,7 @@ class _LoginHomeViewState extends State<_LoginHomeView>
                                                   icon: HugeIcons
                                                       .strokeRoundedMenu01,
                                                   color:
-                                                      AyurezeTheme.forestDeep,
+                                                      AyurezeTheme.iconPrimary,
                                                 ),
                                         ),
                                       ),
@@ -458,7 +458,7 @@ class _LoginHomeViewState extends State<_LoginHomeView>
                                   ),
                                   prefixIcon: HugeIcon(
                                     icon: HugeIcons.strokeRoundedSearch01,
-                                    color: AyurezeTheme.forestDeep,
+                                    color: AyurezeTheme.iconPrimary,
                                   ),
                                   suffixIcon: _searchController.text.isNotEmpty
                                       ? IconButton(
@@ -860,7 +860,7 @@ class _LoginHomeViewState extends State<_LoginHomeView>
                   ),
                   child: HugeIcon(
                     icon: HugeIcons.strokeRoundedArrowRight01,
-                    color: AyurezeTheme.forestDeep,
+                    color: AyurezeTheme.iconPrimary,
                     size: 22,
                   ),
                 ),

@@ -148,7 +148,7 @@ class _AstraChatPageState extends State<AstraChatPage> {
       leading: IconButton(
         icon: HugeIcon(
           icon: HugeIcons.strokeRoundedArrowLeft01,
-          color: AyurezeTheme.forestDeep,
+          color: AyurezeTheme.iconPrimary,
         ),
         onPressed: () => Navigator.pop(context),
       ),
@@ -219,7 +219,7 @@ class _AstraChatPageState extends State<AstraChatPage> {
         PopupMenuButton<String>(
           icon: HugeIcon(
               icon: HugeIcons.strokeRoundedMoreVertical,
-              color: AyurezeTheme.forestDeep),
+              color: AyurezeTheme.iconPrimary),
           onSelected: (value) => _handleMenuAction(value),
           itemBuilder: (context) => [
             const PopupMenuItem(

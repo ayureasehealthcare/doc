@@ -56,7 +56,7 @@ class _SettingScreenState extends State<SettingScreen> {
           backgroundColor: AyurezeTheme.canvas,
           leading: IconButton(
             icon: HugeIcon(
-                icon: AppIcons.back, color: AyurezeTheme.forestDeep, size: 20),
+                icon: AppIcons.back, color: AyurezeTheme.iconPrimary, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
@@ -92,7 +92,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             AppString.settings_dark_mode,
                           ).toString(),
                           value: viewModel.isDarkMode,
-                          color: const Color(0xFF7E8D9B),
+                          color: AyurezeTheme.oslerGray50,
                           onChanged: (val) async {
                             viewModel.setDarkMode(val);
                             await context.read<ThemeProvider>().setDarkMode(
@@ -113,7 +113,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             context,
                             AppString.drawer_change_language,
                           ).toString(),
-                          color: const Color(0xFFE0B65A),
+                          color: AyurezeTheme.sunshineYellow50,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -140,7 +140,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             AppString.settings_push_notifications,
                           ).toString(),
                           value: viewModel.isNotificationEnabled,
-                          color: const Color(0xFFE37C61),
+                          color: AyurezeTheme.remoteRed50,
                           onChanged: (val) {
                             viewModel.setNotificationEnabled(val);
                           },
@@ -156,7 +156,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             AppString.settings_video_call_desc,
                           ).toString(),
                           value: viewModel.isCallEnable,
-                          color: const Color(0xFF84A98C),
+                          color: AyurezeTheme.healingGreen50,
                           onChanged: (val) async {
                             bool success = await viewModel.updateVCall(
                               context,
@@ -191,7 +191,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             context,
                             AppString.drawer_change_password,
                           ).toString(),
-                          color: const Color(0xFF5B7F6A),
+                          color: AyurezeTheme.healingGreenFill,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -214,7 +214,7 @@ class _SettingScreenState extends State<SettingScreen> {
                         _buildNavigationItem(
                           icon: AppIcons.help,
                           title: "Contact Support",
-                          color: const Color(0xFF7AA6D8),
+                          color: AyurezeTheme.connectivityBlue50,
                           onTap: () {
                             OslerToast.info(
                               context,
@@ -228,7 +228,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             context,
                             AppString.settings_privacy_policy,
                           ).toString(),
-                          color: const Color(0xFF84A98C),
+                          color: AyurezeTheme.healingGreen50,
                           onTap: () {},
                         ),
                         _buildNavigationItem(
@@ -237,7 +237,7 @@ class _SettingScreenState extends State<SettingScreen> {
                             context,
                             AppString.settings_terms_conditions,
                           ).toString(),
-                          color: const Color(0xFF9A8F6A),
+                          color: AyurezeTheme.oslerGray50,
                           onTap: () {},
                         ),
                       ],

@@ -99,7 +99,13 @@ class _MockQueue {
   }
 }
 
-void main() => runApp(const MockFlowApp());
+/// Build with --dart-define=MOCK_DARK=true to run the flow in dark mode.
+const _dark = bool.fromEnvironment('MOCK_DARK');
+
+void main() {
+  AyurezeTheme.updateThemeMode(_dark);
+  runApp(const MockFlowApp());
+}
 
 class MockFlowApp extends StatelessWidget {
   const MockFlowApp({super.key});
@@ -108,7 +114,7 @@ class MockFlowApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
         title: 'Doctor app - mock flow',
         debugShowCheckedModeBanner: false,
-        theme: AyurezeTheme.lightTheme(),
+        theme: _dark ? AyurezeTheme.darkTheme() : AyurezeTheme.lightTheme(),
         home: const _Home(),
       );
 }

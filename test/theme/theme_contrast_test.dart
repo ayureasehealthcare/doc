@@ -130,6 +130,44 @@ void main() {
     });
   });
 
+  group('ink drawn straight on the page', () {
+    // forestDeep/healingGreen100 were used as icon and text colour on
+    // canvas/surface across 20+ screens: 12-14:1 in light mode but
+    // 1.06-1.35:1 in dark mode. iconPrimary/textPrimary are the
+    // replacement; they must clear AA on every page surface in both modes.
+    for (final dark in [false, true]) {
+      test(
+          'iconPrimary and textPrimary on page surfaces '
+          '(${dark ? 'dark' : 'light'})', () {
+        AyurezeTheme.updateThemeMode(dark);
+        addTearDown(() => AyurezeTheme.updateThemeMode(false));
+        for (final ink in [
+          AyurezeTheme.iconPrimary,
+          AyurezeTheme.textPrimary
+        ]) {
+          for (final bg in [
+            AyurezeTheme.canvas,
+            AyurezeTheme.surface,
+            AyurezeTheme.surfaceMuted,
+          ]) {
+            expect(contrastRatio(ink.toARGB32(), bg.toARGB32()),
+                greaterThanOrEqualTo(4.5),
+                reason: '$ink on $bg');
+          }
+        }
+      });
+    }
+
+    test('forestDeep is NOT valid ink on the dark-mode page', () {
+      // Documents why screens must not draw it straight on canvas/surface.
+      expect(
+        contrastRatio(AyurezeTheme.forestDeep.toARGB32(),
+            AyurezeTheme.darkCanvas.toARGB32()),
+        lessThan(3),
+      );
+    });
+  });
+
   group('brand accent pairs (shade 100 foreground on shade 10 tint)', () {
     const List<List<Object>> pairs = [
       [

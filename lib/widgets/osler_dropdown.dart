@@ -47,7 +47,7 @@ class OslerDropdown extends StatelessWidget {
                 ? HugeIcon(
                     icon: prefixIcon!,
                     size: 20,
-                    color: AyurezeTheme.healingGreen100)
+                    color: AyurezeTheme.iconPrimary)
                 : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg),

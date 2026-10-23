@@ -242,7 +242,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
               },
               child: Text("Save",
                   style: textTheme.labelLarge?.copyWith(
-                      color: AyurezeTheme.healingGreen100,
+                      color: AyurezeTheme.textPrimary,
                       fontWeight: FontWeight.bold)),
             ),
           ],
@@ -372,17 +372,14 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
         backgroundColor: AyurezeTheme.canvas,
         leading: IconButton(
           icon: HugeIcon(
-              icon: AppIcons.back,
-              color: AyurezeTheme.healingGreen100,
-              size: 20),
+              icon: AppIcons.back, color: AyurezeTheme.iconPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
       ),
       body: _isLoading && _patientData == null
           ? Center(
-              child: CircularProgressIndicator(
-                  color: AyurezeTheme.healingGreen100))
+              child: CircularProgressIndicator(color: AyurezeTheme.iconPrimary))
           : Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800),
@@ -406,7 +403,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                             hintText: "Enter clinical diagnosis",
                             suffixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedStethoscope02,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                           ),
                         ),
                         ValueListenableBuilder<TextEditingValue>(
@@ -453,7 +450,8 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                           bool noShopify = med['shopify_variant_id'] == null;
 
                           return OslerCard(
-                            margin: const EdgeInsets.only(bottom: 10),
+                            margin: const EdgeInsets.only(
+                                bottom: AyurezeTheme.spaceMd),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   vertical: AyurezeTheme.spaceSm),
@@ -506,8 +504,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                                               icon:
                                                   HugeIcons.strokeRoundedEdit02,
                                               size: 18,
-                                              color:
-                                                  AyurezeTheme.healingGreen100),
+                                              color: AyurezeTheme.iconPrimary),
                                           tooltip: "Edit dosage",
                                           onPressed: () =>
                                               _editMedicineDetails(idx),
@@ -545,8 +542,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                                             "₹ ${med['price']}",
                                             style:
                                                 textTheme.titleMedium?.copyWith(
-                                              color:
-                                                  AyurezeTheme.healingGreen100,
+                                              color: AyurezeTheme.textPrimary,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -766,17 +762,17 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AyurezeTheme.healingGreen100))
+                        strokeWidth: 2, color: AyurezeTheme.iconPrimary))
               else
                 TextButton.icon(
                   onPressed: _syncShopify,
                   icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedReload,
                       size: 16,
-                      color: AyurezeTheme.healingGreen100),
+                      color: AyurezeTheme.iconPrimary),
                   label: Text("Sync Shopify",
                       style: textTheme.labelLarge
-                          ?.copyWith(color: AyurezeTheme.healingGreen100)),
+                          ?.copyWith(color: AyurezeTheme.textPrimary)),
                 ),
             ],
           ),
@@ -786,7 +782,7 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
             decoration: InputDecoration(
               hintText: "Type medicine name",
               prefixIcon: HugeIcon(
-                  icon: AppIcons.search, color: AyurezeTheme.healingGreen100),
+                  icon: AppIcons.search, color: AyurezeTheme.iconPrimary),
             ),
             onChanged: _onSearchChanged,
           ),
@@ -795,7 +791,7 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
             child: _isLoading
                 ? Center(
                     child: CircularProgressIndicator(
-                        color: AyurezeTheme.healingGreen100))
+                        color: AyurezeTheme.iconPrimary))
                 : ListView.builder(
                     itemCount: _results.length,
                     itemBuilder: (context, index) {
@@ -895,7 +891,7 @@ class SignaturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AyurezeTheme.healingGreen100
+      ..color = AyurezeTheme.iconPrimary
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 3.0;
 

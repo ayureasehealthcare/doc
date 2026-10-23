@@ -111,7 +111,7 @@ class HomePageState extends State<HomePage> {
         backgroundColor: AyurezeTheme.surface,
         title: Text(
           getTranslated(context, AppString.chats).toString(),
-          style: TextStyle(color: AyurezeTheme.forestDeep),
+          style: TextStyle(color: AyurezeTheme.textPrimary),
         ),
         centerTitle: true,
         foregroundColor: AyurezeTheme.textPrimary,
@@ -180,7 +180,10 @@ class HomePageState extends State<HomePage> {
         return const SizedBox.shrink();
       } else {
         final item = Container(
-          margin: const EdgeInsets.only(bottom: 10, left: 5, right: 5),
+          margin: const EdgeInsets.only(
+              bottom: AyurezeTheme.spaceMd,
+              left: AyurezeTheme.spaceXs,
+              right: AyurezeTheme.spaceXs),
           child: TextButton(
             onPressed: () {
               HapticFeedback.selectionClick();
@@ -267,7 +270,7 @@ class HomePageState extends State<HomePage> {
                           child: Text(
                             userChat.nickname,
                             maxLines: 1,
-                            style: TextStyle(color: AyurezeTheme.forestDeep),
+                            style: TextStyle(color: AyurezeTheme.textPrimary),
                           ),
                         ),
                         Container(
@@ -277,7 +280,7 @@ class HomePageState extends State<HomePage> {
                           child: Text(
                             userChat.content,
                             maxLines: 1,
-                            style: TextStyle(color: AyurezeTheme.forestDeep),
+                            style: TextStyle(color: AyurezeTheme.textPrimary),
                           ),
                         )
                       ],

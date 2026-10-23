@@ -328,9 +328,9 @@ class _ProfileScreen extends State<ProfileScreen> {
                 ),
               );
             } else {
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(
-                  color: AyurezeTheme.forestDeep,
+                  color: AyurezeTheme.iconPrimary,
                 ),
               );
             }

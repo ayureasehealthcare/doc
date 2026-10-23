@@ -283,7 +283,7 @@ class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.copyWith(color: AyurezeTheme.forestDeep),
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
                   ),
                 ),
                 Container(
@@ -294,7 +294,7 @@ class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.copyWith(color: AyurezeTheme.forestDeep),
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
                   ),
                 )
               ],

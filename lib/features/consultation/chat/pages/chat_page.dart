@@ -276,7 +276,7 @@ class ChatPageState extends State<ChatPage> {
                         bottom: isLastMessageRight(index) ? 20 : 10, right: 10),
                     child: Text(
                       messageChat.content,
-                      style: TextStyle(color: AyurezeTheme.forestDeep),
+                      style: TextStyle(color: AyurezeTheme.textPrimary),
                     ),
                   )
                 : messageChat.type == TypeMessage.image
@@ -372,7 +372,7 @@ class ChatPageState extends State<ChatPage> {
         );
       } else {
         return Container(
-          margin: const EdgeInsets.only(bottom: 10),
+          margin: const EdgeInsets.only(bottom: AyurezeTheme.spaceMd),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -425,7 +425,8 @@ class ChatPageState extends State<ChatPage> {
                               color: AyurezeTheme.forestDeep,
                               borderRadius:
                                   BorderRadius.circular(AyurezeTheme.radiusSm)),
-                          margin: const EdgeInsets.only(left: 10),
+                          margin:
+                              const EdgeInsets.only(left: AyurezeTheme.spaceMd),
                           child: Text(
                             messageChat.content,
                             style: TextStyle(color: Colors.white),
@@ -433,7 +434,8 @@ class ChatPageState extends State<ChatPage> {
                         )
                       : messageChat.type == TypeMessage.image
                           ? Container(
-                              margin: const EdgeInsets.only(left: 10),
+                              margin: const EdgeInsets.only(
+                                  left: AyurezeTheme.spaceMd),
                               child: TextButton(
                                 onPressed: () {
                                   Navigator.push(
@@ -522,8 +524,10 @@ class ChatPageState extends State<ChatPage> {
               isLastMessageLeft(index) &&
                       safeIntOrNull(messageChat.timestamp) != null
                   ? Container(
-                      margin:
-                          const EdgeInsets.only(left: 50, top: 5, bottom: 5),
+                      margin: const EdgeInsets.only(
+                          left: AyurezeTheme.space3xl + AyurezeTheme.spaceLg,
+                          top: AyurezeTheme.spaceXs,
+                          bottom: AyurezeTheme.spaceXs),
                       child: Text(
                         DateFormat('dd MMM kk:mm').format(
                             DateTime.fromMillisecondsSinceEpoch(
@@ -587,7 +591,7 @@ class ChatPageState extends State<ChatPage> {
         backgroundColor: AyurezeTheme.border,
         title: Text(
           peerNickname,
-          style: TextStyle(color: AyurezeTheme.forestDeep),
+          style: TextStyle(color: AyurezeTheme.textPrimary),
         ),
         centerTitle: true,
         leading: InkWell(
@@ -650,7 +654,7 @@ class ChatPageState extends State<ChatPage> {
                   HapticFeedback.selectionClick();
                   _modalBottomSheetMenu();
                 },
-                color: AyurezeTheme.forestDeep,
+                color: AyurezeTheme.iconPrimary,
               ),
             ),
           ),
@@ -662,7 +666,7 @@ class ChatPageState extends State<ChatPage> {
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
-                  ?.copyWith(color: AyurezeTheme.forestDeep),
+                  ?.copyWith(color: AyurezeTheme.textPrimary),
               controller: textEditingController,
               decoration: InputDecoration.collapsed(
                 hintText:
@@ -683,7 +687,7 @@ class ChatPageState extends State<ChatPage> {
                   HapticFeedback.lightImpact();
                   onSendMessage(textEditingController.text, TypeMessage.text);
                 },
-                color: AyurezeTheme.forestDeep,
+                color: AyurezeTheme.iconPrimary,
               ),
             ),
           ),

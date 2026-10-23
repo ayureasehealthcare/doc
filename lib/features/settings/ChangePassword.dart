@@ -51,7 +51,7 @@ class _ChangePasswordState extends State<ChangePassword> {
           leading: IconButton(
             icon: HugeIcon(
               icon: AppIcons.back,
-              color: AyurezeTheme.forestDeep,
+              color: AyurezeTheme.iconPrimary,
               size: 20,
             ),
             onPressed: () {
@@ -211,7 +211,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                 child: viewModel.isLoading
                     ? Center(
                         child: CircularProgressIndicator(
-                          color: AyurezeTheme.forestDeep,
+                          color: AyurezeTheme.iconPrimary,
                         ),
                       )
                     : OslerButton(

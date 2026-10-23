@@ -23,7 +23,7 @@ class PdfViewerPage extends StatelessWidget {
         leading: IconButton(
           icon: HugeIcon(
             icon: AppIcons.back,
-            color: AyurezeTheme.healingGreen100,
+            color: AyurezeTheme.iconPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),

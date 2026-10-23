@@ -126,7 +126,7 @@ class OslerModal {
                 onPressed: primaryAction ?? () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isDanger
-                      ? AyurezeTheme.remoteRed50
+                      ? AyurezeTheme.remoteRedFill
                       : AyurezeTheme.healingGreen100,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(

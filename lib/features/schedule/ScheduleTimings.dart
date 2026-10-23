@@ -93,9 +93,7 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
         elevation: 0,
         leading: IconButton(
           icon: HugeIcon(
-              icon: AppIcons.back,
-              color: AyurezeTheme.healingGreen100,
-              size: 20),
+              icon: AppIcons.back, color: AyurezeTheme.iconPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -111,8 +109,7 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return Center(
-              child: CircularProgressIndicator(
-                  color: AyurezeTheme.healingGreen100),
+              child: CircularProgressIndicator(color: AyurezeTheme.iconPrimary),
             );
           } else {
             return Center(
@@ -253,7 +250,7 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
                                         icon: HugeIcon(
                                           icon: HugeIcons
                                               .strokeRoundedCalendarSetting01,
-                                          color: AyurezeTheme.healingGreen100,
+                                          color: AyurezeTheme.iconPrimary,
                                           size: 22,
                                         ),
                                         onPressed: () async {

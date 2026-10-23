@@ -95,7 +95,7 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
         leading: IconButton(
           icon: HugeIcon(
             icon: AppIcons.menu,
-            color: AyurezeTheme.healingGreen100,
+            color: AyurezeTheme.iconPrimary,
           ),
           onPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
@@ -119,8 +119,8 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
               return Center(
-                child: CircularProgressIndicator(
-                    color: AyurezeTheme.healingGreen100),
+                child:
+                    CircularProgressIndicator(color: AyurezeTheme.iconPrimary),
               );
             }
 
@@ -128,7 +128,7 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
                 _search.text.isNotEmpty ? _searchResult : reviewData;
 
             return RefreshIndicator(
-              color: AyurezeTheme.healingGreen100,
+              color: AyurezeTheme.iconPrimary,
               onRefresh: reviewRequest,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
@@ -186,7 +186,9 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AyurezeTheme.spaceMd,
+                vertical: AyurezeTheme.spaceSm),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(AyurezeTheme.radiusPill),
@@ -223,7 +225,8 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
 
   Widget _buildSearchCard(BuildContext context) {
     return GlassSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AyurezeTheme.spaceXl, vertical: AyurezeTheme.spaceSm),
       child: TextField(
         controller: _search,
         decoration: InputDecoration(
@@ -235,7 +238,7 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
               ),
           suffixIcon: HugeIcon(
             icon: AppIcons.search,
-            color: AyurezeTheme.healingGreen100,
+            color: AyurezeTheme.iconPrimary,
           ),
         ),
         onChanged: onSearchTextChanged,
@@ -338,7 +341,8 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
     final textTheme = Theme.of(context).textTheme;
     return GlassSurface(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 40),
+      padding: const EdgeInsets.symmetric(
+          vertical: AyurezeTheme.space3xl + AyurezeTheme.spaceSm),
       child: Column(
         children: [
           Image.asset("assets/images/no-data.png", height: 96),

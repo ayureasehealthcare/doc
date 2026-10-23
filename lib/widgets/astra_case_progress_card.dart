@@ -60,7 +60,7 @@ class _AstraCaseProgressCardState extends State<AstraCaseProgressCard> {
           Row(
             children: [
               Icon(Icons.auto_awesome,
-                  size: 18, color: AyurezeTheme.forestDeep),
+                  size: 18, color: AyurezeTheme.iconPrimary),
               const SizedBox(width: AyurezeTheme.spaceSm),
               Text(
                 'Astra Companion',
@@ -89,7 +89,7 @@ class _AstraCaseProgressCardState extends State<AstraCaseProgressCard> {
               value: (progress.toDouble() / 100).clamp(0.0, 1.0),
               minHeight: 6,
               backgroundColor: AyurezeTheme.surfaceMuted,
-              color: AyurezeTheme.forestDeep,
+              color: AyurezeTheme.iconPrimary,
             ),
           ),
           const SizedBox(height: AyurezeTheme.spaceXs),

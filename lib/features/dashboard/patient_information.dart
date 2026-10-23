@@ -112,7 +112,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
         leading: IconButton(
           icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: AyurezeTheme.forestDeep,
+            color: AyurezeTheme.iconPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -207,7 +207,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                   width: 20,
                                                   height: 20,
                                                   colorFilter: ColorFilter.mode(
-                                                    AyurezeTheme.forestDeep,
+                                                    AyurezeTheme.iconPrimary,
                                                     BlendMode.srcIn,
                                                   ),
                                                 ),
@@ -278,7 +278,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                   width: 20,
                                                   height: 20,
                                                   colorFilter: ColorFilter.mode(
-                                                    AyurezeTheme.forestDeep,
+                                                    AyurezeTheme.iconPrimary,
                                                     BlendMode.srcIn,
                                                   ),
                                                 ),
@@ -757,7 +757,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                               icon: HugeIcons
                                                   .strokeRoundedSparkles,
                                               size: 40,
-                                              color: AyurezeTheme.forestDeep,
+                                              color: AyurezeTheme.iconPrimary,
                                             ),
                                             const SizedBox(height: 12),
                                             Text(
@@ -871,7 +871,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
               children: <Widget>[
                 ListTile(
                   leading: HugeIcon(
-                      icon: AppIcons.call, color: AyurezeTheme.forestDeep),
+                      icon: AppIcons.call, color: AyurezeTheme.iconPrimary),
                   title: Text(
                     getTranslated(context, "call_text").toString(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -894,7 +894,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                   ListTile(
                     leading: HugeIcon(
                       icon: HugeIcons.strokeRoundedVideo01,
-                      color: AyurezeTheme.forestDeep,
+                      color: AyurezeTheme.iconPrimary,
                     ),
                     title: Text(
                       getTranslated(context, "video_call").toString(),
@@ -972,7 +972,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                 borderRadius: BorderRadius.circular(AyurezeTheme.radiusMd),
               ),
               child: HugeIcon(
-                  icon: icon, size: 20, color: AyurezeTheme.forestDeep),
+                  icon: icon, size: 20, color: AyurezeTheme.iconPrimary),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1018,7 +1018,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
         children: [
           Row(
             children: [
-              HugeIcon(icon: icon, size: 20, color: AyurezeTheme.forestDeep),
+              HugeIcon(icon: icon, size: 20, color: AyurezeTheme.iconPrimary),
               const SizedBox(width: 8),
               Text(
                 title,

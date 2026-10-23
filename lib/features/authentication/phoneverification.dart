@@ -75,7 +75,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
         leading: IconButton(
           icon: HugeIcon(
               icon: HugeIcons.strokeRoundedArrowLeft01,
-              color: AyurezeTheme.forestDeep,
+              color: AyurezeTheme.iconPrimary,
               size: 20),
           onPressed: () => Navigator.pushNamed(context, 'SignIn'),
         ),
@@ -165,7 +165,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
                                 BorderRadius.circular(AyurezeTheme.radiusMd),
                             color: AyurezeTheme.surface,
                             border: Border.all(
-                              color: AyurezeTheme.forestDeep,
+                              color: AyurezeTheme.iconPrimary,
                               width: 1.5,
                             ),
                           ),
@@ -203,7 +203,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
                                   context, AppString.phone_resend_new_code)
                               .toString(),
                           style: textTheme.titleSmall?.copyWith(
-                            color: AyurezeTheme.forestDeep,
+                            color: AyurezeTheme.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

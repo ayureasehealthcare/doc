@@ -165,7 +165,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                                       .strokeRoundedMailAtSign01,
                                                   size: 20,
                                                   color:
-                                                      AyurezeTheme.forestDeep),
+                                                      AyurezeTheme.iconPrimary),
                                             ),
                                             validator: (String? value) {
                                               if (value == null ||

@@ -83,7 +83,7 @@ class _PaymentScreen extends State<PaymentScreen> {
       },
       child: RefreshIndicator(
         onRefresh: paymentsFunction,
-        color: AyurezeTheme.forestDeep,
+        color: AyurezeTheme.iconPrimary,
         child: Scaffold(
           key: _scaffoldKey,
           backgroundColor: AyurezeTheme.canvas,
@@ -106,7 +106,7 @@ class _PaymentScreen extends State<PaymentScreen> {
                   "assets/icons/dMenuBar.svg",
                   height: 16,
                   colorFilter: ColorFilter.mode(
-                      AyurezeTheme.forestDeep, BlendMode.srcIn),
+                      AyurezeTheme.iconPrimary, BlendMode.srcIn),
                 ),
               ),
             ],
@@ -117,7 +117,7 @@ class _PaymentScreen extends State<PaymentScreen> {
               if (snapshot.connectionState != ConnectionState.done) {
                 return Center(
                   child: CircularProgressIndicator(
-                    color: AyurezeTheme.forestDeep,
+                    color: AyurezeTheme.iconPrimary,
                   ),
                 );
               }
@@ -192,7 +192,8 @@ class _PaymentScreen extends State<PaymentScreen> {
 
   Widget _buildSearchCard() {
     return GlassSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AyurezeTheme.spaceXl, vertical: AyurezeTheme.spaceSm),
       child: Row(
         children: [
           Expanded(
@@ -212,7 +213,7 @@ class _PaymentScreen extends State<PaymentScreen> {
             'assets/icons/dSearch.svg',
             height: 20,
             colorFilter:
-                ColorFilter.mode(AyurezeTheme.forestDeep, BlendMode.srcIn),
+                ColorFilter.mode(AyurezeTheme.iconPrimary, BlendMode.srcIn),
           ),
         ],
       ),
@@ -259,7 +260,7 @@ class _PaymentScreen extends State<PaymentScreen> {
     if (_searching() && source.isEmpty) {
       return [
         Padding(
-          padding: const EdgeInsets.only(top: 18),
+          padding: const EdgeInsets.only(top: AyurezeTheme.spaceXl),
           child: Center(
             child: Text(
               getTranslated(context, AppString.result_not_found).toString(),
@@ -288,7 +289,7 @@ class _PaymentScreen extends State<PaymentScreen> {
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedMoney03,
-              color: AyurezeTheme.forestDeep,
+              color: AyurezeTheme.iconPrimary,
             ),
           ),
           const SizedBox(width: 14),
@@ -317,7 +318,7 @@ class _PaymentScreen extends State<PaymentScreen> {
             "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${payment.amount}",
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: AyurezeTheme.forestDeep,
+                  color: AyurezeTheme.textPrimary,
                 ),
           ),
         ],
@@ -349,14 +350,14 @@ class _PaymentScreen extends State<PaymentScreen> {
               'assets/icons/longArrow.svg',
               height: 12,
               colorFilter:
-                  ColorFilter.mode(AyurezeTheme.forestDeep, BlendMode.srcIn),
+                  ColorFilter.mode(AyurezeTheme.iconPrimary, BlendMode.srcIn),
             ),
             const SizedBox(width: 10),
             Text(
               "${paymentsRequest.length}",
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: AyurezeTheme.forestDeep,
+                    color: AyurezeTheme.textPrimary,
                   ),
             ),
           ],
@@ -371,7 +372,7 @@ class _PaymentScreen extends State<PaymentScreen> {
       padding: const EdgeInsets.symmetric(
           horizontal: AyurezeTheme.spaceXl, vertical: AyurezeTheme.spaceXl),
       decoration: BoxDecoration(
-        color: AyurezeTheme.forestDeep,
+        color: AyurezeTheme.iconPrimary,
         borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
       ),
       child: Row(
@@ -399,7 +400,8 @@ class _PaymentScreen extends State<PaymentScreen> {
   Widget _buildEmptyState() {
     return GlassSurface(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 36),
+      padding: const EdgeInsets.symmetric(
+          vertical: AyurezeTheme.space3xl + AyurezeTheme.spaceXs),
       child: Column(
         children: [
           Image.asset("assets/images/no-data.png", height: 88),
@@ -538,7 +540,7 @@ class _PaymentScreen extends State<PaymentScreen> {
               ),
               HugeIcon(
                   icon: AppIcons.wallet,
-                  color: AyurezeTheme.forestDeep,
+                  color: AyurezeTheme.iconPrimary,
                   size: 24),
             ],
           ),
@@ -552,8 +554,8 @@ class _PaymentScreen extends State<PaymentScreen> {
           const SizedBox(height: 4),
           Text(
             "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${availableBalance.toStringAsFixed(2)}",
-            style:
-                AyurezeTheme.font(28, FontWeight.w800, AyurezeTheme.forestDeep),
+            style: AyurezeTheme.font(
+                28, FontWeight.w800, AyurezeTheme.textPrimary),
           ),
           const SizedBox(height: 16),
           Row(
@@ -760,7 +762,7 @@ class _PaymentScreen extends State<PaymentScreen> {
                     "Submit Request",
                     style: TextStyle(
                         color: isFormValid && !isWithdrawing
-                            ? AyurezeTheme.forestDeep
+                            ? AyurezeTheme.textPrimary
                             : AyurezeTheme.textSecondary,
                         fontWeight: FontWeight.bold),
                   ),

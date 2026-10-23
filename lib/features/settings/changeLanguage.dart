@@ -101,7 +101,7 @@ class _ChangeLanguageState extends State<ChangeLanguage> {
         leading: IconButton(
           icon: HugeIcon(
             icon: AppIcons.back,
-            color: AyurezeTheme.forestDeep,
+            color: AyurezeTheme.iconPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.of(context).pop(),
@@ -119,7 +119,7 @@ class _ChangeLanguageState extends State<ChangeLanguage> {
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return Center(
-              child: CircularProgressIndicator(color: AyurezeTheme.forestDeep),
+              child: CircularProgressIndicator(color: AyurezeTheme.iconPrimary),
             );
           }
 

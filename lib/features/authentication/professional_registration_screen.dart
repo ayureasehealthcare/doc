@@ -520,8 +520,7 @@ class _ProfessionalRegistrationScreenState
       ),
       body: _isLoading
           ? Center(
-              child: CircularProgressIndicator(
-                  color: AyurezeTheme.healingGreen100))
+              child: CircularProgressIndicator(color: AyurezeTheme.iconPrimary))
           : SafeArea(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -742,7 +741,7 @@ class _ProfessionalRegistrationScreenState
 
     return Row(
       children: [
-        HugeIcon(icon: icon, color: AyurezeTheme.healingGreen100, size: 22),
+        HugeIcon(icon: icon, color: AyurezeTheme.iconPrimary, size: 22),
         const SizedBox(width: 10),
         Text(title,
             style: textTheme.titleMedium?.copyWith(
@@ -842,8 +841,8 @@ class _ProfessionalRegistrationScreenState
                       color: AyurezeTheme.border.withValues(alpha: 0.6))),
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg),
-                  borderSide: BorderSide(
-                      color: AyurezeTheme.healingGreen100, width: 1.5)),
+                  borderSide:
+                      BorderSide(color: AyurezeTheme.iconPrimary, width: 1.5)),
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg)),
               errorBorder: OutlineInputBorder(
@@ -907,7 +906,7 @@ class _ProfessionalRegistrationScreenState
 
     return Row(
       children: [
-        HugeIcon(icon: icon, size: 18, color: AyurezeTheme.healingGreen100),
+        HugeIcon(icon: icon, size: 18, color: AyurezeTheme.iconPrimary),
         const SizedBox(width: 12),
         Text("$label: ",
             style: textTheme.bodySmall

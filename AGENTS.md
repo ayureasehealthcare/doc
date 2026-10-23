@@ -128,20 +128,22 @@ converge on the tokens when you touch a file.
 
 ## Screen layout: the kit is under-used
 
-28 screens have a `Scaffold`. Ten of them use **zero** Osler widgets,
-including `login_home` (the dashboard), `chat_page` and
-`cancel_appointment` - the highest-traffic surfaces in the app. New work
-on those screens should move them onto the kit rather than adding more
-hand-rolled Flutter.
+31 files have a `Scaffold`. Seven use **zero** Osler widgets: the chat
+`chat_page` / `home_page` / `full_photo_page`, `video_Call`,
+`videocallhistory`, `pdf_viewer_page`, and `app_shell` (a container, so
+expected). `login_home` and `cancel_appointment` have since moved onto the
+kit. New work on the chat and video screens should do the same rather
+than adding more hand-rolled Flutter.
 
-`profile.dart` is 2,395 lines - by far the largest file, with 52
-hardcoded font sizes and 26 raw insets. Treat edits there carefully and
-prefer extracting a section over growing it.
+`profile.dart` is ~2,200 lines - by far the largest file. Treat edits
+there carefully and prefer extracting a section over growing it.
 
-Repo-wide drift, measured: 147 hardcoded `fontSize:`, 200 raw
-`EdgeInsets`, 74 `BorderRadius.circular` across 14 distinct values, 56
-`Colors.white`, and only 14 literal `Color(0x..)` (low, which is the
-healthy signal that the token system is followed).
+Drift, measured (Oct 2026): feature screens have **no** hardcoded
+`fontSize:` or `BorderRadius.circular(<number>)` left, and only a 1px
+hairline margin among raw `EdgeInsets`. What remains lives in shared
+widgets and `lib/core/astra`: 38 `fontSize:`, 41 radii, ~40 raw
+`EdgeInsets`, 20 literal `Color(0x..)` (mostly `astra_dark_mode.dart`
+and the deliberately dark in-call `video_Call` screen).
 
 ## Conventions
 
@@ -153,8 +155,8 @@ healthy signal that the token system is followed).
   count rather than by role led to an overstated bug list once already -
   see the Dark mode section for the test that actually decides it.
 - The theme defines text styles (`headlineLarge` … `labelLarge`). Prefer
-  `Theme.of(context).textTheme.*` over a literal `fontSize:` — there are
-  still ~108 hardcoded `fontSize` values.
+  `Theme.of(context).textTheme.*` over a literal `fontSize:` — screens
+  are clean; 38 remain in shared widgets and `lib/core/astra`.
 - Guard `BuildContext` use after any `await` with `if (!mounted) return;`
   (or `context.mounted` in view models). This was a genuine crash source
   across the auth and video-call flows.
@@ -177,6 +179,23 @@ main source of dark-mode bugs:
   These keep their light value in dark mode. They are fine as *brand
   accents* (a badge, an icon on a pale chip) but wrong as a page or card
   background, where they strand pale fills behind themed text.
+
+The mirror-image bug is the commoner one: `forestDeep` / `healingGreen100`
+(the same `#1A2E05`) used as **ink** - text, icons, spinners, focus
+borders - straight on `canvas`/`surface`/`surfaceMuted`/glass. 12-14:1 in
+light mode, 1.06-1.35:1 in dark mode, i.e. invisible. ~90 such uses were
+fixed across 25+ screens and widgets (back arrows, app bars, the bottom
+nav's selected tab, the date picker's OK button, the live signature pad).
+Use `iconPrimary` (identical to `forestDeep` in light mode, white in dark)
+for icons and ink, `textPrimary` for text. Keep the dark constant only as
+a **fill** under white content, as the 100 shade on its own 10 tint, or as
+ink on a fixed bright fill (the lime `healingGreen50` header/avatars).
+
+`test/theme/dark_ink_guard_test.dart` enforces this with a reviewed count
+of the remaining uses per file in `lib/features` and `lib/widgets`. If it
+fails because a count went up, check the new use rather than just bumping
+the number. `mock_flow/main.dart` builds with `--dart-define=MOCK_DARK=true`
+to eyeball screens in dark mode.
 
 Where such a fill already carries the accent 100 shade as foreground
 (`healingGreen100` on `healingGreen10` is 14:1), the pairing is

@@ -79,7 +79,8 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
       backgroundColor: AyurezeTheme.canvas,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          padding:
+              const EdgeInsets.symmetric(horizontal: AyurezeTheme.space3xl),
           child: Column(
             children: [
               const Spacer(flex: 2),
@@ -214,7 +215,7 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
               isStatus
                   ? AyurezeTheme.warning
                   : (isPrimary
-                      ? AyurezeTheme.healingGreen100
+                      ? AyurezeTheme.iconPrimary
                       : AyurezeTheme.textPrimary),
             ),
             textAlign: TextAlign.right,

@@ -626,7 +626,7 @@ class _SignInViewState extends State<SignInView>
                                                     ?.copyWith(
                                                   fontWeight: FontWeight.w800,
                                                   color:
-                                                      AyurezeTheme.forestDeep,
+                                                      AyurezeTheme.textPrimary,
                                                 ),
                                               ),
                                             ),

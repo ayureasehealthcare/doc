@@ -178,7 +178,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedUserCircle02,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             validator: (String? value) {
                               if (value!.isEmpty) {
                                 return getTranslated(context,
@@ -199,7 +199,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedMailAtSign01,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             validator: (String? value) {
                               if (value!.isEmpty) {
                                 return getTranslated(
@@ -248,7 +248,7 @@ class _CreateAccountState extends State<CreateAccount> {
                                   prefixIcon: HugeIcon(
                                       icon: HugeIcons.strokeRoundedSmartPhone01,
                                       size: 20,
-                                      color: AyurezeTheme.healingGreen100),
+                                      color: AyurezeTheme.iconPrimary),
                                   validator: (String? value) {
                                     if (value!.isEmpty) {
                                       return getTranslated(context,
@@ -280,7 +280,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedCalendar03,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             validator: (String? value) {
                               if (value!.isEmpty) {
                                 return getTranslated(context,
@@ -318,14 +318,14 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedSquareLock01,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             suffixIcon: IconButton(
                               icon: HugeIcon(
                                   icon: _isHidden
                                       ? HugeIcons.strokeRoundedViewOff
                                       : HugeIcons.strokeRoundedView,
                                   size: 20,
-                                  color: AyurezeTheme.healingGreen100),
+                                  color: AyurezeTheme.iconPrimary),
                               onPressed: () =>
                                   setState(() => _isHidden = !_isHidden),
                             ),
@@ -398,7 +398,7 @@ class _CreateAccountState extends State<CreateAccount> {
                                   .bodyMedium
                                   ?.copyWith(
                                       fontWeight: FontWeight.w800,
-                                      color: AyurezeTheme.healingGreen100),
+                                      color: AyurezeTheme.textPrimary),
                             ),
                           ),
                         ],

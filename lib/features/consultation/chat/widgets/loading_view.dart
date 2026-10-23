@@ -65,8 +65,8 @@ class _LoadingViewState extends State<LoadingView>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: AyurezeTheme.healingGreen100
-                              .withValues(alpha: 0.15),
+                          color:
+                              AyurezeTheme.iconPrimary.withValues(alpha: 0.15),
                           width: 3.5,
                         ),
                       ),
@@ -76,11 +76,11 @@ class _LoadingViewState extends State<LoadingView>
                           width: 9,
                           height: 9,
                           decoration: BoxDecoration(
-                            color: AyurezeTheme.healingGreen100,
+                            color: AyurezeTheme.iconPrimary,
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: AyurezeTheme.healingGreen100,
+                                color: AyurezeTheme.iconPrimary,
                                 blurRadius: 6,
                                 spreadRadius: 1.5,
                               )
