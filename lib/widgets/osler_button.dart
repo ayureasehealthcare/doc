@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:doctro/theme/ayureze_theme.dart';
@@ -26,6 +28,7 @@ class OslerButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bgColor = customColor ?? _getBackgroundColor();
+    final fgColor = _getForegroundColor(bgColor);
     final tappable = !isLoading && onPressed != null;
     return Semantics(
       button: true,
@@ -47,7 +50,21 @@ class OslerButton extends StatelessWidget {
                   },
             style: ElevatedButton.styleFrom(
               backgroundColor: bgColor,
-              foregroundColor: _getForegroundColor(bgColor),
+              foregroundColor: fgColor,
+              // While loading the button is disabled only to block taps;
+              // keep its normal colours so the spinner stays legible
+              // instead of white-on-grey.
+              disabledBackgroundColor: isLoading ? bgColor : null,
+              disabledForegroundColor: isLoading ? fgColor : null,
+              // The label takes its colour from foregroundColor via the
+              // button's DefaultTextStyle. Setting a style on the Text
+              // itself would carry the theme's dark text colour and
+              // override it - which is how primary labels ended up dark
+              // on dark green.
+              textStyle: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AyurezeTheme.radiusPill),
@@ -67,7 +84,7 @@ class OslerButton extends StatelessWidget {
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: _getForegroundColor(bgColor),
+                        color: fgColor,
                       ),
                     )
                   : Row(
@@ -78,13 +95,7 @@ class OslerButton extends StatelessWidget {
                           Icon(icon),
                           const SizedBox(width: 8),
                         ],
-                        Text(
-                          text,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
+                        Text(text),
                       ],
                     ),
             ),
@@ -106,13 +117,20 @@ class OslerButton extends StatelessWidget {
     }
   }
 
+  /// Label/icon colour for [bgColor]. Transparent (outline, ghost) buttons
+  /// sit on the page, so they use the dark-aware text token; filled ones
+  /// get whichever of white or the dark brand ink contrasts more with the
+  /// fill, so a [customColor] can't silently produce an unreadable label.
   Color _getForegroundColor(Color bgColor) {
-    if (bgColor == AyurezeTheme.healingGreenFill ||
-        bgColor == AyurezeTheme.healingGreen50 ||
-        bgColor == AyurezeTheme.healingGreen100 ||
-        bgColor == AyurezeTheme.oslerGray50) {
-      return Colors.white;
-    }
-    return AyurezeTheme.healingGreen100;
+    if (bgColor.a == 0) return AyurezeTheme.textPrimary;
+    const light = Colors.white;
+    const dark = AyurezeTheme.healingGreen100;
+    return _contrast(light, bgColor) >= _contrast(dark, bgColor) ? light : dark;
+  }
+
+  static double _contrast(Color a, Color b) {
+    final la = a.computeLuminance();
+    final lb = b.computeLuminance();
+    return (math.max(la, lb) + 0.05) / (math.min(la, lb) + 0.05);
   }
 }

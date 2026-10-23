@@ -56,6 +56,12 @@ class AyurezeTheme {
   static const Color remoteRed50 = Color(0xFFF43F5E);
   static const Color remoteRed10 = Color(0xFFFFE4E7);
 
+  // Red counterpart of healingGreenFill, for destructive filled buttons
+  // with a white label. remoteRed50 reaches only 3.67:1 against white (and
+  // 3.98:1 against healingGreen100), short of the 4.5:1 a 16px label needs;
+  // rose-700 from the same kit scale reaches 6.29:1.
+  static const Color remoteRedFill = Color(0xFFBE123C); // kit rose-700
+
   static const Color sunshineYellow100 = Color(0xFF422006);
   // Confirmed against the real kit's own published Color Palette
   // reference page (Yellow 50 = #EAB308) - the app had drifted to

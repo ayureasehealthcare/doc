@@ -535,8 +535,8 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                     AppString
                                                         .information_cancel_status,
                                                   ).toString(),
-                                                  customColor:
-                                                      AyurezeTheme.remoteRed50,
+                                                  customColor: AyurezeTheme
+                                                      .remoteRedFill,
                                                   onPressed: () {
                                                     vm.statusChangeRequest(
                                                       "cancel",

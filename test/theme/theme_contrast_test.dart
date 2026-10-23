@@ -109,6 +109,25 @@ void main() {
         lessThan(4.5),
       );
     });
+
+    test('remoteRedFill is legible under white; remoteRed50 is not', () {
+      // remoteRed50 was the Cancel button's fill; neither white nor the
+      // dark brand ink reached AA on it.
+      expect(
+        contrastRatio(
+          AyurezeTheme.remoteRedFill.toARGB32(),
+          const Color(0xFFFFFFFF).toARGB32(),
+        ),
+        greaterThanOrEqualTo(4.5),
+      );
+      expect(
+        contrastRatio(
+          AyurezeTheme.remoteRed50.toARGB32(),
+          const Color(0xFFFFFFFF).toARGB32(),
+        ),
+        lessThan(4.5),
+      );
+    });
   });
 
   group('brand accent pairs (shade 100 foreground on shade 10 tint)', () {
