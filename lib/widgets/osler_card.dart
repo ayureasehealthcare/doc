@@ -53,9 +53,23 @@ class _OslerCardState extends State<OslerCard> {
       curve: Curves.easeOutCubic,
       child: Container(
         margin: widget.margin,
+        // The shadow sits on an outer box, BEHIND the card. It used to live
+        // on the inner (colourless) container, so the blur painted on top of
+        // the fill as a grey wash - invisible on the old off-white surface,
+        // obvious on white.
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AyurezeTheme.radiusCard),
+          boxShadow: [
+            BoxShadow(
+              color: _isPressed ? Colors.transparent : AyurezeTheme.shadow,
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Material(
           color: widget.backgroundColor ?? AyurezeTheme.surface,
-          borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
+          borderRadius: BorderRadius.circular(AyurezeTheme.radiusCard),
           child: InkWell(
             onTap: widget.onTap == null
                 ? null
@@ -66,26 +80,16 @@ class _OslerCardState extends State<OslerCard> {
             onTapDown: _handleTapDown,
             onTapUp: _handleTapUp,
             onTapCancel: _handleTapCancel,
-            borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
+            borderRadius: BorderRadius.circular(AyurezeTheme.radiusCard),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               padding:
                   widget.padding ?? const EdgeInsets.all(AyurezeTheme.spaceXl),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
+                borderRadius: BorderRadius.circular(AyurezeTheme.radiusCard),
                 border: widget.showBorder
                     ? Border.all(color: AyurezeTheme.border)
                     : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: _isPressed
-                        ? const Color(0x05000000)
-                        : const Color(0x0F000000),
-                    blurRadius: _isPressed ? 8 : 18,
-                    offset:
-                        _isPressed ? const Offset(0, 4) : const Offset(0, 10),
-                  ),
-                ],
               ),
               child: widget.child,
             ),

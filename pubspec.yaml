@@ -167,6 +167,8 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/sounds/
+    - assets/swastu/
+    - assets/brand/
     - lib/core/localization/language/
     
   # assets:
@@ -179,47 +181,28 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages
 
-  # Uni Neue (licensed, purchased family - see assets/fonts/UniNeue/).
-  # Weights are the usWeightClass values embedded in each file (checked with
-  # fonttools), not a guess from the file name: Thin=250->100, Light=300,
-  # Book=400, Regular=500, Bold=700, Heavy=800, Black=900. AyurezeTheme.font()
-  # only ever asks for w500/w700/w800, so Regular/Bold/Heavy cover every style
-  # the app actually uses; the rest are here for completeness.
+  # Same type as the patient app (Serene Herbalist design system): Inter
+  # for interface text and data, Newsreader serif for greetings and
+  # headlines. Static instances of the Google Fonts families, SIL OFL - the
+  # licence text sits next to the files. The purchased Uni Neue files are
+  # still in assets/fonts/UniNeue/ but no longer declared, so they don't
+  # ship; restore this block from git history to switch back.
   fonts:
-    - family: Uni Neue
+    - family: Inter
       fonts:
-        - asset: assets/fonts/UniNeue/UniNeue-Thin.ttf
-          weight: 100
-        - asset: assets/fonts/UniNeue/UniNeue-ThinItalic.ttf
-          weight: 100
-          style: italic
-        - asset: assets/fonts/UniNeue/UniNeue-Light.ttf
-          weight: 300
-        - asset: assets/fonts/UniNeue/UniNeue-LightItalic.ttf
-          weight: 300
-          style: italic
-        - asset: assets/fonts/UniNeue/UniNeue-Book.ttf
-          weight: 400
-        - asset: assets/fonts/UniNeue/UniNeue-BookItalic.ttf
-          weight: 400
-          style: italic
-        - asset: assets/fonts/UniNeue/UniNeue-Regular.ttf
+        - asset: assets/fonts/Inter/Inter-Regular.ttf
+        - asset: assets/fonts/Inter/Inter-Medium.ttf
           weight: 500
-        - asset: assets/fonts/UniNeue/UniNeue-RegularItalic.ttf
+        - asset: assets/fonts/Inter/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter/Inter-Bold.ttf
+          weight: 700
+    - family: Newsreader
+      fonts:
+        - asset: assets/fonts/Newsreader/Newsreader-Regular.ttf
+        - asset: assets/fonts/Newsreader/Newsreader-Medium.ttf
           weight: 500
-          style: italic
-        - asset: assets/fonts/UniNeue/UniNeue-Bold.ttf
+        - asset: assets/fonts/Newsreader/Newsreader-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Newsreader/Newsreader-Bold.ttf
           weight: 700
-        - asset: assets/fonts/UniNeue/UniNeue-BoldItalic.ttf
-          weight: 700
-          style: italic
-        - asset: assets/fonts/UniNeue/UniNeue-Heavy.ttf
-          weight: 800
-        - asset: assets/fonts/UniNeue/UniNeue-HeavyItalic.ttf
-          weight: 800
-          style: italic
-        - asset: assets/fonts/UniNeue/UniNeue-Black.ttf
-          weight: 900
-        - asset: assets/fonts/UniNeue/UniNeue-BlackItalic.ttf
-          weight: 900
-          style: italic

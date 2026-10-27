@@ -110,23 +110,20 @@ void main() {
       );
     });
 
-    test('remoteRedFill is legible under white; remoteRed50 is not', () {
-      // remoteRed50 was the Cancel button's fill; neither white nor the
-      // dark brand ink reached AA on it.
-      expect(
-        contrastRatio(
-          AyurezeTheme.remoteRedFill.toARGB32(),
-          const Color(0xFFFFFFFF).toARGB32(),
-        ),
-        greaterThanOrEqualTo(4.5),
-      );
-      expect(
-        contrastRatio(
-          AyurezeTheme.remoteRed50.toARGB32(),
-          const Color(0xFFFFFFFF).toARGB32(),
-        ),
-        lessThan(4.5),
-      );
+    test('both reds are legible under white', () {
+      // The old rose remoteRed50 (#F43F5E) was 3.67:1 under white, which is
+      // why remoteRedFill exists. The Serene Herbalist clay red clears AA
+      // too, so a white label is safe on either.
+      for (final red in [
+        AyurezeTheme.remoteRedFill,
+        AyurezeTheme.remoteRed50
+      ]) {
+        expect(
+          contrastRatio(red.toARGB32(), const Color(0xFFFFFFFF).toARGB32()),
+          greaterThanOrEqualTo(4.5),
+          reason: '$red',
+        );
+      }
     });
   });
 
