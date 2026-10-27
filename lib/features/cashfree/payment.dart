@@ -487,9 +487,11 @@ class _PaymentScreen extends State<PaymentScreen> {
 
   Future<void> loadWalletStats() async {
     try {
-      final String doctorId =
-          SharedPreferenceHelper.getString(Preferences.doctorId);
-      if (doctorId.isNotEmpty) {
+      // getString returns 'N_A' for a missing key, which was sent to the
+      // server as the doctor id.
+      final String? doctorId =
+          SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+      if (doctorId != null && doctorId.isNotEmpty) {
         final stats = await AstraApiService().getDashboardStats(doctorId);
         if (!mounted) return;
         setState(() {

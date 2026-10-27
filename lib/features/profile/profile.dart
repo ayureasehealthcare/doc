@@ -491,8 +491,9 @@ class _ProfileScreen extends State<ProfileScreen> {
   // that no longer exists in the response.
   Future<BaseModel<DoctorProfile>> doctorProfile() async {
     try {
-      final doctorId = SharedPreferenceHelper.getString(Preferences.doctorId);
-      if (doctorId.isEmpty) {
+      final doctorId =
+          SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+      if (doctorId == null) {
         return BaseModel()
           ..setException(
               ServerError.withError(error: Exception('No doctor id saved')));

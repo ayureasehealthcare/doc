@@ -204,17 +204,25 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
                                 title: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    // One line, shrunk if needed: at flex 3
+                                    // "Tuesday" broke mid-word on a phone.
                                     Expanded(
-                                      flex: 3,
-                                      child: Text(
-                                        workingReq[index].dayIndex!,
-                                        style: textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                          color: AyurezeTheme.textPrimary,
+                                      flex: 4,
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          workingReq[index].dayIndex!,
+                                          maxLines: 1,
+                                          style:
+                                              textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                            color: AyurezeTheme.textPrimary,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                    const Spacer(),
+                                    const SizedBox(width: AyurezeTheme.spaceSm),
                                     Expanded(
                                       flex: 8,
                                       child: ListView.builder(

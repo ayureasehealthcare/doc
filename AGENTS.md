@@ -244,7 +244,11 @@ the number. `mock_flow/main.dart` builds with `--dart-define=MOCK_DARK=true`
 to eyeball screens in dark mode. Tiles 9-13 mount the real sign-in,
 dashboard, Astra chat, schedule and payments screens with a stored profile
 and no backend, so their loading, empty and error states can be checked
-in a browser.
+in a browser. The harness stores a demo doctor id and currency; to see
+screens with data, answer `astra.ayureze.in` requests with Playwright
+`page.route` mocks (reply to the CORS preflight too). The payments list
+cannot show entries in any build: there is no per-transaction endpoint,
+so `paymentsFunction` returns an empty list on purpose.
 
 Where such a fill already carries the accent 100 shade as foreground
 (`healingGreen100` on `healingGreen10` is 14:1), the pairing is

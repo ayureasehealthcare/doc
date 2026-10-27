@@ -73,7 +73,7 @@ class AuthProvider extends ChangeNotifier {
               SharedPreferenceHelper.getString(Preferences.chat_profile),
           FirestoreConstants.userType: "doctor",
           FirestoreConstants.doctorId:
-              SharedPreferenceHelper.getString(Preferences.doctorId),
+              SharedPreferenceHelper.getStringOrNull(Preferences.doctorId),
           FirestoreConstants.id: user.uid,
           'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
           FirestoreConstants.chattingWith: null

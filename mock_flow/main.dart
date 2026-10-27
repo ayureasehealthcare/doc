@@ -129,6 +129,8 @@ Future<void> main() async {
   await prefs.setBool('is_logged_in', true);
   await prefs.setString('current_language_code', 'en');
   await prefs.setString('name', 'Asha Rao');
+  await prefs.setString('doctorId', 'demo-doctor');
+  await prefs.setString('Currency Symbol', '₹');
   await SharedPreferenceHelper.initWithPreferences(prefs);
   runApp(const MockFlowApp());
 }

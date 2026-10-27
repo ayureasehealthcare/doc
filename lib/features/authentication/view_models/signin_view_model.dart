@@ -375,8 +375,9 @@ class SignInViewModel extends ChangeNotifier {
 
   Future<void> _registerFcmToken() async {
     try {
-      final doctorId = SharedPreferenceHelper.getString(Preferences.doctorId);
-      if (doctorId.isEmpty) return;
+      final doctorId =
+          SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+      if (doctorId == null) return;
 
       String? token =
           SharedPreferenceHelper.getString(Preferences.messageToken);
