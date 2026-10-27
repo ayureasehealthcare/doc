@@ -46,6 +46,7 @@ class ConnectionMonitor extends ChangeNotifier {
   }
 
   /// Stop monitoring
+  @override
   void dispose() {
     _subscription?.cancel();
     super.dispose();

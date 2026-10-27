@@ -23,7 +23,7 @@ class ScheduleTimings extends StatefulWidget {
   const ScheduleTimings({super.key});
 
   @override
-  _ScheduleTimingsState createState() => _ScheduleTimingsState();
+  State<ScheduleTimings> createState() => _ScheduleTimingsState();
 }
 
 //Set Value in Switch
@@ -308,7 +308,7 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
                                           id = workingReq[index].id;
                                           checkStatus =
                                               workingReq[index].status;
-                                          var convertData;
+                                          dynamic convertData;
                                           listDynamic.clear();
                                           convertData = json.decode(
                                               workingReq[index].periodList!);
@@ -829,7 +829,7 @@ class SwitchScreen extends StatefulWidget {
   const SwitchScreen(this.checkStatus, {super.key});
 
   @override
-  _SwitchScreenState createState() => _SwitchScreenState();
+  State<SwitchScreen> createState() => _SwitchScreenState();
 }
 
 class _SwitchScreenState extends State<SwitchScreen> {

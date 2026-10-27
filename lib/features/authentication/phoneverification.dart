@@ -24,7 +24,7 @@ class PhoneVerificationScreen extends StatefulWidget {
   const PhoneVerificationScreen({super.key, this.data});
 
   @override
-  _PhoneVerificationScreenState createState() =>
+  State<PhoneVerificationScreen> createState() =>
       _PhoneVerificationScreenState();
 }
 

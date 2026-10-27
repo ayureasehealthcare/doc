@@ -263,7 +263,7 @@ class Draggable<T> extends StatefulWidget {
   }
 
   @override
-  _DraggableState<T> createState() => _DraggableState<T>();
+  State<Draggable<T>> createState() => _DraggableState<T>();
 }
 
 /// Makes its child draggable starting from long press.
@@ -430,7 +430,7 @@ class DragTarget<T> extends StatefulWidget {
   final DragTargetLeave? onLeave;
 
   @override
-  _DragTargetState<T> createState() => _DragTargetState<T>();
+  State<DragTarget<T?>> createState() => _DragTargetState<T>();
 }
 
 List<T?> _mapAvatarsToData<T>(List<_DragAvatar<T>> avatars) {
@@ -511,7 +511,7 @@ class _DragAvatar<T> extends Drag {
     this.onDragEnd,
     this.onDragUpdate,
     required this.ignoringFeedbackSemantics,
-  }) {
+  }) : _viewId = View.of(overlayState.context).viewId {
     _entry = OverlayEntry(builder: _build);
     overlayState.insert(_entry!);
     _position = initialPosition;
@@ -527,6 +527,7 @@ class _DragAvatar<T> extends Drag {
   final _OnDragUpdate? onDragUpdate;
   final OverlayState overlayState;
   final bool ignoringFeedbackSemantics;
+  final int _viewId;
 
   _DragTargetState<T>? _activeTarget;
   final List<_DragTargetState<T>> _enteredTargets = <_DragTargetState<T>>[];
@@ -554,7 +555,8 @@ class _DragAvatar<T> extends Drag {
     _lastOffset = globalPosition - dragStartPoint;
     _entry!.markNeedsBuild();
     final HitTestResult result = HitTestResult();
-    WidgetsBinding.instance.hitTest(result, globalPosition + feedbackOffset);
+    WidgetsBinding.instance
+        .hitTestInView(result, globalPosition + feedbackOffset, _viewId);
 
     final List<_DragTargetState<T>> targets =
         _getDragTargets(result.path).toList();

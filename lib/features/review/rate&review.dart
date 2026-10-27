@@ -23,7 +23,7 @@ class RateAndReviewRoutesScreen extends StatefulWidget {
   const RateAndReviewRoutesScreen({super.key});
 
   @override
-  _RateAndReviewRoutesScreenState createState() =>
+  State<RateAndReviewRoutesScreen> createState() =>
       _RateAndReviewRoutesScreenState();
 }
 

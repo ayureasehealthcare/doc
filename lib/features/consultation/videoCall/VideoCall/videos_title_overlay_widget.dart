@@ -12,7 +12,7 @@ class VideoTitleOverlayWidget extends StatefulWidget {
       {super.key, required this.onClear, required this.widget});
 
   @override
-  _VideoTitleOverlayWidgetState createState() =>
+  State<VideoTitleOverlayWidget> createState() =>
       _VideoTitleOverlayWidgetState();
 }
 

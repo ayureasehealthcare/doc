@@ -17,7 +17,7 @@ class ViewAllNotification extends StatefulWidget {
   const ViewAllNotification({super.key});
 
   @override
-  _ViewAllAppointmentState createState() => _ViewAllAppointmentState();
+  State<ViewAllNotification> createState() => _ViewAllAppointmentState();
 }
 
 class _ViewAllAppointmentState extends State<ViewAllNotification> {

@@ -31,7 +31,7 @@ class CreateAccount extends StatefulWidget {
   final Map<String, dynamic>? prefillData;
   const CreateAccount({super.key, this.prefillData});
   @override
-  _CreateAccountState createState() => _CreateAccountState();
+  State<CreateAccount> createState() => _CreateAccountState();
 }
 
 class _CreateAccountState extends State<CreateAccount> {

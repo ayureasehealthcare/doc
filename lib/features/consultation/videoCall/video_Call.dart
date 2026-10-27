@@ -24,7 +24,7 @@ class VideoCall extends StatefulWidget {
     this.flag,
   });
   @override
-  _VideoCallState createState() => _VideoCallState();
+  State<VideoCall> createState() => _VideoCallState();
 }
 
 class _VideoCallState extends State<VideoCall> {

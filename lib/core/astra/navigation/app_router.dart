@@ -33,7 +33,7 @@ class AppRouter {
       });
 
       // Navigate to patient details
-      // The patientDetailsScreen takes an 'id' parameter
+      // The PatientDetailsScreen takes an 'id' parameter
       navigatorKey.currentState?.push(
         MaterialPageRoute(
           builder: (context) => _getPatientDetailsScreen(patientId),
@@ -396,7 +396,7 @@ Widget _buildPatientDetailsScreen(String patientId) {
 
   // For now, return a placeholder - the actual import happens at runtime
   // This is a workaround for Dart's lack of circular import handling
-  throw UnimplementedError('Use direct navigation to patientDetailsScreen');
+  throw UnimplementedError('Use direct navigation to PatientDetailsScreen');
 }
 
 Widget _buildPrescriptionScreen({

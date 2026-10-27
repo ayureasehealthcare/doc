@@ -26,15 +26,15 @@ class ChangeLanguage extends StatefulWidget {
   const ChangeLanguage({super.key});
 
   @override
-  _ChangeLanguageState createState() => _ChangeLanguageState();
+  State<ChangeLanguage> createState() => _ChangeLanguageState();
 }
 
 class _ChangeLanguageState extends State<ChangeLanguage> {
   Future? languageLoader;
   String? name;
 
-  var convertDegree;
-  var eduCertificate;
+  dynamic convertDegree;
+  dynamic eduCertificate;
 
   final TextEditingController _pDegree = TextEditingController();
   final TextEditingController _pExperience = TextEditingController();
@@ -238,13 +238,13 @@ class _ChangeLanguageState extends State<ChangeLanguage> {
           for (int i = 0; i < convertDegree.length; i++) {
             _pDegree.text = _pDegree.text.isEmpty
                 ? _pDegree.text + convertDegree[i]['degree']
-                : '${_pDegree.text},' + convertDegree[i]['degree'];
+                : '${_pDegree.text},${convertDegree[i]['degree']}';
             _pCollege.text = _pCollege.text.isEmpty
                 ? _pCollege.text + convertDegree[i]['college']
-                : '${_pCollege.text},' + convertDegree[i]['college'];
+                : '${_pCollege.text},${convertDegree[i]['college']}';
             _pCollegeYear.text = _pCollegeYear.text.isEmpty
                 ? _pCollegeYear.text + convertDegree[i]['year']
-                : '${_pCollegeYear.text},' + convertDegree[i]['year'];
+                : '${_pCollegeYear.text},${convertDegree[i]['year']}';
           }
         }
 
@@ -252,12 +252,11 @@ class _ChangeLanguageState extends State<ChangeLanguage> {
           for (int i = 0; i < eduCertificate.length; i++) {
             _pCertificate.text = _pCertificate.text.isEmpty
                 ? _pCertificate.text + eduCertificate[i]['certificate']
-                : '${_pCertificate.text},' + eduCertificate[i]['certificate'];
+                : '${_pCertificate.text},${eduCertificate[i]['certificate']}';
 
             _pCertificateYear.text = _pCertificateYear.text.isEmpty
                 ? _pCertificateYear.text + eduCertificate[i]['certificate_year']
-                : '${_pCertificateYear.text},' +
-                    eduCertificate[i]['certificate_year'];
+                : '${_pCertificateYear.text},${eduCertificate[i]['certificate_year']}';
           }
         }
 

@@ -11,7 +11,7 @@ class VideoOverlayWidget extends StatefulWidget {
   const VideoOverlayWidget({super.key, this.onClear, required this.widget});
 
   @override
-  _VideoOverlayWidgetState createState() => _VideoOverlayWidgetState();
+  State<VideoOverlayWidget> createState() => _VideoOverlayWidgetState();
 }
 
 class _VideoOverlayWidgetState extends State<VideoOverlayWidget> {

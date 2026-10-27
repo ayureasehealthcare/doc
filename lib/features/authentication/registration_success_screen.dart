@@ -21,7 +21,7 @@ class RegistrationSuccessScreen extends StatefulWidget {
   });
 
   @override
-  _RegistrationSuccessScreenState createState() =>
+  State<RegistrationSuccessScreen> createState() =>
       _RegistrationSuccessScreenState();
 }
 

@@ -30,10 +30,10 @@ import 'package:full_screen_image_null_safe/full_screen_image_null_safe.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class patientDetailsScreen extends StatelessWidget {
+class PatientDetailsScreen extends StatelessWidget {
   final int? id;
 
-  const patientDetailsScreen({super.key, this.id});
+  const PatientDetailsScreen({super.key, this.id});
 
   @override
   Widget build(BuildContext context) {

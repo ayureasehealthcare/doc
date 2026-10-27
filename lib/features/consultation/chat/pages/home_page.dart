@@ -38,8 +38,6 @@ class HomePageState extends State<HomePage> {
 
   late Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
-  var lastMessage;
-
   int _limit = 20;
   final int _limitIncrement = 20;
 

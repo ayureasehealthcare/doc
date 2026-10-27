@@ -25,7 +25,7 @@ class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
 
   @override
-  _PaymentScreen createState() => _PaymentScreen();
+  State<PaymentScreen> createState() => _PaymentScreen();
 }
 
 class _PaymentScreen extends State<PaymentScreen> {
@@ -632,33 +632,31 @@ class _PaymentScreen extends State<PaymentScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text("UPI",
-                                style: Theme.of(context).textTheme.bodySmall),
-                            value: "UPI",
-                            groupValue: payoutMode,
-                            contentPadding: EdgeInsets.zero,
-                            onChanged: (val) {
-                              setDialogState(() => payoutMode = val!);
-                            },
+                    RadioGroup<String>(
+                      groupValue: payoutMode,
+                      onChanged: (val) {
+                        setDialogState(() => payoutMode = val!);
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: Text("UPI",
+                                  style: Theme.of(context).textTheme.bodySmall),
+                              value: "UPI",
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text("Bank",
-                                style: Theme.of(context).textTheme.bodySmall),
-                            value: "Bank",
-                            groupValue: payoutMode,
-                            contentPadding: EdgeInsets.zero,
-                            onChanged: (val) {
-                              setDialogState(() => payoutMode = val!);
-                            },
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: Text("Bank",
+                                  style: Theme.of(context).textTheme.bodySmall),
+                              value: "Bank",
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     if (payoutMode == "UPI") ...[
                       TextField(

@@ -235,8 +235,7 @@ class AstraMessage {
   }
 
   static String _generateId() {
-    return DateTime.now().millisecondsSinceEpoch.toString() +
-        '_${(DateTime.now().microsecond % 1000).toString().padLeft(3, '0')}';
+    return '${DateTime.now().millisecondsSinceEpoch}_${(DateTime.now().microsecond % 1000).toString().padLeft(3, '0')}';
   }
 
   @override

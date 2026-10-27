@@ -18,7 +18,7 @@ import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/core/utils/safe_parse.dart';
 import 'package:doctro/features/dashboard/login_home.dart';
 import 'package:doctro/theme/app_motion.dart';
-import 'package:firebase_auth/firebase_auth.dart' as FA;
+import 'package:firebase_auth/firebase_auth.dart' as fa;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
@@ -45,26 +45,16 @@ class ChatPage extends StatefulWidget {
       required this.isNavigate});
 
   @override
-  State createState() => ChatPageState(
-        peerId: peerId,
-        peerAvatar: peerAvatar,
-        peerNickname: peerNickname,
-      );
+  State<ChatPage> createState() => ChatPageState();
 }
 
 class ChatPageState extends State<ChatPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late SharedPreferences prefs;
 
-  ChatPageState(
-      {Key? key,
-      required this.peerId,
-      required this.peerAvatar,
-      required this.peerNickname});
-
-  String peerId;
-  String peerAvatar;
-  String peerNickname;
+  late String peerId;
+  late String peerAvatar;
+  late String peerNickname;
   late String currentUserId;
 
   File? galleryImageFile;
@@ -94,6 +84,9 @@ class ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    peerId = widget.peerId;
+    peerAvatar = widget.peerAvatar;
+    peerNickname = widget.peerNickname;
 
     init();
     chatProvider = context.read<ChatProvider>();
@@ -133,7 +126,7 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void readLocal() {
-    currentUserId = FA.FirebaseAuth.instance.currentUser?.uid ?? "";
+    currentUserId = fa.FirebaseAuth.instance.currentUser?.uid ?? "";
     if (authProvider.getUserFirebaseId()?.isNotEmpty == true) {
       currentUserId = authProvider.getUserFirebaseId()!;
     } else {}
@@ -337,16 +330,16 @@ class ChatPageState extends State<ChatPage> {
                               },
                               errorBuilder: (context, object, stackTrace) {
                                 return Material(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(AyurezeTheme.radiusSm),
+                                  ),
+                                  clipBehavior: Clip.hardEdge,
                                   child: Image.asset(
                                     'images/img_not_available.jpeg',
                                     width: 200,
                                     height: 200,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(AyurezeTheme.radiusSm),
-                                  ),
-                                  clipBehavior: Clip.hardEdge,
                                 );
                               },
                               width: 200,
@@ -451,6 +444,9 @@ class ChatPageState extends State<ChatPage> {
                                         WidgetStateProperty.all<EdgeInsets>(
                                             EdgeInsets.zero)),
                                 child: Material(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(AyurezeTheme.radiusSm)),
+                                  clipBehavior: Clip.hardEdge,
                                   child: Image.network(
                                     messageChat.content,
                                     loadingBuilder: (BuildContext context,
@@ -488,24 +484,21 @@ class ChatPageState extends State<ChatPage> {
                                     errorBuilder:
                                         (context, object, stackTrace) =>
                                             Material(
+                                      borderRadius: const BorderRadius.all(
+                                        Radius.circular(AyurezeTheme.radiusSm),
+                                      ),
+                                      clipBehavior: Clip.hardEdge,
                                       child: Image.asset(
                                         'images/img_not_available.jpeg',
                                         width: 200,
                                         height: 200,
                                         fit: BoxFit.cover,
                                       ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(AyurezeTheme.radiusSm),
-                                      ),
-                                      clipBehavior: Clip.hardEdge,
                                     ),
                                     width: 200,
                                     height: 200,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(AyurezeTheme.radiusSm)),
-                                  clipBehavior: Clip.hardEdge,
                                 ),
                               ),
                             )

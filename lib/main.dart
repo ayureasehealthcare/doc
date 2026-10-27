@@ -211,7 +211,7 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key, required this.prefs});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 
   static void setLocale(BuildContext context, Locale newLocale) {
     _MyAppState state = context.findAncestorStateOfType<_MyAppState>()!;
@@ -533,7 +533,7 @@ class _MyAppState extends State<MyApp> {
                       'phoneverification': (context) =>
                           PhoneVerificationScreen(),
                       'loginHome': (context) => const AppShell(),
-                      'patientInformation': (context) => patientDetailsScreen(),
+                      'patientInformation': (context) => PatientDetailsScreen(),
                       'cancelAppoitmentRoutes': (context) =>
                           CancelAppointmentScreen(),
                       'AppointmentHistoryScreen': (context) =>

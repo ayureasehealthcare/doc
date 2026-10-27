@@ -32,7 +32,7 @@ class PrescriptionScreen extends StatefulWidget {
   });
 
   @override
-  _PrescriptionScreenState createState() => _PrescriptionScreenState();
+  State<PrescriptionScreen> createState() => _PrescriptionScreenState();
 }
 
 class _PrescriptionScreenState extends State<PrescriptionScreen>
@@ -659,7 +659,7 @@ class SearchMedicineSheet extends StatefulWidget {
   const SearchMedicineSheet({super.key, required this.onSelect});
 
   @override
-  _SearchMedicineSheetState createState() => _SearchMedicineSheetState();
+  State<SearchMedicineSheet> createState() => _SearchMedicineSheetState();
 }
 
 class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
@@ -843,7 +843,7 @@ class DoctorSignaturePad extends StatefulWidget {
   const DoctorSignaturePad({super.key, required this.onChanged});
 
   @override
-  _DoctorSignaturePadState createState() => _DoctorSignaturePadState();
+  State<DoctorSignaturePad> createState() => _DoctorSignaturePadState();
 }
 
 class _DoctorSignaturePadState extends State<DoctorSignaturePad> {

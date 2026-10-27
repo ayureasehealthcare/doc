@@ -25,7 +25,7 @@ class ProfessionalRegistrationScreen extends StatefulWidget {
   const ProfessionalRegistrationScreen({super.key, this.personalData});
 
   @override
-  _ProfessionalRegistrationScreenState createState() =>
+  State<ProfessionalRegistrationScreen> createState() =>
       _ProfessionalRegistrationScreenState();
 }
 

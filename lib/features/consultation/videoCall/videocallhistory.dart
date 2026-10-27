@@ -19,7 +19,7 @@ class VideoCallHistory extends StatefulWidget {
   const VideoCallHistory({super.key});
 
   @override
-  _VideoCallHistoryState createState() => _VideoCallHistoryState();
+  State<VideoCallHistory> createState() => _VideoCallHistoryState();
 }
 
 class _VideoCallHistoryState extends State<VideoCallHistory> {
@@ -276,12 +276,10 @@ class _VideoCallHistoryState extends State<VideoCallHistory> {
                                             horizontal: AyurezeTheme.spaceSm),
                                         child: Column(
                                           children: [
-                                            Container(
-                                              child: Divider(
-                                                height: height * 0.005,
-                                                thickness: width * 0.005,
-                                                color: AyurezeTheme.border,
-                                              ),
+                                            Divider(
+                                              height: height * 0.005,
+                                              thickness: width * 0.005,
+                                              color: AyurezeTheme.border,
                                             ),
                                           ],
                                         ),
