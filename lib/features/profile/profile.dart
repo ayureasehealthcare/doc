@@ -29,7 +29,6 @@ import 'package:doctro/widgets/osler_dropdown.dart';
 import 'package:doctro/widgets/osler_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -832,12 +831,10 @@ class _ProfileScreen extends State<ProfileScreen> {
                       _completeYear.clear();
                       Navigator.pop(context);
                     } else {
-                      Fluttertoast.showToast(
-                        msg: getTranslated(context, AppString.please_fill_data)
-                            .toString(),
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                      );
+                      OslerToast.warning(
+                          context,
+                          getTranslated(context, AppString.please_fill_data)
+                              .toString());
                     }
                   });
                 },
@@ -917,12 +914,10 @@ class _ProfileScreen extends State<ProfileScreen> {
                       _year.clear();
                       Navigator.pop(context);
                     } else {
-                      Fluttertoast.showToast(
-                        msg: getTranslated(context, AppString.please_fill_data)
-                            .toString(),
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                      );
+                      OslerToast.warning(
+                          context,
+                          getTranslated(context, AppString.please_fill_data)
+                              .toString());
                     }
                   });
                 },

@@ -10,6 +10,7 @@ import 'package:doctro/models/UpdateTiming.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/widgets/osler_state_view.dart';
+import 'package:doctro/widgets/osler_tag.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/widgets/osler_button.dart';
@@ -193,6 +194,7 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
                               startsTime.add(parseData[i]['start_time']);
                               endsTime.add(parseData[i]['end_time']);
                             }
+                            final dayOff = workingReq[index].status == 0;
                             return Container(
                               margin: const EdgeInsets.only(
                                   bottom: AyurezeTheme.spaceMd),
@@ -208,67 +210,89 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
                                     // "Tuesday" broke mid-word on a phone.
                                     Expanded(
                                       flex: 4,
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          workingReq[index].dayIndex!,
-                                          maxLines: 1,
-                                          style:
-                                              textTheme.titleMedium?.copyWith(
-                                            fontWeight: FontWeight.w800,
-                                            color: AyurezeTheme.textPrimary,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          FittedBox(
+                                            fit: BoxFit.scaleDown,
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              workingReq[index].dayIndex!,
+                                              maxLines: 1,
+                                              style: textTheme.titleMedium
+                                                  ?.copyWith(
+                                                fontWeight: FontWeight.w800,
+                                                color: AyurezeTheme.textPrimary,
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                          if (dayOff) ...[
+                                            const SizedBox(
+                                                height: AyurezeTheme.spaceXs),
+                                            OslerTag(
+                                              label: getTranslated(context,
+                                                  AppString.schedule_day_off),
+                                              style: OslerTagStyle.secondary,
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                     const SizedBox(width: AyurezeTheme.spaceSm),
+                                    // An off day keeps its saved slots,
+                                    // faded: they apply again when it is
+                                    // switched back on.
                                     Expanded(
                                       flex: 8,
-                                      child: ListView.builder(
-                                        itemCount: startsTime.length,
-                                        shrinkWrap: true,
-                                        physics:
-                                            const NeverScrollableScrollPhysics(),
-                                        itemBuilder: (context, index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: AyurezeTheme.spaceXs),
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  startsTime[index],
-                                                  style: textTheme.bodySmall
-                                                      ?.copyWith(
-                                                    color: AyurezeTheme
-                                                        .textSecondary,
-                                                  ),
+                                      child: Opacity(
+                                          opacity: dayOff ? 0.45 : 1,
+                                          child: ListView.builder(
+                                            itemCount: startsTime.length,
+                                            shrinkWrap: true,
+                                            physics:
+                                                const NeverScrollableScrollPhysics(),
+                                            itemBuilder: (context, index) {
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom:
+                                                        AyurezeTheme.spaceXs),
+                                                child: Row(
+                                                  children: [
+                                                    Text(
+                                                      startsTime[index],
+                                                      style: textTheme.bodySmall
+                                                          ?.copyWith(
+                                                        color: AyurezeTheme
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      getTranslated(context,
+                                                              AppString.to)
+                                                          .toString(),
+                                                      style: textTheme
+                                                          .labelSmall
+                                                          ?.copyWith(
+                                                        color: AyurezeTheme
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      endsTime[index],
+                                                      style: textTheme.bodySmall
+                                                          ?.copyWith(
+                                                        color: AyurezeTheme
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  getTranslated(
-                                                          context, AppString.to)
-                                                      .toString(),
-                                                  style: textTheme.labelSmall
-                                                      ?.copyWith(
-                                                    color: AyurezeTheme
-                                                        .textSecondary,
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  endsTime[index],
-                                                  style: textTheme.bodySmall
-                                                      ?.copyWith(
-                                                    color: AyurezeTheme
-                                                        .textSecondary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                              );
+                                            },
+                                          )),
                                     ),
                                     Expanded(
                                       flex: 2,

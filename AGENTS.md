@@ -68,9 +68,9 @@ greetings and headlines only (`headlineLarge`/`Medium`/`Small` - `OslerHero`
 titles use `headlineSmall` - and
 `AyurezeTheme.serif(...)`). Never set the serif on clinical data. Do not add
 `google_fonts`; the files are bundled so text renders offline. The
-purchased Uni Neue files are still in `assets/fonts/UniNeue/` but no longer
-declared in `pubspec.yaml` (so they don't ship); restore that block from git
-history to switch back. Bundled weights: Inter 400/500/600/700, Newsreader
+purchased Uni Neue files were deleted (Oct 2026); restore
+`assets/fonts/UniNeue/` and its `pubspec.yaml` block from git history to
+switch back. Bundled weights: Inter 400/500/600/700, Newsreader
 400/500/600/700.
 
 Android's `pageTransitionsTheme` uses `ZoomPageTransitionsBuilder` (Flutter's

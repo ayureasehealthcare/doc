@@ -184,9 +184,9 @@ flutter:
   # Same type as the patient app (Serene Herbalist design system): Inter
   # for interface text and data, Newsreader serif for greetings and
   # headlines. Static instances of the Google Fonts families, SIL OFL - the
-  # licence text sits next to the files. The purchased Uni Neue files are
-  # still in assets/fonts/UniNeue/ but no longer declared, so they don't
-  # ship; restore this block from git history to switch back.
+  # licence text sits next to the files. The purchased Uni Neue files were
+  # removed in Oct 2026; restore them and this block from git history to
+  # switch back.
   fonts:
     - family: Inter
       fonts:
