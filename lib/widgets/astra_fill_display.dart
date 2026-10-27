@@ -17,7 +17,7 @@ class AstraFillDisplayWidget extends StatefulWidget {
   });
 
   @override
-  _AstraFillDisplayWidgetState createState() => _AstraFillDisplayWidgetState();
+  State<AstraFillDisplayWidget> createState() => _AstraFillDisplayWidgetState();
 }
 
 class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
@@ -441,8 +441,8 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
             runSpacing: 8,
             children: items
                 .map((item) => Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: AyurezeTheme.spaceMd, vertical: 6),
                       decoration: BoxDecoration(
                         color: chipColor,
                         borderRadius:

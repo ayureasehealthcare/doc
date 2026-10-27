@@ -41,8 +41,13 @@ class OslerModal {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AyurezeTheme.radius2xl),
           ),
-          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          contentPadding: const EdgeInsets.fromLTRB(
+              AyurezeTheme.space2xl,
+              AyurezeTheme.spaceXl,
+              AyurezeTheme.space2xl,
+              AyurezeTheme.spaceSm),
+          titlePadding: const EdgeInsets.fromLTRB(AyurezeTheme.space2xl,
+              AyurezeTheme.space2xl, AyurezeTheme.space2xl, 0),
           title: Column(
             children: [
               if (icon != null) ...[
@@ -90,7 +95,8 @@ class OslerModal {
                 ),
           ),
           actionsAlignment: MainAxisAlignment.center,
-          actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+          actionsPadding: const EdgeInsets.fromLTRB(AyurezeTheme.spaceLg,
+              AyurezeTheme.spaceSm, AyurezeTheme.spaceLg, AyurezeTheme.spaceXl),
           actions: [
             if (secondaryText != null) ...[
               SizedBox(

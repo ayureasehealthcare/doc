@@ -171,8 +171,10 @@ Drift, measured (Oct 2026): **no** literal font sizes or radii remain
 outside `lib/theme/` - every `fontSize:`, `AyurezeTheme.font(<size>)` and
 `(Border)Radius.circular(<n>)` uses a token. Inside the theme, ten radii
 were off-scale `20`s; they are now `radiusCard`, which the Serene
-Herbalist spec makes the master card radius. About 40 raw
-`EdgeInsets` remain in shared widgets and `lib/core/astra`.
+Herbalist spec makes the master card radius. `EdgeInsets` in shared widgets
+and `lib/core/astra` use the `space*` tokens; the dozen left as numbers are
+deliberate half-steps (2, 6, 10, 14) for chip, badge and button padding,
+where snapping to the 4px scale would change their height.
 
 ## Conventions
 

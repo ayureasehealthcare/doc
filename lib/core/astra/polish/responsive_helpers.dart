@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:doctro/theme/ayureze_theme.dart';
 
 /// Responsive Helpers
 ///
@@ -53,9 +54,9 @@ class AstraResponsive {
   static EdgeInsets responsivePadding(BuildContext context) {
     return responsive(
       context,
-      phone: const EdgeInsets.all(16),
-      tablet: const EdgeInsets.all(24),
-      desktop: const EdgeInsets.all(32),
+      phone: const EdgeInsets.all(AyurezeTheme.spaceLg),
+      tablet: const EdgeInsets.all(AyurezeTheme.space2xl),
+      desktop: const EdgeInsets.all(AyurezeTheme.space3xl),
     );
   }
 

@@ -74,7 +74,8 @@ class AISuggestionsCard extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      padding: const EdgeInsets.fromLTRB(AyurezeTheme.spaceLg,
+          AyurezeTheme.spaceMd, AyurezeTheme.spaceSm, AyurezeTheme.spaceSm),
       decoration: BoxDecoration(
         color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
         borderRadius: const BorderRadius.only(
@@ -148,7 +149,8 @@ class AISuggestionsCard extends StatelessWidget {
       child: InkWell(
         onTap: () => _handleSuggestionTap(suggestion),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AyurezeTheme.spaceLg, vertical: 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -220,7 +222,7 @@ class AISuggestionsCard extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(left: 8),
+      margin: const EdgeInsets.only(left: AyurezeTheme.spaceSm),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: suggestion.priorityColor.withValues(alpha: 0.1),

@@ -279,7 +279,8 @@ class _AstraAIStatusIndicatorState extends State<AstraAIStatusIndicator> {
     return GestureDetector(
       onTap: _checkHealth,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AyurezeTheme.spaceMd, vertical: 6),
         decoration: BoxDecoration(
           color: _isHealthy
               ? AyurezeTheme.healingGreen50.withValues(alpha: 0.1)

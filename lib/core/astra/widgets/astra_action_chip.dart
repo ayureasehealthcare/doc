@@ -45,7 +45,8 @@ class AstraActionChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AyurezeTheme.spaceLg, vertical: 10),
             decoration: BoxDecoration(
               color: _getBackgroundColor(),
               borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),

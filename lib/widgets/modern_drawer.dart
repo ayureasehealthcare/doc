@@ -100,7 +100,7 @@ class ModernDrawer extends StatelessWidget {
                     const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                          horizontal: AyurezeTheme.spaceMd, vertical: 6),
                       decoration: BoxDecoration(
                         color: AyurezeTheme.healingGreen50,
                         borderRadius:
@@ -119,7 +119,8 @@ class ModernDrawer extends StatelessWidget {
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(14, 16, 14, 10),
+                  padding: const EdgeInsets.fromLTRB(
+                      14, AyurezeTheme.spaceLg, 14, 10),
                   children: [
                     _sectionHeader(context, "Clinical Desk"),
                     _drawerItem(
@@ -227,7 +228,8 @@ class ModernDrawer extends StatelessWidget {
 
   Widget _sectionHeader(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 10, top: 16, bottom: 8),
+      padding: const EdgeInsets.only(
+          left: 10, top: AyurezeTheme.spaceLg, bottom: AyurezeTheme.spaceSm),
       child: Text(
         title.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(

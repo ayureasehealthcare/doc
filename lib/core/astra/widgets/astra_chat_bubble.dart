@@ -52,10 +52,10 @@ class AstraChatBubble extends StatelessWidget {
             maxWidth: MediaQuery.of(context).size.width * 0.75,
           ),
           margin: EdgeInsets.only(
-            left: isUser ? 48 : 16,
-            right: isUser ? 16 : 48,
-            top: 4,
-            bottom: 4,
+            left: isUser ? 48 : AyurezeTheme.spaceLg,
+            right: isUser ? AyurezeTheme.spaceLg : 48,
+            top: AyurezeTheme.spaceXs,
+            bottom: AyurezeTheme.spaceXs,
           ),
           child: Column(
             crossAxisAlignment:
@@ -108,7 +108,10 @@ class AstraChatBubble extends StatelessWidget {
                 label: 'Sent at ${_formatTime(message.createdAt)}',
                 excludeSemantics: true,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+                  padding: const EdgeInsets.only(
+                      top: AyurezeTheme.spaceXs,
+                      left: AyurezeTheme.spaceXs,
+                      right: AyurezeTheme.spaceXs),
                   child: Text(
                     _formatTime(message.createdAt),
                     style: theme.textTheme.labelSmall?.copyWith(
@@ -200,7 +203,7 @@ class AstraChatBubble extends StatelessWidget {
 
   Widget _buildStreamingIndicator() {
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.only(top: AyurezeTheme.spaceSm),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -237,7 +240,7 @@ class AstraChatBubble extends StatelessWidget {
       hint: 'Double tap to open ${_getActionLabel(action.type.name)}',
       button: true,
       child: Padding(
-        padding: const EdgeInsets.only(top: 12),
+        padding: const EdgeInsets.only(top: AyurezeTheme.spaceMd),
         child: InkWell(
           onTap: () => onActionTap?.call(action.type.name, action.params),
           borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
@@ -285,7 +288,10 @@ class AstraChatBubble extends StatelessWidget {
 
   Widget _buildErrorIndicator(ThemeData theme) {
     return Padding(
-      padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+      padding: const EdgeInsets.only(
+          top: AyurezeTheme.spaceXs,
+          left: AyurezeTheme.spaceXs,
+          right: AyurezeTheme.spaceXs),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

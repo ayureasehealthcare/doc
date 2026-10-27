@@ -38,7 +38,7 @@ class OslerCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: AyurezeTheme.spaceLg),
       child: Shimmer.fromColors(
         baseColor: AyurezeTheme.border,
         highlightColor: AyurezeTheme.surfaceMuted,
