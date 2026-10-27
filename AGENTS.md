@@ -432,3 +432,17 @@ Content origin: label Astra output with `ContentOriginBadge` (same
 "Astra suggestion" / "Doctor-approved" wording as the patient app), once
 per card or screen, not per line. For a field Astra pre-fills, use
 `ContentOrigin.forDraft` so the label flips when the doctor edits it.
+
+## Prescription smart cart
+
+"Submit & Automate" posts a `CreatePrescriptionRequest` to
+`api/v1/api/prescriptions/create` with `auto_process: true`, built by
+`PrescriptionPayload.create` (shapes from astra's live OpenAPI, Oct 2026).
+It used to post to `prescription-workflow/execute`, which only takes
+`prescription_id` of a saved prescription, so every submit failed. Medicines
+must be keyed `name`; the cart line is `shopify_variant_id` - the catalogue's
+`variant_id`, never the product id. Catalogue prices are text with a rupee
+sign ("₹180.00") and `price_pending` items come back as "₹0.00"; show them
+through `PrescriptionPayload.priceLabel`. The server has no signature field
+and doesn't say what it automated, so don't claim a cart or WhatsApp send in
+the UI.

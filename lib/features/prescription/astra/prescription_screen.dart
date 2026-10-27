@@ -10,6 +10,7 @@ import 'package:doctro/widgets/osler_dropdown.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/constants/prefConstatnt.dart';
 import 'package:doctro/widgets/astra_fill_display.dart';
+import 'package:doctro/features/prescription/astra/prescription_payload.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:convert';
@@ -128,16 +129,16 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
             ? variants.first as Map<String, dynamic>
             : null;
 
-    final dynamic variantId = medicine['shopify_variant_id'] ??
-        medicine['variant_id'] ??
-        medicine['id'] ??
-        firstVariant?['id'];
+    final String? variantId = PrescriptionPayload.variantIdOf(medicine);
 
-    final dynamic variantPrice = medicine['price'] ?? firstVariant?['price'];
+    final dynamic variantPrice = medicine['price_numeric'] ??
+        medicine['price'] ??
+        firstVariant?['price'];
 
     setState(() {
       _medicines.add({
-        "medicine_name": medicine['medicine_name'] ?? medicine['title'],
+        "medicine_name":
+            medicine['medicine_name'] ?? medicine['name'] ?? medicine['title'],
         "shopify_variant_id": variantId,
         "price": variantPrice,
         "dosage": "1 tablet",
@@ -274,32 +275,32 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
         throw Exception("Doctor ID missing. Please re-login once.");
       }
 
-      bool allHaveShopify = _medicines.every((m) =>
-          m['shopify_variant_id'] != null &&
-          m['shopify_variant_id'].toString().isNotEmpty);
+      final bool allHaveShopify =
+          _medicines.every(PrescriptionPayload.isLinked);
 
-      final payload = {
-        "doctor_id": doctorId,
-        "patient_id": widget.patientId,
-        "patient_name": widget.patientName,
-        "patient_phone": widget.patientPhone,
-        "diagnosis": _diagnosisController.text,
-        "medicines": _medicines,
-        "lifestyle_advice": "Rest and hydration",
-        "auto_process": true,
-        "create_shopify_cart": allHaveShopify,
-        "signature_image": base64Encode(_signatureBytes!),
-      };
+      // Was posted to prescription-workflow/execute, which only takes the id
+      // of an already-saved prescription, so every submit failed with a
+      // validation error. Creating with auto_process runs the automation.
+      final payload = PrescriptionPayload.create(
+        doctorId: doctorId,
+        patientId: widget.patientId,
+        patientName: widget.patientName,
+        patientPhone: widget.patientPhone,
+        diagnosis: _diagnosisController.text,
+        medicines: _medicines,
+        signatureBase64: base64Encode(_signatureBytes!),
+      );
 
-      await _astraApiService.executePrescriptionWorkflow(payload);
+      await _astraApiService.createPrescription(payload);
 
       if (!mounted) return;
 
-      String msg = "Prescription Sent via WhatsApp!";
-      if (allHaveShopify) {
-        msg += " & Shopify Cart Created!";
-      } else {
-        msg += "\n(Note: Some items were not in stock, Shopify cart skipped)";
+      // The server doesn't report back what it automated, so don't claim a
+      // cart or WhatsApp message here.
+      String msg = "Prescription created and sent for processing.";
+      if (!allHaveShopify) {
+        msg += "\nSome medicines aren't linked to the store, so they "
+            "can't go in the patient's cart.";
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -552,9 +553,12 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                                                   idx, val!),
                                         ),
                                         const Spacer(),
-                                        if (med['price'] != null)
+                                        if (PrescriptionPayload.priceLabel(
+                                                med['price']) !=
+                                            null)
                                           Text(
-                                            "₹ ${med['price']}",
+                                            PrescriptionPayload.priceLabel(
+                                                med['price'])!,
                                             style:
                                                 textTheme.titleMedium?.copyWith(
                                               color: AyurezeTheme.textPrimary,
@@ -813,14 +817,19 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
                       final item = _results[index];
                       return ListTile(
                         title: Text(
-                          item['medicine_name'] ?? item['title'] ?? 'Unknown',
+                          item['medicine_name'] ??
+                              item['name'] ??
+                              item['title'] ??
+                              'Unknown',
                           style: textTheme.bodyLarge?.copyWith(
                             color: AyurezeTheme.textPrimary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         subtitle: Text(
-                          "₹ ${item['price'] ?? '0'}",
+                          PrescriptionPayload.priceLabel(
+                                  item['price_numeric'] ?? item['price']) ??
+                              'Price pending',
                           style: textTheme.bodySmall
                               ?.copyWith(color: AyurezeTheme.textSecondary),
                         ),
