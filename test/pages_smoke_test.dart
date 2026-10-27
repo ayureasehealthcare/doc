@@ -35,7 +35,8 @@ void main() {
     ));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
-    expect(find.text('Prescription for Test Patient'), findsOneWidget);
+    expect(find.text('Prescription'), findsOneWidget);
+    expect(find.text('Test Patient'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

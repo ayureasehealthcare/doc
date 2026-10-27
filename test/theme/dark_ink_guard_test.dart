@@ -23,6 +23,8 @@ const _reviewed = {
   'lib/features/authentication/registration_success_screen.dart':
       1, // button fill
   'lib/features/cashfree/payment.dart': 1, // text on lightGreenSoft tint
+  'lib/features/consultation/astra_chat/astra_chat_page.dart':
+      2, // 'online' status: shade-100 on its shade-10 tint
   'lib/features/consultation/chat/pages/chat_page.dart': 1, // avatar fill
   'lib/features/dashboard/login_home.dart': 1, // icon on lime fill
   'lib/features/dashboard/patient_information.dart': 1, // button fill
@@ -34,7 +36,8 @@ const _reviewed = {
       6, // fixed lime header + its chips, tint pair
   'lib/features/settings/Setting.dart': 1, // switch thumb on lime track
   'lib/widgets/astra_ai_button.dart': 1, // gradient fill, white icon
-  'lib/widgets/astra_fill_display.dart': 1, // chip text on its pale tint
+  'lib/widgets/astra_fill_display.dart':
+      2, // chip text, severity pill: shade-100 on shade-10 tints
   'lib/widgets/modern_drawer.dart': 1, // badge text on lime fill
   'lib/widgets/osler_alert.dart': 2, // shade-100 on shade-10 tint
   'lib/widgets/osler_button.dart': 1, // dark ink candidate for fills

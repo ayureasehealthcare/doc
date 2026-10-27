@@ -97,15 +97,18 @@ class _LoginHomeViewState extends State<_LoginHomeView>
         backgroundColor: AyurezeTheme.healingGreenFill,
         tooltip: 'Ask Astra AI',
         onPressed: () => AstraFloatingButton.openAstraChat(),
-        child: HugeIcon(
-          icon: HugeIcons.strokeRoundedBrain01,
-          color: Colors.white,
+        // Swastu is Astra's face; still, since this button is always on screen.
+        child: const Swastu(
+          mood: SwastuMood.happy,
+          size: 40,
+          named: false,
+          idleMotion: false,
         ),
       ),
       body: Consumer<LoginHomeViewModel>(
         builder: (context, viewModel, _) {
           return RefreshIndicator(
-            color: AyurezeTheme.healingGreen50,
+            color: AyurezeTheme.accent,
             backgroundColor: AyurezeTheme.surface,
             onRefresh: () => viewModel.fetchAppointments(context),
             child: Stack(
@@ -419,7 +422,7 @@ class _LoginHomeViewState extends State<_LoginHomeView>
                                       value:
                                           "$currencySymbol${viewModel.totalEarnings.toStringAsFixed(0)}",
                                       icon: HugeIcons.strokeRoundedWallet02,
-                                      color: AyurezeTheme.healingGreen50,
+                                      color: AyurezeTheme.healingGreenFill,
                                     ),
                                     _buildStatCard(
                                       context,

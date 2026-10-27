@@ -206,8 +206,6 @@ class _RateAndReviewRoutesScreenState extends State<RateAndReviewRoutesScreen>
             "Ratings & Reviews",
             style: textTheme.headlineMedium?.copyWith(
               color: Colors.white,
-              height: 1.05,
-              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),

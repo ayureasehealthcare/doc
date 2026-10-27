@@ -9,6 +9,7 @@ import 'package:doctro/models/working_hours.dart';
 import 'package:doctro/models/UpdateTiming.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/widgets/osler_button.dart';
@@ -108,8 +109,25 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
         future: workingHours,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return Center(
-              child: CircularProgressIndicator(color: AyurezeTheme.iconPrimary),
+            return const OslerLoadingView(message: 'Loading your schedule…');
+          }
+          // A failed fetch used to fall through and draw an empty week, as
+          // if no hours were set. Say it failed, and offer a retry.
+          final result = snapshot.data;
+          if (result is BaseModel && result.data == null) {
+            String? reason;
+            try {
+              reason = result.error.getErrorMessage()?.toString();
+            } catch (_) {
+              // `error` is late and may be unset; fall back to generic copy.
+            }
+            return OslerStateView.error(
+              title: "Couldn't load your schedule",
+              message: (reason == null || reason.isEmpty)
+                  ? 'Check your connection and try again.'
+                  : reason,
+              onRetry: () =>
+                  setState(() => workingHours = doctorWorkingHoursFunction()),
             );
           } else {
             return Center(
@@ -711,8 +729,6 @@ class _ScheduleTimingsState extends State<ScheduleTimings>
             "Set your desk hours.",
             style: textTheme.headlineMedium?.copyWith(
               color: Colors.white,
-              height: 1.05,
-              fontWeight: FontWeight.w800,
             ),
           ),
           const SizedBox(height: 8),

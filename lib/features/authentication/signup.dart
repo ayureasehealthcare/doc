@@ -142,9 +142,8 @@ class _CreateAccountState extends State<CreateAccount> {
                                 .textTheme
                                 .headlineLarge
                                 ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    letterSpacing: -0.5),
+                                  color: Colors.white,
+                                ),
                           ),
                           const SizedBox(height: 10),
                           Text(

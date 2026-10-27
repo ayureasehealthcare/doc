@@ -44,5 +44,24 @@ void main() {
     expect(tester.getSize(find.byType(ContentOriginBadge)).width,
         moreOrLessEquals(naturalWidth));
     expect(find.text('Severity: 5/10'), findsOneWidget);
+
+    // The severity pill sits on the badge line below the title, not beside
+    // it: beside it, Inter's wider glyphs squeezed the title to three lines.
+    final title = tester.getRect(find.text('Astra AI Health Intake'));
+    final pill = tester.getRect(find.byType(SeverityPill));
+    expect(pill.top, greaterThanOrEqualTo(title.bottom));
+  });
+
+  test('every severity band clears AA as a tint pair', () {
+    double contrast(Color a, Color b) {
+      final la = a.computeLuminance(), lb = b.computeLuminance();
+      final hi = la > lb ? la : lb, lo = la > lb ? lb : la;
+      return (hi + 0.05) / (lo + 0.05);
+    }
+
+    for (final score in [1, 3, 4, 6, 7, 10, '5', 'n/a']) {
+      final (bg, fg) = SeverityPill.colorsFor(score);
+      expect(contrast(fg, bg), greaterThanOrEqualTo(4.5), reason: '$score');
+    }
   });
 }

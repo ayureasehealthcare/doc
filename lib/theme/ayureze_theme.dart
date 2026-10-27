@@ -267,6 +267,14 @@ class AyurezeTheme {
               lightTextPrimary,
               height: 1.25,
             ),
+            // Hero titles (OslerHero) - was unset, so it fell back to the
+            // stock Material style instead of the serif.
+            headlineSmall: serif(
+              textXl,
+              FontWeight.w500,
+              lightTextPrimary,
+              height: 1.3,
+            ),
             titleLarge: font(textXl, FontWeight.w600, lightTextPrimary),
             titleMedium: font(textLg, FontWeight.w600, lightTextPrimary),
             bodyLarge:
@@ -451,6 +459,14 @@ class AyurezeTheme {
               FontWeight.w500,
               darkTextPrimary,
               height: 1.25,
+            ),
+            // Hero titles (OslerHero) - was unset, so it fell back to the
+            // stock Material style instead of the serif.
+            headlineSmall: serif(
+              textXl,
+              FontWeight.w500,
+              darkTextPrimary,
+              height: 1.3,
             ),
             titleLarge: font(textXl, FontWeight.w600, darkTextPrimary),
             titleMedium: font(textLg, FontWeight.w600, darkTextPrimary),

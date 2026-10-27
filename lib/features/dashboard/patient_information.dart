@@ -330,7 +330,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                             AppString.information_amount,
                                           ).toString(),
                                           value:
-                                              "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${amount ?? 0}",
+                                              "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}${amount ?? 0}",
                                         ),
                                         Container(
                                           width: 1,

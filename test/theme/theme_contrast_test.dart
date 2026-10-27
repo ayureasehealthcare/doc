@@ -219,6 +219,8 @@ void main() {
         final t = theme.textTheme;
         expect(t.headlineLarge!.fontSize, AyurezeTheme.text3xl);
         expect(t.headlineMedium!.fontSize, AyurezeTheme.text2xl);
+        expect(t.headlineSmall!.fontFamily, AyurezeTheme.serifFamily);
+        expect(t.headlineMedium!.fontFamily, AyurezeTheme.serifFamily);
         expect(t.titleLarge!.fontSize, AyurezeTheme.textXl);
         expect(t.titleMedium!.fontSize, AyurezeTheme.textLg);
         expect(t.bodyLarge!.fontSize, AyurezeTheme.textBase);

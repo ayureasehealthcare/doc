@@ -363,12 +363,25 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
     return Scaffold(
       backgroundColor: AyurezeTheme.canvas,
       appBar: AppBar(
-        title: Text(
-          "Prescription for ${widget.patientName}",
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: AyurezeTheme.textPrimary,
-          ),
+        // Patient name on its own line: "Prescription for <name>" was
+        // truncated mid-name on phones.
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Prescription",
+              style: textTheme.titleLarge
+                  ?.copyWith(color: AyurezeTheme.textPrimary),
+            ),
+            Text(
+              widget.patientName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: AyurezeTheme.textSecondary),
+            ),
+          ],
         ),
         backgroundColor: AyurezeTheme.canvas,
         leading: IconButton(
@@ -404,6 +417,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                             hintText: "Enter clinical diagnosis",
                             suffixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedStethoscope02,
+                                size: 22,
                                 color: AyurezeTheme.iconPrimary),
                           ),
                         ),

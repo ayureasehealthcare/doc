@@ -115,7 +115,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
                         getTranslated(context, AppString.otp_verification_title)
                             .toString(),
                         style: textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
                           color: AyurezeTheme.textPrimary,
                         ),
                         textAlign: TextAlign.center,

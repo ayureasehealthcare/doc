@@ -231,26 +231,6 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                             ],
                           ),
                         ),
-                        if (severityScore != null)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: _getSeverityColor(severityScore),
-                              borderRadius:
-                                  BorderRadius.circular(AyurezeTheme.radiusXl),
-                            ),
-                            child: Text(
-                              "Severity: $severityScore/10",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ),
                         SizedBox(width: 8),
                         HugeIcon(
                           icon: _isExpanded
@@ -260,12 +240,22 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                         ),
                       ],
                     ),
-                    // Own line: beside the severity pill the title column is
-                    // too narrow and the badge overflowed under it.
-                    const Padding(
-                      padding: EdgeInsets.only(top: AyurezeTheme.spaceSm),
-                      child: ContentOriginBadge(
-                          origin: ContentOrigin.astraSuggestion),
+                    // Badges get their own wrapping line, so the title row is
+                    // just icon + title + chevron. Next to the severity pill
+                    // the title had ~100px and wrapped to three lines.
+                    Padding(
+                      padding: const EdgeInsets.only(top: AyurezeTheme.spaceSm),
+                      child: Wrap(
+                        spacing: AyurezeTheme.spaceSm,
+                        runSpacing: AyurezeTheme.spaceXs,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const ContentOriginBadge(
+                              origin: ContentOrigin.astraSuggestion),
+                          if (severityScore != null)
+                            SeverityPill(score: severityScore),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -583,13 +573,6 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
       textColor: AyurezeTheme.textPrimary,
     );
   }
-
-  Color _getSeverityColor(dynamic score) {
-    int severity = score is int ? score : int.tryParse(score.toString()) ?? 0;
-    if (severity <= 3) return AyurezeTheme.healingGreen50;
-    if (severity <= 6) return AyurezeTheme.warning;
-    return AyurezeTheme.danger;
-  }
 }
 
 /// Compact version for inline display (e.g., in prescription screen)
@@ -634,21 +617,7 @@ class AstraFillCompactWidget extends StatelessWidget {
                 ),
                 Spacer(),
                 if (severityScore != null)
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: AyurezeTheme.spaceSm,
-                        vertical: AyurezeTheme.spaceXs),
-                    decoration: BoxDecoration(
-                      color: _getSeverityColor(severityScore),
-                      borderRadius:
-                          BorderRadius.circular(AyurezeTheme.radiusMd),
-                    ),
-                    child: Text(
-                      "$severityScore/10",
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
+                  SeverityPill(score: severityScore, compact: true),
               ],
             ),
             const SizedBox(height: AyurezeTheme.spaceXs),
@@ -669,11 +638,48 @@ class AstraFillCompactWidget extends StatelessWidget {
       ),
     );
   }
+}
 
-  Color _getSeverityColor(dynamic score) {
-    int severity = score is int ? score : int.tryParse(score.toString()) ?? 0;
-    if (severity <= 3) return AyurezeTheme.healingGreen50;
-    if (severity <= 6) return AyurezeTheme.warning;
-    return AyurezeTheme.danger;
+/// Severity of a patient's intake as a tint-pair pill (shade 10 behind its
+/// shade 100 ink, 8:1 or better in both themes). It used white text on the
+/// band colour, which was 1.9-4.9:1 across the three bands.
+class SeverityPill extends StatelessWidget {
+  final dynamic score;
+  final bool compact;
+
+  const SeverityPill({super.key, required this.score, this.compact = false});
+
+  static int parse(dynamic score) =>
+      score is int ? score : int.tryParse(score.toString()) ?? 0;
+
+  /// (background, foreground) for the band [score] falls in.
+  static (Color, Color) colorsFor(dynamic score) {
+    final severity = parse(score);
+    if (severity <= 3) {
+      return (AyurezeTheme.healingGreen10, AyurezeTheme.healingGreen100);
+    }
+    if (severity <= 6) {
+      return (AyurezeTheme.sunshineYellow10, AyurezeTheme.sunshineYellow100);
+    }
+    return (AyurezeTheme.remoteRed10, AyurezeTheme.remoteRed100);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (bg, fg) = colorsFor(score);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AyurezeTheme.spaceMd,
+        vertical: AyurezeTheme.spaceXs,
+      ),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusPill),
+      ),
+      child: Text(
+        compact ? "$score/10" : "Severity: $score/10",
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg),
+      ),
+    );
   }
 }

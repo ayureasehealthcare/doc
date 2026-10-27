@@ -105,9 +105,8 @@ class _ViewAllAppointmentState extends State<ViewAllNotification> {
                             .textTheme
                             .headlineMedium
                             ?.copyWith(
-                                color: Colors.white,
-                                height: 1.05,
-                                fontWeight: FontWeight.w800),
+                              color: Colors.white,
+                            ),
                       ),
                     ],
                   ),

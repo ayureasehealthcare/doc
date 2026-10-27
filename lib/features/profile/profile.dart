@@ -2134,7 +2134,9 @@ class _ProfileHeader extends StatelessWidget {
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium
-                              ?.copyWith(color: Colors.white, height: 1.05),
+                              ?.copyWith(
+                                color: Colors.white,
+                              ),
                         ),
                         const SizedBox(height: 6),
                         Text(

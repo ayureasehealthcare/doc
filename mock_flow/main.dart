@@ -5,6 +5,20 @@
 //   flutter run -d chrome -t mock_flow/main.dart
 //   flutter build web -t mock_flow/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:doctro/core/constants/preferences.dart';
+import 'package:doctro/core/localization/language_localization.dart';
+import 'package:doctro/core/localization/localization_constant.dart';
+import 'package:doctro/core/navigator_key.dart';
+import 'package:doctro/features/authentication/SignIn.dart';
+import 'package:doctro/features/cashfree/payment.dart';
+import 'package:doctro/features/consultation/astra_chat/astra_chat_page.dart';
+import 'package:doctro/features/dashboard/login_home.dart';
+import 'package:doctro/features/schedule/ScheduleTimings.dart';
+import 'package:doctro/theme/theme_provider.dart';
 
 import 'package:doctro/features/autopilot/review_queue_screen.dart';
 import 'package:doctro/features/errors/error_utility_screen.dart';
@@ -105,8 +119,17 @@ class _MockQueue {
 /// Build with --dart-define=MOCK_DARK=true to run the flow in dark mode.
 const _dark = bool.fromEnvironment('MOCK_DARK');
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   AyurezeTheme.updateThemeMode(_dark);
+  // A stored doctor profile, so the real dashboard renders as it does
+  // after login. API calls fail (no backend here) and screens show their
+  // empty/error states, which is part of what this harness checks.
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('is_logged_in', true);
+  await prefs.setString('current_language_code', 'en');
+  await prefs.setString('name', 'Asha Rao');
+  await SharedPreferenceHelper.initWithPreferences(prefs);
   runApp(const MockFlowApp());
 }
 
@@ -114,11 +137,23 @@ class MockFlowApp extends StatelessWidget {
   const MockFlowApp({super.key});
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-        title: 'Doctor app - mock flow',
-        debugShowCheckedModeBanner: false,
-        theme: _dark ? AyurezeTheme.darkTheme() : AyurezeTheme.lightTheme(),
-        home: const _Home(),
+  Widget build(BuildContext context) => ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: MaterialApp(
+          title: 'Doctor app - mock flow',
+          debugShowCheckedModeBanner: false,
+          navigatorKey: navigatorKey,
+          theme: _dark ? AyurezeTheme.darkTheme() : AyurezeTheme.lightTheme(),
+          locale: const Locale('en', 'US'),
+          supportedLocales: supportedLocales,
+          localizationsDelegates: const [
+            LanguageLocalization.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: const _Home(),
+        ),
       );
 }
 
@@ -193,6 +228,16 @@ class _Home extends StatelessWidget {
               '8. Full-screen error page (offline)',
               'ErrorUtilityScreen with a sleepy Swastu.',
               const ErrorUtilityScreen(kind: ErrorUtilityKind.noInternet)),
+          // The real screens, mounted without a backend.
+          tile('signin', '9. Sign-in', 'Real SignIn screen.', SignIn()),
+          tile('dashboard', '10. Dashboard', 'Real LoginHomeScreen.',
+              const LoginHomeScreen(chat: '')),
+          tile('astra', '11. Astra chat', 'Real AstraChatPage.',
+              const AstraChatPage(patientName: 'Demo Patient A')),
+          tile('schedule', '12. Schedule timings', 'Real ScheduleTimings.',
+              const ScheduleTimings()),
+          tile('payments', '13. Payments', 'Real PaymentScreen.',
+              const PaymentScreen()),
         ],
       ),
     );

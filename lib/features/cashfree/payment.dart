@@ -14,6 +14,7 @@ import 'package:doctro/models/payment.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/features/authentication/SignIn.dart';
 import 'package:doctro/widgets/modern_drawer.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:flutter/material.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/widgets/osler_button.dart';
@@ -97,29 +98,14 @@ class _PaymentScreen extends State<PaymentScreen> {
                     color: AyurezeTheme.textPrimary,
                   ),
             ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  _scaffoldKey.currentState!.openDrawer();
-                },
-                icon: SvgPicture.asset(
-                  "assets/icons/dMenuBar.svg",
-                  height: 16,
-                  colorFilter: ColorFilter.mode(
-                      AyurezeTheme.iconPrimary, BlendMode.srcIn),
-                ),
-              ),
-            ],
+            // No custom menu action: a Scaffold with a drawer already gets
+            // a leading menu button, so this screen showed two.
           ),
           body: FutureBuilder(
             future: payments,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: AyurezeTheme.iconPrimary,
-                  ),
-                );
+                return const OslerLoadingView(message: 'Loading payments…');
               }
 
               return Stack(
@@ -315,7 +301,7 @@ class _PaymentScreen extends State<PaymentScreen> {
             ),
           ),
           Text(
-            "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${payment.amount}",
+            "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}${payment.amount}",
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: AyurezeTheme.textPrimary,
@@ -386,7 +372,7 @@ class _PaymentScreen extends State<PaymentScreen> {
                 ),
           ),
           Text(
-            "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}$sum",
+            "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}$sum",
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
@@ -398,19 +384,17 @@ class _PaymentScreen extends State<PaymentScreen> {
   }
 
   Widget _buildEmptyState() {
+    // Was a stock "No data found!" box captioned "No users" - the wrong
+    // noun for a payments ledger. Swastu state, worded for what's empty.
+    final searching = _searching();
     return GlassSurface(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-          vertical: AyurezeTheme.space3xl + AyurezeTheme.spaceXs),
-      child: Column(
-        children: [
-          Image.asset("assets/images/no-data.png", height: 88),
-          const SizedBox(height: 10),
-          Text(
-            getTranslated(context, AppString.no_user).toString(),
-            style: TextStyle(color: AyurezeTheme.textSecondary),
-          ),
-        ],
+      child: OslerStateView(
+        icon: HugeIcons.strokeRoundedInvoice03,
+        title: searching ? 'No matching payments' : 'No payments yet',
+        message: searching
+            ? 'Try a different patient name.'
+            : 'Payments from your consultations will appear here.',
       ),
     );
   }
@@ -553,7 +537,7 @@ class _PaymentScreen extends State<PaymentScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${availableBalance.toStringAsFixed(2)}",
+            "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}${availableBalance.toStringAsFixed(2)}",
             style: AyurezeTheme.font(AyurezeTheme.text3xl, FontWeight.w800,
                 AyurezeTheme.textPrimary),
           ),
@@ -640,8 +624,9 @@ class _PaymentScreen extends State<PaymentScreen> {
                       onChanged: (val) => setDialogState(() {}),
                       decoration: InputDecoration(
                         labelText: "Amount to Withdraw (Min ₹100)",
-                        prefixText: SharedPreferenceHelper.getString(
-                            Preferences.currency_symbol),
+                        prefixText: (SharedPreferenceHelper.getStringOrNull(
+                                Preferences.currency_symbol) ??
+                            ''),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -728,9 +713,19 @@ class _PaymentScreen extends State<PaymentScreen> {
                           Navigator.pop(context); // close modal
 
                           try {
-                            final String doctorId =
-                                SharedPreferenceHelper.getString(
+                            // getString returns the 'N_A' sentinel when the
+                            // key was never written, which would have sent a
+                            // payout request for a doctor called "N_A".
+                            final String? doctorId =
+                                SharedPreferenceHelper.getStringOrNull(
                                     Preferences.doctorId);
+                            if (doctorId == null) {
+                              if (parentContext.mounted) {
+                                OslerToast.error(parentContext,
+                                    "Couldn't identify your account. Please sign in again.");
+                              }
+                              return;
+                            }
                             final response = await AstraApiService()
                                 .requestWithdraw(
                                     doctorId, amount, payoutDetails);

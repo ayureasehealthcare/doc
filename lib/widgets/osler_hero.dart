@@ -51,8 +51,6 @@ class OslerHero extends StatelessWidget {
             title,
             style: textTheme.headlineSmall?.copyWith(
               color: Colors.white,
-              height: 1.05,
-              fontWeight: FontWeight.w800,
             ),
           ),
           if (subtitle != null) ...[

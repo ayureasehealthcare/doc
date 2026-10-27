@@ -1,8 +1,10 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
+import 'package:doctro/core/navigator_key.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/widgets/osler_loader.dart';
+import 'package:doctro/widgets/osler_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -59,6 +61,7 @@ class CommonFunction {
     _lastToastMessage = msg;
     _lastToastAt = now;
 
+    if (_showInApp(msg)) return;
     Fluttertoast.showToast(
         msg: msg,
         toastLength: Toast.LENGTH_SHORT,
@@ -67,6 +70,19 @@ class CommonFunction {
         backgroundColor: Colors.black54,
         textColor: Colors.white,
         fontSize: AyurezeTheme.textLg);
+  }
+
+  /// Shows [msg] as the app's own snackbar toast when the app's navigator
+  /// is mounted. These toasts fire from API error handlers with no
+  /// BuildContext; on web, Fluttertoast's fallback is an off-theme gradient
+  /// banner. Returns false when there's no app to show it in.
+  static bool _showInApp(String msg) {
+    final context = navigatorKey.currentContext;
+    if (context == null || ScaffoldMessenger.maybeOf(context) == null) {
+      return false;
+    }
+    OslerToast.show(context: context, message: msg);
+    return true;
   }
 
   static hideDialog(BuildContext context) {
@@ -84,6 +100,7 @@ class CommonFunction {
     if (hasConnection) {
       return true;
     }
+    if (_showInApp("No Internet")) return false;
     Fluttertoast.showToast(
       msg: "No Internet",
       toastLength: Toast.LENGTH_SHORT,

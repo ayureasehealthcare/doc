@@ -20,7 +20,8 @@ void main() {
       ),
     ));
 
-    expect(find.text('Prescription for Test Patient'), findsOneWidget);
+    expect(find.text('Prescription'), findsOneWidget);
+    expect(find.text('Test Patient'), findsOneWidget);
 
     // Diagnosis was pre-filled by Astra from the intake, so both the intake
     // summary and the diagnosis field are labelled as Astra's.

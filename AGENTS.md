@@ -64,7 +64,8 @@ changes, change it here too.
 Fonts (bundled, SIL OFL, licences next to the files): **Inter** for all
 interface text and data (`AyurezeTheme.fontFamily`, applied as the
 textTheme base and by `AyurezeTheme.font(...)`), **Newsreader** serif for
-greetings and headlines only (`headlineLarge`/`headlineMedium`, and
+greetings and headlines only (`headlineLarge`/`Medium`/`Small` - `OslerHero`
+titles use `headlineSmall` - and
 `AyurezeTheme.serif(...)`). Never set the serif on clinical data. Do not add
 `google_fonts`; the files are bundled so text renders offline. The
 purchased Uni Neue files are still in `assets/fonts/UniNeue/` but no longer
@@ -156,6 +157,13 @@ empty and error states, cards, toasts and overlay loaders from the kit
 (call controls over live video) and `app_shell` (a container). Do not
 hand-roll a spinner, empty state or toast in a screen - reach for the kit.
 
+`CommonFunction.toastMessage` (fired by `ServerError` with no context)
+routes to `OslerToast` through `navigatorKey` when the app is mounted, and
+only falls back to Fluttertoast (an off-theme gradient on web) before then.
+When a screen's `FutureBuilder` gets a failed `BaseModel` (`data == null`),
+show `OslerStateView.error` with a retry, as `ScheduleTimings` does - not an
+empty form that looks like real data.
+
 `profile.dart` is ~2,200 lines - by far the largest file. Treat edits
 there carefully and prefer extracting a section over growing it.
 
@@ -189,6 +197,10 @@ Herbalist spec makes the master card radius. About 40 raw
   across the auth and video-call flows.
 - Barrel files that start with a `///` doc comment need a `library;`
   directive, otherwise `dangling_library_doc_comments` fires.
+- `SharedPreferenceHelper.getString` returns the `'N_A'` sentinel for a
+  missing key. For anything shown or sent (`currency_symbol`, `doctorId`)
+  use `getStringOrNull` - the sentinel once showed as "N_A0.00" and was
+  posted as a payout doctor id.
 - Empty `catch` blocks should keep a comment explaining why swallowing is
   correct, otherwise it reads as a bug.
 
@@ -229,7 +241,10 @@ dark-aware `accent` getter, not `healingGreen50` (only ~1.8:1 on cream).
 of the remaining uses per file in `lib/features` and `lib/widgets`. If it
 fails because a count went up, check the new use rather than just bumping
 the number. `mock_flow/main.dart` builds with `--dart-define=MOCK_DARK=true`
-to eyeball screens in dark mode.
+to eyeball screens in dark mode. Tiles 9-13 mount the real sign-in,
+dashboard, Astra chat, schedule and payments screens with a stored profile
+and no backend, so their loading, empty and error states can be checked
+in a browser.
 
 Where such a fill already carries the accent 100 shade as foreground
 (`healingGreen100` on `healingGreen10` is 14:1), the pairing is

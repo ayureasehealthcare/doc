@@ -1,4 +1,6 @@
 import 'package:doctro/core/constants/common_function.dart';
+import 'package:doctro/core/navigator_key.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -60,5 +62,22 @@ void main() {
       'Connection failed. Please check internet',
       'Connection failed. Please check internet',
     ]);
+  });
+
+  testWidgets('shows an in-app snackbar instead when the app is mounted',
+      (tester) async {
+    // On web Fluttertoast draws an off-theme gradient banner; with the
+    // app's navigator mounted the toast is the themed snackbar instead.
+    await tester.pumpWidget(MaterialApp(
+      navigatorKey: navigatorKey,
+      home: const Scaffold(body: SizedBox()),
+    ));
+    CommonFunction.toastMessage('Connection failed. Please check internet');
+    await tester.pump();
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(
+        find.text('Connection failed. Please check internet'), findsOneWidget);
+    expect(calls, isEmpty);
   });
 }
