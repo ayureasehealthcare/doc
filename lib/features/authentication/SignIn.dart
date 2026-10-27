@@ -5,6 +5,7 @@ import 'dart:core';
 
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_input.dart';
@@ -152,9 +153,6 @@ class _SignInViewState extends State<SignInView>
                                                     style: textTheme
                                                         .headlineMedium
                                                         ?.copyWith(
-                                                      height: 1.05,
-                                                      fontWeight:
-                                                          FontWeight.w800,
                                                       color: Colors.white,
                                                     ),
                                                   ),
@@ -173,16 +171,12 @@ class _SignInViewState extends State<SignInView>
                                               ),
                                             ),
                                             const SizedBox(width: 16),
-                                            ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      AyurezeTheme.radiusXl),
-                                              child: Image.asset(
-                                                "assets/images/confident-doctor-half.png",
-                                                height: 140,
-                                                width: 95,
-                                                fit: BoxFit.cover,
-                                              ),
+                                            // Swastu welcomes the doctor, as
+                                            // on the patient app's sign-in.
+                                            const Swastu(
+                                              mood: SwastuMood.greeting,
+                                              size: 104,
+                                              named: false,
                                             ),
                                           ],
                                         ),

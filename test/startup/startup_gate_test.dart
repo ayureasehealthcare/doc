@@ -29,6 +29,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// `LanguageLocalization.delegate` is deliberately omitted: it resolves
 /// asynchronously, and with it the widget tree builds no child in every
 /// `testWidgets` after the first. The gate does not depend on translations.
+/// Swastu breathes in an endless idle loop, so a screen showing it never
+/// "settles". Turning on the platform's reduce-motion setting (which
+/// Swastu honours) lets pumpAndSettle finish, and covers that path too.
+void _reduceMotion(WidgetTester tester) {
+  tester.platformDispatcher.accessibilityFeaturesTestValue =
+      const FakeAccessibilityFeatures(disableAnimations: true);
+  addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+}
+
+/// Settles past the intro. Its removal is a ~900ms wall-clock Timer, and
+/// under reduced motion the intro's animations finish instantly, so
+/// pumpAndSettle alone would return with that Timer still pending.
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pump(const Duration(seconds: 1));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -55,6 +72,7 @@ void main() {
     testWidgets(
         'signed out mounts sign-in on the very first frame, under the intro',
         (tester) async {
+      _reduceMotion(tester);
       await boot(tester, loggedIn: false);
 
       // Checked before pumpAndSettle: the destination must already be in the
@@ -65,7 +83,7 @@ void main() {
 
       // Drains the intro animation and the settings request SignInViewModel
       // issues on construction.
-      await tester.pumpAndSettle();
+      await _settle(tester);
       expect(find.byType(SignIn), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -73,12 +91,13 @@ void main() {
     testWidgets(
         'a stored session mounts the dashboard shell on the very first frame, under the intro',
         (tester) async {
+      _reduceMotion(tester);
       await boot(tester, loggedIn: true);
 
       expect(find.byType(AppShell), findsOneWidget);
       expect(find.byType(SignIn), findsNothing);
 
-      await tester.pumpAndSettle();
+      await _settle(tester);
       expect(find.byType(AppShell), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -86,6 +105,7 @@ void main() {
     testWidgets(
         'the intro animation removes itself once its fixed beat elapses',
         (tester) async {
+      _reduceMotion(tester);
       await boot(tester, loggedIn: false);
 
       // The intro is a Positioned.fill over the destination, so it is the
@@ -103,7 +123,7 @@ void main() {
       expect(find.byType(Stack), findsWidgets);
       expect(findPositionedFill(), findsOneWidget);
 
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       // Once settled, the gate returns the destination directly - no
       // intro overlay left behind.
@@ -114,8 +134,9 @@ void main() {
 
     testWidgets('the destination does not change once time passes',
         (tester) async {
+      _reduceMotion(tester);
       await boot(tester, loggedIn: false);
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       // The old splash navigated away after 3 seconds. Waiting here, well
       // past the intro's own fixed beat, must not move the tree anywhere.

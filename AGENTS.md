@@ -9,7 +9,7 @@ Flutter telehealth app for doctors. Branch: `astra-ai-integration`.
 # sandbox recycles $HOME mid-session and wipes anything installed there.
 export PATH="/workspace/tools/flutter/bin:$PATH"
 flutter analyze                                   # expect 0 errors, 0 warnings
-flutter test                                      # 225 tests
+flutter test                                      # 232 tests
 flutter build web --release
 dart format lib test
 ```
@@ -53,33 +53,24 @@ files nobody committed.
 
 ## Font and motion
 
-The app font is Uni Neue, a licensed family bundled under
-`assets/fonts/UniNeue/` (14 files: 7 weights x roman/italic, declared as a
-single `Uni Neue` family in `pubspec.yaml`). It is **not** a Google Font - do
-not add `google_fonts` back or call `GoogleFonts.*`. Applied once in
-`AyurezeTheme.lightTheme()`/`darkTheme()` via
-`ThemeData.light().textTheme.apply(fontFamily: AyurezeTheme.fontFamily)` as
-the textTheme base, plus `AyurezeTheme.font(size, weight, color, {height,
-letterSpacing})` for every explicit style override (headline/title/body/label,
-app bar title, button/chip/input text styles). Because `Text.style` merges
-with the nearest `DefaultTextStyle` by default, a literal `TextStyle(...)`
-that leaves `fontFamily` null still inherits Uni Neue through that chain - so
-existing screens that build their own `TextStyle` (rather than reading
-`Theme.of(context).textTheme`) get the font for free. Never hardcode a
-different `fontFamily`.
+The doctor app follows the patient app's **Serene Herbalist** design system
+(the Stitch export plus the shipped patient `lib/theme.dart`): warm cream
+canvas `#FBF9F4`, white cards with a faint sage outline, deep sage and sage
+mint, turmeric and clay accents, sage-tinted dark mode, pill buttons, warm
+filled inputs with a 1.5px sage focus ring, and whisper-soft ambient
+shadows. Keep the two apps visually in step: when the patient design
+changes, change it here too.
 
-Only 7 weights are bundled (usWeightClass, verified with fonttools rather
-than guessed from filenames): Thin=100, Light=300, Book=400, Regular=500,
-Bold=700, Heavy=800, Black=900. `AyurezeTheme.font()` only ever asks for
-w500/w700/w800 today; if you need a weight this family doesn't have, the
-renderer falls back to the nearest available weight rather than erroring, but
-prefer picking one of the seven.
-
-The `assets/fonts/UniNeue/` files came from a purchased Fontfabric license
-(distinct from an earlier "Trial" bundle that was rejected - trial fonts are
-watermarked and forbidden from shipping in a public product per their EULA;
-only the actual purchased kit was used here). Do not replace these with
-trial/demo files from a font's marketing site.
+Fonts (bundled, SIL OFL, licences next to the files): **Inter** for all
+interface text and data (`AyurezeTheme.fontFamily`, applied as the
+textTheme base and by `AyurezeTheme.font(...)`), **Newsreader** serif for
+greetings and headlines only (`headlineLarge`/`headlineMedium`, and
+`AyurezeTheme.serif(...)`). Never set the serif on clinical data. Do not add
+`google_fonts`; the files are bundled so text renders offline. The
+purchased Uni Neue files are still in `assets/fonts/UniNeue/` but no longer
+declared in `pubspec.yaml` (so they don't ship); restore that block from git
+history to switch back. Bundled weights: Inter 400/500/600/700, Newsreader
+400/500/600/700.
 
 Android's `pageTransitionsTheme` uses `ZoomPageTransitionsBuilder` (Flutter's
 own Material 3 default) instead of the old `FadeUpwardsPageTransitionsBuilder`,
@@ -97,12 +88,42 @@ back-swipe gesture.
   cascade for lists/grids (see `_buildStatCard`/`_buildAppointmentCard` in
   `login_home.dart`).
 
-`AyurezeTheme.heroDecoration()` now paints `auroraGradient` (a 3-stop
-green gradient) instead of a flat 2-stop one. It is shared by ~12 screens
+`AyurezeTheme.heroDecoration()` paints `auroraGradient`, deep forest to
+primary sage (the patient app's "Talk to Astra" card); white text clears AA
+on every stop. It is shared by ~12 screens
 (SignIn, signup, profile, settings, notifications, schedule,
 appointment_history, dashboard, the drawer, `osler_hero.dart` ...), so this
 one change reaches all of them without per-screen edits. `glassDecoration()`
-is available for a frosted surface (pair it with `BackdropFilter`).
+(behind every `GlassSurface`) is now a near-opaque Tier-1 card - the old 14%
+frost was near-invisible on cream. Every glass panel's content uses
+dark-aware ink; keep it that way (no white text inside a `GlassSurface`).
+
+## Swastu
+
+Swastu is AyurEze's companion character, shared with the patient app
+(where it is the face of Astra). `lib/widgets/swastu.dart` has the
+character (`Swastu`, 12 `SwastuMood`s, one PNG each in `assets/swastu/`),
+`SwastuWordmark`, `SwastuNameTag` and `SwastuSays`. It breathes and floats
+when idle, squishes on tap, stays still for calm moods (urgent, concerned)
+and for reduced motion. No sounds: this is a clinical tool.
+
+Where it appears, and in which mood (match the patient app):
+- `OslerStateView` - every empty/error state: idle when empty, concerned on
+  error, or the `mood:` you pass (review queue empty: happy). The state's
+  icon stays as a small badge beside Swastu.
+- `OslerLoadingView` - thinking, over a small spinner.
+- `ErrorUtilityScreen` - offline/maintenance sleepy, errors concerned, 404
+  thinking.
+- Startup intro (waking), sign-in hero and dashboard hero (greeting),
+  Astra chat app bar (listening) and welcome (greeting), Astra floating
+  buttons (happy, `idleMotion: false` - they sit on many screens).
+
+**Testing:** a screen showing an idle Swastu never "settles", so
+`pumpAndSettle` times out. Turn on reduced motion for that test (see the
+`_reduceMotion` helper in `test/widgets/search_screen_test.dart`): Swastu
+honours it. If the screen also has a wall-clock Timer (the startup intro),
+advance time past it before settling - see `_settle` in
+`test/startup/startup_gate_test.dart`.
 
 Formatting caveat: this sandbox's `dart format` (freshly downloaded "latest
 stable") disagrees with the repo's checked-in style on ~136 of 217 files -
@@ -116,8 +137,8 @@ rather than trusting a freshly-fetched formatter's opinion wholesale.
 ## Layout tokens
 
 `AyurezeTheme` has a named radius scale (`radiusXs` 6, `radiusSm` 8,
-`radiusMd` 12, `radiusLg` 16, `radiusXl` 24, `radius2xl` 28, `radiusPill`
-999) and a 4pt spacing scale (`spaceXs`..`space3xl`). Use these instead of
+`radiusMd` 12, `radiusLg` 16, `radiusCard` 20 - the design's card radius,
+`radiusXl` 24, `radius2xl` 28, `radiusPill` 999) and a 4pt spacing scale (`spaceXs`..`space3xl`). Use these instead of
 literal `BorderRadius.circular(16)` or ad-hoc `EdgeInsets`.
 
 Before the scale existed the UI used 14 different radii with no shared
@@ -141,8 +162,8 @@ there carefully and prefer extracting a section over growing it.
 Drift, measured (Oct 2026): **no** literal font sizes or radii remain
 outside `lib/theme/` - every `fontSize:`, `AyurezeTheme.font(<size>)` and
 `(Border)Radius.circular(<n>)` uses a token. Inside the theme, ten radii
-are still off-scale (nine `20`, one `32`) because they shape every themed
-component; moving them is a design decision, not a cleanup. About 40 raw
+were off-scale `20`s; they are now `radiusCard`, which the Serene
+Herbalist spec makes the master card radius. About 40 raw
 `EdgeInsets` remain in shared widgets and `lib/core/astra`.
 
 ## Conventions
@@ -195,7 +216,14 @@ nav's selected tab, the date picker's OK button, the live signature pad).
 Use `iconPrimary` (identical to `forestDeep` in light mode, white in dark)
 for icons and ink, `textPrimary` for text. Keep the dark constant only as
 a **fill** under white content, as the 100 shade on its own 10 tint, or as
-ink on a fixed bright fill (the lime `healingGreen50` header/avatars).
+ink on a fixed bright fill (the sage-mint `healingGreen50` header/avatars).
+
+Token names predate the rebrand: `healingGreen*` are now sage
+(`100` deep sage ink `#1E4F3C`, `Fill` primary sage `#3F6F5A`, `50` sage mint
+`#8FC7AC`, `10` sage tint), `sunshineYellow*` turmeric, `remoteRed*` clay
+red. They were remapped by role, so the rules in this section still hold.
+For an accent drawn straight on the page (spinner, progress) use the
+dark-aware `accent` getter, not `healingGreen50` (only ~1.8:1 on cream).
 
 `test/theme/dark_ink_guard_test.dart` enforces this with a reviewed count
 of the remaining uses per file in `lib/features` and `lib/widgets`. If it
@@ -219,10 +247,10 @@ mode.
 
 Use `healingGreenFill` (not `healingGreen50`) whenever a filled control
 carries a white glyph or label: FAB, checkbox, circular play/AI/record
-buttons, success discs. `healingGreen50` is the brand emerald but reaches
-only 2.54:1 against white, which fails WCAG AA (4.5:1) and even the 3:1
-UI-component threshold, and it fails in *both* modes. `healingGreenFill`
-is the same hue at 5.48:1.
+buttons, success discs. `healingGreen50` is the light sage mint and reaches
+only 1.92:1 against white, failing WCAG AA (4.5:1) and the 3:1
+UI-component threshold in *both* modes. `healingGreenFill` is primary sage
+at 5.78:1.
 
 `healingGreen50` remains correct as a bare accent: an icon or border on a
 neutral surface, or the 10%-alpha tint used behind an idle control.
@@ -236,8 +264,7 @@ Body text must clear WCAG AA (4.5:1) on its surface.
 `test/theme/theme_contrast_test.dart` enforces this for the theme's text
 and surface tokens using a self-contained contrast-ratio helper; add a
 case there when introducing a new text/surface pair. `darkTextSecondary`
-is `#B4B4B4` rather than `#A0A0A0` because the latter scored only 4.15:1
-on `darkSurfaceMuted`.
+(`#A5B4AB`) scores 6.81:1 on `darkSurfaceMuted`.
 
 ## Testing notes
 

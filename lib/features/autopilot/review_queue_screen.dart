@@ -13,6 +13,7 @@ import 'package:doctro/widgets/osler_card.dart';
 import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:doctro/widgets/osler_tag.dart';
 import 'package:doctro/widgets/osler_toast.dart';
+import 'package:doctro/widgets/swastu.dart';
 
 typedef PendingActionsLoader = Future<List<AutopilotAction>> Function(
     String doctorId);
@@ -181,6 +182,7 @@ class _ReviewQueueScreenState extends State<ReviewQueueScreen> {
               height: MediaQuery.of(context).size.height * 0.6,
               child: OslerStateView(
                 icon: HugeIcons.strokeRoundedTaskDone01,
+                mood: SwastuMood.happy,
                 title: 'Nothing to review',
                 message: 'When Astra flags a care gap or suggests a '
                     'follow-up for one of your patients, it will appear '

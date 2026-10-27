@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 import 'package:doctro/features/consultation/astra_chat/astra_chat_page.dart';
 
 /// Astra AI Quick Access Button
@@ -60,11 +61,12 @@ class AstraAIFloatingButton extends StatelessWidget {
                   // Pulsing effect
                   _PulsingEffect(size: size),
 
-                  // Icon
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedBrain01,
-                    color: Colors.white,
-                    size: size * 0.5,
+                  // Swastu, still (this button sits on many screens).
+                  Swastu(
+                    mood: SwastuMood.happy,
+                    size: size * 0.62,
+                    named: false,
+                    idleMotion: false,
                   ),
                 ],
               ),

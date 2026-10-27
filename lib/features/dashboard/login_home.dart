@@ -7,6 +7,7 @@ import 'package:doctro/core/constants/prefConstatnt.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 import 'package:doctro/widgets/glass_surface.dart';
 import 'package:doctro/widgets/modern_drawer.dart';
 import 'package:doctro/widgets/osler_skeleton.dart';
@@ -219,11 +220,13 @@ class _LoginHomeViewState extends State<_LoginHomeView>
                                             color: AyurezeTheme.textSecondary,
                                           ),
                                         ),
+                                        // Serif greeting, as in the patient
+                                        // app ("Good morning, Asha").
                                         Text(
                                           "Dr. ${viewModel.dName ?? 'Doctor'}",
-                                          style: textTheme.titleLarge?.copyWith(
+                                          style: textTheme.headlineMedium
+                                              ?.copyWith(
                                             color: AyurezeTheme.textPrimary,
-                                            fontWeight: FontWeight.bold,
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -287,60 +290,79 @@ class _LoginHomeViewState extends State<_LoginHomeView>
                                 padding:
                                     const EdgeInsets.all(AyurezeTheme.spaceXl),
                                 decoration: AyurezeTheme.heroDecoration(),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: AyurezeTheme.spaceSm,
-                                            vertical: AyurezeTheme.spaceXs,
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Flexible(
+                                                child: Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                    horizontal:
+                                                        AyurezeTheme.spaceSm,
+                                                    vertical:
+                                                        AyurezeTheme.spaceXs,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        Colors.white.withValues(
+                                                      alpha: 0.18,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      AyurezeTheme.radiusPill,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    "Clinical Dashboard",
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: textTheme.bodySmall
+                                                        ?.copyWith(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.18,
-                                            ),
-                                            borderRadius: BorderRadius.circular(
-                                              AyurezeTheme.radiusPill,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            "Clinical Dashboard",
-                                            style:
-                                                textTheme.bodySmall?.copyWith(
+                                          const SizedBox(height: 14),
+                                          Text(
+                                            getTranslated(
+                                              context,
+                                              AppString
+                                                  .today_appointment_heading,
+                                            ).toString(),
+                                            style: textTheme.headlineMedium
+                                                ?.copyWith(
                                               color: Colors.white,
                                             ),
                                           ),
-                                        ),
-                                        const Spacer(),
-                                        HugeIcon(
-                                          icon: HugeIcons.strokeRoundedHealth,
-                                          color: Colors.white.withValues(
-                                            alpha: 0.9,
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            "Manage your consultations & patient health records seamlessly.",
+                                            style:
+                                                textTheme.bodyMedium?.copyWith(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.85),
+                                            ),
                                           ),
-                                          size: 24,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 14),
-                                    Text(
-                                      getTranslated(
-                                        context,
-                                        AppString.today_appointment_heading,
-                                      ).toString(),
-                                      style: textTheme.headlineMedium?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "Manage your consultations & patient health records seamlessly.",
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.85),
-                                      ),
+                                    const SizedBox(width: AyurezeTheme.spaceMd),
+                                    // Swastu greets the doctor, like the
+                                    // patient app's "Talk to Astra" card.
+                                    const Swastu(
+                                      mood: SwastuMood.greeting,
+                                      size: 84,
+                                      named: false,
                                     ),
                                   ],
                                 ),

@@ -20,7 +20,7 @@ class OslerLoader extends StatelessWidget {
       height: size,
       child: CircularProgressIndicator(
         strokeWidth: strokeWidth,
-        color: color ?? AyurezeTheme.healingGreen50,
+        color: color ?? AyurezeTheme.accent,
       ),
     );
   }

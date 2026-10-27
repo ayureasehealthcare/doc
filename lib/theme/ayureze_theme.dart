@@ -148,6 +148,12 @@ class AyurezeTheme {
   static Color get shadow =>
       _isDark ? const Color(0x59000000) : const Color(0x142D3730);
 
+  /// Brand accent drawn straight on the page (spinners, progress, active
+  /// marks): primary sage in light mode, sage mint in dark. The fixed
+  /// healingGreen50 mint is only ~1.8:1 on the cream canvas - too faint for
+  /// a progress indicator (3:1).
+  static Color get accent => _isDark ? healingGreen50 : healingGreenFill;
+
   // Dynamic Icon/SVG Colors - ensures visibility in both modes
   static Color get iconPrimary => _isDark ? Colors.white : healingGreen100;
   static Color get iconSecondary => _isDark ? darkTextSecondary : oslerGray50;

@@ -17,11 +17,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// widths inside one test is reliable; separate `testWidgets` in the same file
 /// leave the localizations delegate unresolved for all but the first, and the
 /// app then builds no child at all.
+/// Swastu breathes in an endless idle loop, so a screen showing it never
+/// "settles". Turning on the platform's reduce-motion setting (which
+/// Swastu honours) lets pumpAndSettle finish, and covers that path too.
+void _reduceMotion(WidgetTester tester) {
+  tester.platformDispatcher.accessibilityFeaturesTestValue =
+      const FakeAccessibilityFeatures(disableAnimations: true);
+  addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('renders after login and fits across screen widths',
       (tester) async {
+    _reduceMotion(tester);
     // tester.view drives MediaQuery. setSurfaceSize does not, so it cannot
     // reproduce width-dependent layout.
     tester.view.devicePixelRatio = 1.0;

@@ -165,6 +165,27 @@ void main() {
     });
   });
 
+  group('page accent', () {
+    for (final dark in [false, true]) {
+      test(
+          'accent is visible on every page surface '
+          '(${dark ? 'dark' : 'light'})', () {
+        AyurezeTheme.updateThemeMode(dark);
+        addTearDown(() => AyurezeTheme.updateThemeMode(false));
+        for (final bg in [
+          AyurezeTheme.canvas,
+          AyurezeTheme.surface,
+          AyurezeTheme.surfaceMuted,
+        ]) {
+          // 3:1 is the WCAG threshold for UI components like spinners.
+          expect(contrastRatio(AyurezeTheme.accent.toARGB32(), bg.toARGB32()),
+              greaterThanOrEqualTo(3),
+              reason: 'accent on $bg');
+        }
+      });
+    }
+  });
+
   group('in-call surfaces (always dark)', () {
     test('callForeground clears AA on both ends of the waiting gradient', () {
       // The waiting text used textPrimary, which is dark ink in light mode:

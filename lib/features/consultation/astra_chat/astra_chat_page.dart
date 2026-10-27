@@ -7,6 +7,7 @@ import 'package:doctro/core/astra/astra_core.dart';
 import 'package:doctro/core/astra/widgets/widgets.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 import 'package:doctro/widgets/content_origin_badge.dart';
 import 'package:doctro/widgets/osler_loader.dart';
 
@@ -155,19 +156,8 @@ class _AstraChatPageState extends State<AstraChatPage> {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Astra Brain icon
-          Container(
-            padding: const EdgeInsets.all(AyurezeTheme.spaceSm),
-            decoration: BoxDecoration(
-              color: AyurezeTheme.healingGreen50.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedBrain01,
-              color: AyurezeTheme.healingGreen50,
-              size: 20,
-            ),
-          ),
+          // Swastu is Astra's face, as in the patient app.
+          const Swastu(mood: SwastuMood.listening, size: 40, named: false),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,22 +331,12 @@ class _AstraChatPageState extends State<AstraChatPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(AyurezeTheme.space2xl),
-                decoration: BoxDecoration(
-                  color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedBrain01,
-                  size: 64,
-                  color: AyurezeTheme.healingGreen50,
-                ),
-              ),
-              const SizedBox(height: 24),
+              const Swastu(mood: SwastuMood.greeting, size: 140),
+              const SizedBox(height: AyurezeTheme.space2xl),
               Text(
                 'Chat with Astra AI',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AyurezeTheme.textPrimary,
                     ),
               ),

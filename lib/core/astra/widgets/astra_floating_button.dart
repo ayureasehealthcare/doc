@@ -4,6 +4,7 @@ import 'package:doctro/core/astra/context/context_builder.dart';
 import 'package:doctro/core/astra/context/patient_context.dart';
 import 'package:doctro/core/astra/navigation/app_router.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 
 /// Floating Astra AI Button
 ///
@@ -106,10 +107,12 @@ class AstraFloatingButton extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedBrain01,
-                  color: Colors.white,
-                  size: size * 0.45,
+                // Still, not breathing: this button sits on many screens.
+                Swastu(
+                  mood: SwastuMood.happy,
+                  size: size * 0.5,
+                  named: false,
+                  idleMotion: false,
                 ),
                 SizedBox(height: size * 0.05),
                 Text(

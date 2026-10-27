@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:doctro/features/autopilot/review_queue_screen.dart';
+import 'package:doctro/features/errors/error_utility_screen.dart';
 import 'package:doctro/features/prescription/astra/prescription_screen.dart';
 import 'package:doctro/models/autopilot_action.dart';
 import 'package:doctro/models/patient_wellness.dart';
@@ -14,6 +15,8 @@ import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/widgets/astra_fill_display.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/widgets/patient_wellness_section.dart';
 import 'package:doctro/widgets/sharing_consent_guard.dart';
 
@@ -180,6 +183,16 @@ class _Home extends StatelessWidget {
               '6. Review queue - today\'s stubs',
               'Real AstraApiService stub: empty list.',
               const ReviewQueueScreen(doctorId: 'demo-doctor')),
+          tile(
+              'states',
+              '7. Empty, error and loading states',
+              'The shared kit states, now carried by Swastu.',
+              const _StatesGallery()),
+          tile(
+              'offline',
+              '8. Full-screen error page (offline)',
+              'ErrorUtilityScreen with a sleepy Swastu.',
+              const ErrorUtilityScreen(kind: ErrorUtilityKind.noInternet)),
         ],
       ),
     );
@@ -225,6 +238,37 @@ class _PatientCase extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The shared empty / error / loading views side by side.
+class _StatesGallery extends StatelessWidget {
+  const _StatesGallery();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AyurezeTheme.canvas,
+      appBar: AppBar(title: const Text('States')),
+      body: ListView(
+        children: [
+          const OslerStateView(
+            icon: HugeIcons.strokeRoundedVideo01,
+            title: 'No calls yet',
+            message: 'Video consultations you take will appear here.',
+          ),
+          OslerStateView.error(
+            title: "Couldn't load call history",
+            message: 'Check your connection and try again.',
+            onRetry: () {},
+          ),
+          const SizedBox(
+            height: 220,
+            child: OslerLoadingView(message: 'Loading review queue…'),
+          ),
+        ],
       ),
     );
   }
