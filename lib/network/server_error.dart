@@ -18,7 +18,11 @@ class ServerError implements Exception {
   }
 
   void _handleError(DioException error) {
-    final data = error.response?.data;
+    // A 404 or proxy error can come back as an HTML string, which can't be
+    // indexed like JSON.
+    final raw = error.response?.data;
+    final Map? data = raw is Map ? raw : null;
+    final int? status = error.response?.statusCode;
     String message = "";
 
     if (error.response?.statusCode == 401) {
@@ -29,12 +33,15 @@ class ServerError implements Exception {
         message = "Session expired. Please log in again.";
       }
     } else if (data?['error'] != null) {
-      message = '${data['error']}';
+      message = '${data!['error']}';
     } else if (error.type == DioExceptionType.badResponse) {
       if (data?['msg'] != null) {
-        message = data['msg'].toString();
+        message = data!['msg'].toString();
       } else if (data?['message'] != null) {
-        message = data['message'].toString();
+        message = data!['message'].toString();
+      } else if (data?['detail'] is String && status != 404) {
+        // FastAPI's error body. Its 404 detail is just "Not Found".
+        message = data!['detail'] as String;
       }
     } else if (error.type == DioExceptionType.unknown) {
       message = data?['msg']?.toString() ?? "Unexpected error occurred";
@@ -69,13 +76,25 @@ class ServerError implements Exception {
       }
     }
 
-    if (message.isEmpty) {
-      message = error.message?.toString() ??
-          "Something went wrong. Please try again.";
-    }
+    // Never fall back to Dio's own message: it is a paragraph meant for
+    // developers ("This exception was thrown because the response has a
+    // status code of 404 and RequestOptions.validateStatus...").
+    if (message.isEmpty) message = friendlyMessageFor(status);
 
-    _errorCode = error.response?.statusCode;
+    _errorCode = status;
     _errorMessage = message;
-    CommonFunction.toastMessage(message);
+    // A 404 here means a route the server doesn't serve (most legacy routes,
+    // e.g. the settings call made on every launch). The user can't act on
+    // it, so screens show their own error state instead of a toast.
+    if (status != 404) CommonFunction.toastMessage(message);
+  }
+
+  static String friendlyMessageFor(int? status) {
+    if (status == 404) return "This isn't available right now.";
+    if (status == 403) return "You don't have access to this.";
+    if (status != null && status >= 500) {
+      return "The server had a problem. Please try again shortly.";
+    }
+    return "Something went wrong. Please try again.";
   }
 }
