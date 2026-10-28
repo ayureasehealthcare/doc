@@ -84,6 +84,10 @@ class AyurezeTheme {
   // with a white label (the patient app's clay alert). White on it: 6.46:1.
   static const Color remoteRedFill = Color(0xFFBA1A1A);
 
+  // Error ink for dark mode (Material's dark error tone): 8.7-10.4:1 on the
+  // dark surfaces, where remoteRedFill is only 2.5:1.
+  static const Color darkError = Color(0xFFFFB4AB);
+
   // Turmeric gold - streaks, highlights, gentle warnings.
   static const Color sunshineYellow100 = Color(0xFF2B1700);
   static const Color sunshineYellow50 = Color(0xFFC98A3E);
@@ -424,8 +428,8 @@ class AyurezeTheme {
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: darkTextPrimary,
-      error: remoteRedFill,
-      onError: Colors.white,
+      error: darkError,
+      onError: remoteRed100,
     );
 
     return ThemeData(

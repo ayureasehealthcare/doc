@@ -165,6 +165,33 @@ void main() {
     });
   });
 
+  group('error ink', () {
+    // Form errors and "Not in store" draw colorScheme.error straight on the
+    // page. The dark theme used the light theme's deep red: 2.5:1.
+    for (final dark in [false, true]) {
+      test('colorScheme.error on page surfaces (${dark ? 'dark' : 'light'})',
+          () {
+        AyurezeTheme.updateThemeMode(dark);
+        addTearDown(() => AyurezeTheme.updateThemeMode(false));
+        final scheme =
+            (dark ? AyurezeTheme.darkTheme() : AyurezeTheme.lightTheme())
+                .colorScheme;
+        for (final bg in [
+          AyurezeTheme.canvas,
+          AyurezeTheme.surface,
+          AyurezeTheme.surfaceMuted,
+        ]) {
+          expect(contrastRatio(scheme.error.toARGB32(), bg.toARGB32()),
+              greaterThanOrEqualTo(4.5),
+              reason: '${scheme.error} on $bg');
+        }
+        expect(
+            contrastRatio(scheme.onError.toARGB32(), scheme.error.toARGB32()),
+            greaterThanOrEqualTo(4.5));
+      });
+    }
+  });
+
   group('page accent', () {
     for (final dark in [false, true]) {
       test(
