@@ -1,22 +1,19 @@
 import 'dart:io';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/theme/ayureze_date_picker.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_toast.dart';
-import 'package:doctro/network/api_header.dart';
-import 'package:doctro/network/network_api.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:doctro/features/authentication/registration_success_screen.dart';
 import 'package:doctro/services/supabase_service.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/constants/prefConstatnt.dart';
-import 'package:doctro/models/register.dart';
+import 'package:doctro/models/astra_doctor_mapper.dart';
 import 'package:intl/intl.dart';
 
 class ProfessionalRegistrationScreen extends StatefulWidget {
@@ -60,8 +57,8 @@ class _ProfessionalRegistrationScreenState
   final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
 
-  String? _selectedTreatmentId = "1";
-  String? _selectedCategoryId = "1";
+  final String _selectedTreatmentId = "1";
+  final String _selectedCategoryId = "1";
 
   final SupabaseService _supabaseService = SupabaseService();
   final AstraApiService _astraApiService = AstraApiService();
@@ -128,58 +125,110 @@ class _ProfessionalRegistrationScreenState
     super.dispose();
   }
 
+  /// Values of the fields astra can't store, as loaded. [_submitData] diffs
+  /// against these to tell the doctor which edits were not saved.
+  Map<String, String> _unsupportedAtLoad = const {};
+
+  /// The fields of this form that neither astra's register nor its update
+  /// route stores (see AstraDoctorMapper), keyed by the label shown to the
+  /// doctor. [forUpdate] adds the ones only registration accepts.
+  Map<String, String> _unsupportedFields({required bool forUpdate}) => {
+        "Licence number": _licenseController.text,
+        "Clinic fee": _feesController.text,
+        "Revenue model": _selectedRevenueModel ?? "",
+        "Medical certificate": _certificateImage?.path ?? "",
+        "ID proof": _idProofImage?.path ?? "",
+        if (forUpdate) "Email": _emailController.text,
+        if (forUpdate) "Education": _educationController.text,
+        if (forUpdate) "Experience": _experienceController.text,
+        if (forUpdate) "Languages": _languageController.text,
+      };
+
+  /// [raw] matched case-insensitively to one of [options] (the dropdowns
+  /// assert their value is an item), or [fallback].
+  static String? _matchOption(
+      List<String> options, String? raw, String? fallback) {
+    if (raw == null) return fallback;
+    for (final option in options) {
+      if (option.toLowerCase() == raw.trim().toLowerCase()) return option;
+    }
+    return fallback;
+  }
+
   Future<void> _fetchProfileDetails() async {
+    final doctorId =
+        SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+    if (doctorId == null) {
+      // Called from initState: wait for a frame before showing a toast.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        OslerToast.error(context,
+            "We couldn't find your doctor ID. Please sign in again to load your profile.");
+      });
+      _unsupportedAtLoad = _unsupportedFields(forUpdate: true);
+      return;
+    }
     setState(() => _isLoading = true);
     try {
-      final response =
-          await RestClient(await RetroApi().dioData(context)).doctorProfile();
-      if (response.success == true && response.data != null) {
-        if (!mounted) return;
-        final data = response.data!;
-        setState(() {
-          _nameController.text = data.name ?? "";
-          _emailController.text = data.email ?? "";
-          _phoneController.text = data.phone ?? "";
+      // GET doctors/{id}; the response shape is unconfirmed, see
+      // AstraDoctor.fromResponse.
+      final doctor = AstraDoctor.fromResponse(
+          await _astraApiService.getDoctorProfile(doctorId));
+      if (!mounted) return;
+      setState(() {
+        _nameController.text = doctor.name ?? _nameController.text;
+        _emailController.text = doctor.email ?? _emailController.text;
+        _phoneController.text = doctor.phone ?? _phoneController.text;
 
-          if (data.dob != null && data.dob!.contains("-")) {
-            try {
-              if (data.dob!.indexOf("-") == 4) {
-                _dobController.text = DateFormat('dd-MM-yyyy')
-                    .format(DateFormat('yyyy-MM-dd').parse(data.dob!));
-              } else {
-                _dobController.text = data.dob!;
-              }
-            } catch (e) {
-              _dobController.text = data.dob!;
+        final dob = doctor.dob;
+        if (dob != null && dob.contains("-")) {
+          try {
+            if (dob.indexOf("-") == 4) {
+              _dobController.text = DateFormat('dd-MM-yyyy')
+                  .format(DateFormat('yyyy-MM-dd').parse(dob));
+            } else {
+              _dobController.text = dob;
             }
-          } else {
-            _dobController.text = data.dob ?? "";
+          } catch (e) {
+            _dobController.text = dob;
           }
-          _genderSelect = data.gender;
-
-          _licenseController.text = data.hospitalId ?? "";
-          _educationController.text = data.education ?? "";
-          _experienceController.text = data.experience ?? "";
-          _feesController.text = data.appointmentFees ?? "";
-          _videoFeesController.text = data.videoAppointmentFees ?? "";
-          _descController.text = data.desc ?? "";
-          _languageController.text = data.language ?? "";
-          _selectedTreatmentId = data.treatmentId?.toString();
-          _selectedCategoryId = data.categoryId?.toString();
-          _existingCertificateUrl = data.certificate;
-        });
-
-        if (_selectedTreatmentId != null) {
-          _fetchCategories(_selectedTreatmentId!);
+        } else if (dob != null) {
+          _dobController.text = dob;
         }
+        _genderSelect = _matchOption(_genders, doctor.gender, _genderSelect);
+
+        if (doctor.qualifications.isNotEmpty) {
+          _educationController.text = doctor.qualifications.join(', ');
+        }
+        if (doctor.experienceYears != null) {
+          _experienceController.text = doctor.experienceText;
+        }
+        // astra has one consultation_fee; this app's consultations are video
+        // calls, so it fills the video fee. The clinic fee has no field.
+        if (doctor.consultationFee != null) {
+          _videoFeesController.text = doctor.feeText;
+        }
+        _descController.text = doctor.bio ?? _descController.text;
+        if (doctor.languages.isNotEmpty) {
+          _languageController.text = doctor.languages.join(', ');
+        }
+        _existingCertificateUrl =
+            doctor.certificateUrl ?? _existingCertificateUrl;
+      });
+    } on AstraApiException catch (e) {
+      if (mounted) OslerToast.error(context, e.message);
+    } catch (e) {
+      if (mounted) {
+        OslerToast.error(
+            context, "Couldn't load your profile. Please try again.");
       }
     } finally {
+      _unsupportedAtLoad = _unsupportedFields(forUpdate: true);
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _fetchTreatments() async {}
-  Future<void> _fetchCategories(String id) async {}
 
   Future<void> _pickImage(bool isCertificate) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
@@ -215,8 +264,8 @@ class _ProfessionalRegistrationScreenState
     Map<String, dynamic> combinedData =
         widget.personalData != null ? Map.from(widget.personalData!) : {};
 
-    final int safeTreatmentId = int.tryParse(_selectedTreatmentId ?? "") ?? 1;
-    final int safeCategoryId = int.tryParse(_selectedCategoryId ?? "") ?? 1;
+    final int safeTreatmentId = int.tryParse(_selectedTreatmentId) ?? 1;
+    final int safeCategoryId = int.tryParse(_selectedCategoryId) ?? 1;
     final String safeLanguage = _languageController.text.trim().isEmpty
         ? "English"
         : _languageController.text.trim();
@@ -268,231 +317,187 @@ class _ProfessionalRegistrationScreenState
     try {
       String uniqueId = _supabaseService.generateDoctorID();
 
-      String? certUrl;
-      String? idUrl;
-
       if (combinedData['certificate_path'] != null) {
-        certUrl = await _supabaseService.uploadProfilePhoto(
+        await _supabaseService.uploadProfilePhoto(
             File(combinedData['certificate_path']), "${uniqueId}_cert");
       }
       if (combinedData['id_proof_path'] != null) {
-        idUrl = await _supabaseService.uploadProfilePhoto(
+        await _supabaseService.uploadProfilePhoto(
             File(combinedData['id_proof_path']), "${uniqueId}_idproof");
       }
 
-      Map<String, dynamic> finalData = Map.from(combinedData);
-      finalData.addAll({
-        "unique_id": uniqueId,
-        "is_face_verified": 1,
-        "certificate": certUrl ?? "",
-        "id_proof": idUrl ?? "",
-        "is_filled": 1,
-      });
+      // POST doctors/register (RegisterDoctorRequest). This used to post to
+      // the legacy register route, which 404s, and only then try astra
+      // best-effort with keys astra doesn't read. Fields with no place in
+      // RegisterDoctorRequest are listed to the doctor below.
+      final response = await _astraApiService.registerDoctor(
+        AstraDoctorMapper.registerBody(
+          name: combinedData['name'] ?? '',
+          email: combinedData['email'],
+          // Sign-up keeps the dialling code separately ("+91").
+          phone: AstraDoctorMapper.withDialCode(
+              combinedData['phone_code'], combinedData['phone']),
+          qualifications: combinedData['education'],
+          experience: combinedData['experience'],
+          fee: combinedData['video_appointment_fees'],
+          languages: combinedData['language'],
+          bio: combinedData['desc'],
+        ),
+      );
 
-      if (!mounted) return;
-      final response = await RestClient(await RetroApi().dioData(context))
-          .registerRequest(finalData);
-
-      if (!mounted) return;
-
-      if (response.success == true) {
-        try {
-          await _supabaseService.saveDoctorProfile(
-            doctorId: uniqueId,
-            name: combinedData['name'] ?? '',
-            email: combinedData['email'] ?? '',
-            phone: combinedData['phone'] ?? '',
-            gender: combinedData['gender'] ?? '',
-            dob: combinedData['dob'] ?? '',
-            photoUrl: "",
-            isFaceVerified: true,
-          );
-        } catch (_) {
-          // Supabase mirror is best-effort; the API registration already succeeded.
-        }
-
-        try {
-          await _astraApiService.registerDoctor({
-            "unique_id": uniqueId,
-            "name": combinedData['name'] ?? '',
-            "email": combinedData['email'] ?? '',
-            "phone": combinedData['phone'] ?? '',
-            "gender": combinedData['gender'] ?? '',
-            "dob": combinedData['dob'] ?? '',
-            "education": combinedData['education'] ?? '',
-            "experience": combinedData['experience'] ?? '',
-            "language": combinedData['language'] ?? '',
-            "desc": combinedData['desc'] ?? '',
-            "appointment_fees": combinedData['appointment_fees'] ?? '',
-            "video_appointment_fees":
-                combinedData['video_appointment_fees'] ?? '',
-            "license_number": combinedData['license_number'] ?? '',
-            "certificate": finalData['certificate'] ?? '',
-            "id_proof": finalData['id_proof'] ?? '',
-          });
-        } catch (_) {
-          // Astra directory sync is best-effort; the primary registration
-          // already succeeded and must not be blocked by it.
-        }
-
-        if (!mounted) return;
-        _savePreferences(response);
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RegistrationSuccessScreen(
-              doctorName: combinedData['name'] ?? '',
-              doctorId: response.data?.uniqueId ?? uniqueId,
-              email: combinedData['email'] ?? '',
-            ),
-          ),
-          (route) => false,
+      // Gender and date of birth are kept in the Supabase mirror only.
+      bool mirrored = false;
+      try {
+        await _supabaseService.saveDoctorProfile(
+          doctorId: uniqueId,
+          name: combinedData['name'] ?? '',
+          email: combinedData['email'] ?? '',
+          phone: combinedData['phone'] ?? '',
+          gender: combinedData['gender'] ?? '',
+          dob: combinedData['dob'] ?? '',
+          photoUrl: "",
+          isFaceVerified: true,
         );
-      } else {
-        if (!mounted) return;
-        OslerToast.error(context, response.msg ?? "Registration failed");
+        mirrored = true;
+      } catch (_) {
+        // Supabase mirror is best-effort; the astra registration succeeded.
       }
+
+      if (!mounted) return;
+      final loggedIn = _savePreferences(response, combinedData, uniqueId);
+      final unsaved = [
+        for (final e in _unsupportedFields(forUpdate: false).entries)
+          if (e.value.trim().isNotEmpty) e.key,
+        if (!mirrored) ...["Gender", "Date of birth"],
+      ];
+      if (unsaved.isNotEmpty) {
+        OslerToast.info(context, AstraDoctorMapper.unsavedMessage(unsaved));
+      }
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RegistrationSuccessScreen(
+            doctorName: combinedData['name'] ?? '',
+            doctorId: AstraDoctorMapper.doctorIdFrom(response) ?? uniqueId,
+            email: combinedData['email'] ?? '',
+            // Without a session token from astra the doctor isn't signed in
+            // yet, so continue to sign-in rather than the dashboard.
+            onContinue: loggedIn
+                ? null
+                : () => Navigator.pushNamedAndRemoveUntil(
+                    context, 'SignIn', (route) => false),
+          ),
+        ),
+        (route) => false,
+      );
+    } on AstraApiException catch (e) {
+      if (!mounted) return;
+      OslerToast.error(context, e.message);
     } catch (e) {
       if (!mounted) return;
-      if (e is DioException) {
-        String errorMsg = "Registration failed";
-        if (e.response?.data is Map) {
-          errorMsg = e.response?.data['msg'] ??
-              e.response?.data['message'] ??
-              errorMsg;
-        }
-        OslerToast.error(context, errorMsg);
-      } else {
-        OslerToast.error(context, "An unexpected error occurred: $e");
-      }
+      OslerToast.error(context, "Registration failed. Please try again.");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  void _savePreferences(Register response) {
-    if (response.data == null) return;
-    final data = response.data!;
+  /// Stores the new doctor's details after astra registration. Returns
+  /// whether the doctor is now signed in, which needs a session token in
+  /// [response] - astra documents none (see AstraDoctorMapper).
+  bool _savePreferences(Map<String, dynamic> response,
+      Map<String, dynamic> combinedData, String uniqueId) {
+    SharedPreferenceHelper.setString(
+        Preferences.name, combinedData['name'] ?? "");
+    SharedPreferenceHelper.setString(
+        Preferences.email, combinedData['email'] ?? "");
+    SharedPreferenceHelper.setString(
+        Preferences.phone_no, combinedData['phone'] ?? "");
+    SharedPreferenceHelper.setString(
+        Preferences.gender, combinedData['gender'] ?? "");
+    SharedPreferenceHelper.setString(
+        Preferences.dob, combinedData['dob'] ?? "");
+    SharedPreferenceHelper.setString(Preferences.uniqueId, uniqueId);
+    final doctorId = AstraDoctorMapper.doctorIdFrom(response);
+    if (doctorId != null) {
+      SharedPreferenceHelper.setString(Preferences.doctorId, doctorId);
+    }
 
+    final token = AstraDoctorMapper.sessionTokenFrom(response);
+    if (token == null) return false;
+    SharedPreferenceHelper.setString(Preferences.auth_token, token);
     SharedPreferenceHelper.setBoolean(Preferences.is_logged_in, true);
-    SharedPreferenceHelper.setString(
-        Preferences.auth_token, response.token ?? "");
-    SharedPreferenceHelper.setString(
-        Preferences.refresh_token, response.refreshToken ?? "");
-    SharedPreferenceHelper.setString(Preferences.name, data.name ?? "");
-    SharedPreferenceHelper.setString(Preferences.email, data.email ?? "");
-    SharedPreferenceHelper.setString(Preferences.phone_no, data.phone ?? "");
-    SharedPreferenceHelper.setString(Preferences.gender, data.gender ?? "");
-    SharedPreferenceHelper.setString(Preferences.dob, data.dob ?? "");
-    SharedPreferenceHelper.setString(Preferences.uniqueId, data.uniqueId ?? "");
-    SharedPreferenceHelper.setString(Preferences.image, data.image ?? "");
-    SharedPreferenceHelper.setString(
-        Preferences.doctorId, data.id?.toString() ?? "");
+    return true;
   }
 
   Future<void> _updateProfile(Map<String, dynamic> profileData) async {
+    final doctorId =
+        SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+    if (doctorId == null) {
+      OslerToast.error(context,
+          "We couldn't find your doctor ID. Please sign in again, then save your profile.");
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
-      String doctorId = SharedPreferenceHelper.getString(Preferences.uniqueId);
-      if (doctorId == 'N_A' || doctorId.isEmpty) {
-        doctorId = SharedPreferenceHelper.getString(Preferences.doctorId);
-      }
-      if (doctorId == 'N_A' || doctorId.isEmpty) {
-        doctorId = _supabaseService.generateDoctorID();
-      }
-
-      String? certUrl = _existingCertificateUrl;
-      String? idProofUrl = _existingIdProofUrl;
-
+      // Re-uploaded documents still go to Supabase storage under the
+      // doctor's id, as before; astra's record has no field linking them.
       if (_certificateImage != null) {
-        certUrl = await _supabaseService.uploadProfilePhoto(
+        await _supabaseService.uploadProfilePhoto(
             _certificateImage!, "${doctorId}_cert");
       }
       if (_idProofImage != null) {
-        idProofUrl = await _supabaseService.uploadProfilePhoto(
+        await _supabaseService.uploadProfilePhoto(
             _idProofImage!, "${doctorId}_idproof");
       }
 
-      Map<String, dynamic> body = Map.from(profileData);
-      body["certificate"] = certUrl ?? "";
-      body["id_proof"] = idProofUrl ?? "";
-      body["is_filled"] = 1;
+      // PUT doctors/{id} (UpdateDoctorRequest) with the fields it accepts.
+      // This used to call astra's *register* (creating a new doctor on every
+      // save) alongside the dead legacy update route.
+      await _astraApiService.updateDoctorProfile(
+        doctorId,
+        AstraDoctorMapper.updateBody(
+          name: profileData['name'],
+          phone: profileData['phone'],
+          fee: profileData['video_appointment_fees'],
+          bio: profileData['desc'],
+        ),
+      );
 
-      // The legacy REST API (Apis.baseUrl) is permanently dead - confirmed
-      // 404 on every route, including this one. Astra and Supabase are the
-      // real, live backends, so they must not be gated behind the legacy
-      // call succeeding; it is attempted only for whatever installs still
-      // depend on it, and never blocks a real profile update.
-      bool astraSynced = false;
-      try {
-        await _astraApiService.registerDoctor({
-          "unique_id": doctorId,
-          "name": body['name'] ?? '',
-          "email": body['email'] ?? '',
-          "phone": body['phone'] ?? '',
-          "gender": body['gender'] ?? '',
-          "dob": body['dob'] ?? '',
-          "education": body['education'] ?? '',
-          "experience": body['experience'] ?? '',
-          "language": body['language'] ?? '',
-          "desc": body['desc'] ?? '',
-          "appointment_fees": body['appointment_fees'] ?? '',
-          "video_appointment_fees": body['video_appointment_fees'] ?? '',
-          "license_number": body['license_number'] ?? '',
-          "certificate": body['certificate'] ?? '',
-          "id_proof": body['id_proof'] ?? '',
-        });
-        astraSynced = true;
-      } catch (_) {
-        // Reported to the user below via legacySynced/astraSynced check.
-      }
-
+      // Gender and date of birth are kept in the Supabase mirror only.
+      bool mirrored = false;
       try {
         await _supabaseService.saveDoctorProfile(
           doctorId: doctorId,
-          name: body['name'] ?? '',
-          email: body['email'] ?? '',
-          phone: body['phone'] ?? '',
-          gender: body['gender'] ?? '',
-          dob: body['dob'] ?? '',
+          name: profileData['name'] ?? '',
+          email: profileData['email'] ?? '',
+          phone: profileData['phone'] ?? '',
+          gender: profileData['gender'] ?? '',
+          dob: profileData['dob'] ?? '',
           photoUrl: "",
           isFaceVerified: true,
         );
+        mirrored = true;
       } catch (_) {
         // Supabase mirror is best-effort and must not block a real update.
       }
 
       if (!mounted) return;
-      bool legacySynced = false;
-      try {
-        final response = await RestClient(await RetroApi().dioData(context))
-            .updateProfile(body);
-        legacySynced = response.success == true;
-      } catch (_) {
-        // Legacy endpoint is dead; astraSynced is the real signal below.
-      }
-
-      if (!mounted) return;
-      if (astraSynced || legacySynced) {
-        SharedPreferenceHelper.setString(Preferences.uniqueId, doctorId);
+      final unsaved = AstraDoctorMapper.changedFields(
+          _unsupportedAtLoad, _unsupportedFields(forUpdate: true));
+      if (!mirrored) unsaved.addAll(["Gender", "Date of birth"]);
+      if (unsaved.isEmpty) {
         OslerToast.success(context, "Clinical Profile Updated");
-        Navigator.pop(context);
       } else {
-        OslerToast.error(context, "Update failed");
+        OslerToast.info(context, AstraDoctorMapper.unsavedMessage(unsaved));
       }
+      Navigator.pop(context);
+    } on AstraApiException catch (e) {
+      if (!mounted) return;
+      OslerToast.error(context, e.message);
     } catch (e) {
       if (!mounted) return;
-      if (e is DioException) {
-        String errorMsg = "Profile update failed";
-        if (e.response?.data is Map) {
-          errorMsg = e.response?.data['msg'] ??
-              e.response?.data['message'] ??
-              errorMsg;
-        }
-        OslerToast.error(context, errorMsg);
-      } else {
-        OslerToast.error(context, "An error occurred: $e");
-      }
+      OslerToast.error(context, "Profile update failed. Please try again.");
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

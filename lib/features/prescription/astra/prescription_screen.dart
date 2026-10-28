@@ -690,13 +690,7 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
   Future<void> _loadAvailableMedicines() async {
     setState(() => _isLoading = true);
     try {
-      List results = await _astraApiService.getAvailableMedicines();
-      if (results.isEmpty) {
-        final all = await _astraApiService.getAllShopifyProducts();
-        if (all['success'] == true && all['products'] is List) {
-          results = List.from(all['products']);
-        }
-      }
+      final List results = await _astraApiService.getAvailableMedicines();
       if (mounted) {
         setState(() => _results = results);
       }

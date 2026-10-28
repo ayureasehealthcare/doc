@@ -446,3 +446,26 @@ sign ("₹180.00") and `price_pending` items come back as "₹0.00"; show them
 through `PrescriptionPayload.priceLabel`. The server has no signature field
 and doesn't say what it automated, so don't claim a cart or WhatsApp send in
 the UI.
+
+## Legacy API vs astra (checked Oct 2026)
+
+Every route in `RestClient` (`lib/network/network_api.dart`, the old
+Laravel-style API) 404s on astra. Before adding a call, check the route is in
+astra's live OpenAPI (`https://astra.ayureze.in/openapi.json`); match its
+method, path and body schema, not just the name.
+- Sign-in: `AstraApiService.login()` posts the Firebase ID token to
+  `auth/session`.
+- Profile and sign-up: astra `api/doctors/{id}` (GET/PUT) and
+  `api/doctors/register`, mapped by `lib/models/astra_doctor_mapper.dart`.
+  The GET response is undocumented; the mapper tries the likely keys. Only
+  name, phone, specialization, consultation fee, availability and bio can be
+  saved.
+- Passwords: Firebase Auth (`sendPasswordResetEmail`, re-authenticate +
+  `updatePassword`), not the server.
+- Brain routes use underscores (`brain/doctor_summary`) and take one text
+  field each (`notes`, `text`, `prescription_text`).
+- Still missing on astra: appointments, video calls, schedule, reviews,
+  payment list, notifications, settings, phone OTP, profile extras and
+  Shopify sync. Their calls remain and fail quietly until the backend adds
+  them.
+

@@ -370,18 +370,6 @@ class AstraApiService {
     }
   }
 
-  /// Create consultation record
-  Future<Map<String, dynamic>> createConsultation(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post(Apis.astra_create_consultation, data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   // ============================================================
   // PRESCRIPTION ENDPOINTS
   // ============================================================
@@ -525,30 +513,6 @@ class AstraApiService {
   // UNIFIED PRESCRIPTION WORKFLOW
   // ============================================================
 
-  /// Execute unified prescription workflow (Save, PDF, WhatsApp, Cart, Reminders)
-  Future<Map<String, dynamic>> executePrescriptionWorkflow(
-      Map<String, dynamic> data) async {
-    try {
-      final response = await _dio.post(Apis.astra_execute_workflow, data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Check workflow status
-  Future<Map<String, dynamic>> checkWorkflowStatus(
-      String prescriptionId) async {
-    try {
-      final String path = Apis.astra_workflow_status
-          .replaceFirst('{prescription_id}', prescriptionId);
-      final response = await _dio.get(path);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   // ============================================================
   // SMART AUTO-CART (Shopify Integration)
   // ============================================================
@@ -560,26 +524,6 @@ class AstraApiService {
       return response.data;
     } catch (e) {
       throw _handleError(e);
-    }
-  }
-
-  /// Check Shopify sync status
-  Future<Map<String, dynamic>> getShopifyStatus() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/status');
-      return response.data;
-    } catch (e) {
-      return {'error': e.toString(), 'connected': false};
-    }
-  }
-
-  /// Test Shopify connection
-  Future<Map<String, dynamic>> testShopifyConnection() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/test-connection');
-      return {'success': true, 'data': response.data};
-    } catch (e) {
-      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -620,56 +564,12 @@ class AstraApiService {
   /// Get available medicines
   Future<List<dynamic>> getAvailableMedicines() async {
     try {
+      // The only catalogue route astra serves. The shopify/products and
+      // shopify/products/all fallbacks that used to follow it both 404.
       final response = await _dio.get('/api/v1/shopify/products/available');
-      final products = _extractProducts(response.data);
-      if (products.isNotEmpty) return products;
-
-      // Fallback 1: generic products endpoint
-      final fallbackResponse = await _dio.get('/api/v1/shopify/products');
-      final fallbackProducts = _extractProducts(fallbackResponse.data);
-      if (fallbackProducts.isNotEmpty) return fallbackProducts;
-
-      // Fallback 2: explicit all-products endpoint
-      final allResponse = await _dio.get('/api/v1/shopify/products/all');
-      return _extractProducts(allResponse.data);
+      return _extractProducts(response.data);
     } catch (e) {
-      try {
-        final allResponse = await _dio.get('/api/v1/shopify/products/all');
-        return _extractProducts(allResponse.data);
-      } catch (_) {
-        return [];
-      }
-    }
-  }
-
-  /// Get ALL Shopify products (for debugging)
-  Future<Map<String, dynamic>> getAllShopifyProducts() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/products/all');
-      List products = _extractProducts(response.data);
-      return {'success': true, 'products': products, 'count': products.length};
-    } catch (e) {
-      try {
-        final response = await _dio.get('/api/v1/shopify/products');
-        List products = _extractProducts(response.data);
-        return {
-          'success': true,
-          'products': products,
-          'count': products.length
-        };
-      } catch (e2) {
-        return {'success': false, 'error': e2.toString()};
-      }
-    }
-  }
-
-  /// Get Shopify store info
-  Future<Map<String, dynamic>> getShopifyStoreInfo() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/store-info');
-      return response.data;
-    } catch (e) {
-      return {'error': e.toString()};
+      throw _handleError(e);
     }
   }
 
@@ -713,65 +613,6 @@ class AstraApiService {
       }
 
       final response = await _dio.post(Apis.astra_brain_chat, data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// AI-powered doctor summary generation
-  Future<Map<String, dynamic>> generateDoctorSummary(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/doctor-summary', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Analyze medication safety
-  Future<Map<String, dynamic>> analyzeSafety(Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/analyze-safety', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Extract medication schedule from text
-  Future<Map<String, dynamic>> extractSchedule(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/extract-schedule', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Patient profile analysis
-  Future<Map<String, dynamic>> profileAnalysis(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/profile-analysis', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Generate wellness recommendations
-  Future<Map<String, dynamic>> generateWellness(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/generate-wellness', data: data);
       return response.data;
     } catch (e) {
       throw _handleError(e);
@@ -845,8 +686,17 @@ class AstraApiService {
   /// Get the latest Astra Fill record for a patient
   Future<Map<String, dynamic>> getLatestAstraFill(String patientId) async {
     try {
-      final response = await _dio.get('/api/v1/astra-fill/latest/$patientId');
-      return response.data ?? {};
+      // astra serves this at patient/{id}/latest; astra-fill/latest/{id}
+      // 404ed, so the intake card on the patient screen never loaded.
+      final response =
+          await _dio.get('/api/v1/astra-fill/patient/$patientId/latest');
+      final data = response.data;
+      if (data is List) {
+        return data.isNotEmpty && data.first is Map
+            ? Map<String, dynamic>.from(data.first as Map)
+            : {};
+      }
+      return data is Map ? Map<String, dynamic>.from(data) : {};
     } catch (e) {
       return {};
     }
@@ -953,18 +803,6 @@ class AstraApiService {
     }
   }
 
-  /// Update order status
-  Future<Map<String, dynamic>> updateOrderStatus(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.patch('/api/v1/orders/prescription/status', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   /// Get patient order history
   Future<List<dynamic>> getPatientOrderHistory(String patientId) async {
     try {
@@ -984,16 +822,6 @@ class AstraApiService {
       return response.data;
     } catch (e) {
       return {};
-    }
-  }
-
-  /// Get orders by status
-  Future<List<dynamic>> getOrdersByStatus(String status) async {
-    try {
-      final response = await _dio.get('/api/v1/orders/status/$status');
-      return response.data ?? [];
-    } catch (e) {
-      return [];
     }
   }
 
@@ -1158,16 +986,6 @@ class AstraApiService {
     }
   }
 
-  /// Check if API is ready
-  Future<bool> checkReady() async {
-    try {
-      final response = await _dio.get('/health/ready');
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
-
   /// Check Astra Brain health
   Future<Map<String, dynamic>> checkBrainHealth() async {
     try {
@@ -1181,18 +999,6 @@ class AstraApiService {
   // ============================================================
   // PRESCRIPTION PDF
   // ============================================================
-
-  /// Send prescription PDF manually
-  Future<Map<String, dynamic>> sendPrescriptionPdf(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/prescription-pdf/send', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
 
   // ============================================================
   // COMPANION CASE

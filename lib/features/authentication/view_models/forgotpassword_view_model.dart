@@ -1,7 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:doctro/models/ForgotPassword.dart';
-import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
-import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/widgets/osler_toast.dart';
 import 'package:flutter/material.dart';
@@ -31,9 +30,23 @@ class ForgotPasswordViewModel extends ChangeNotifier {
 
     ForgotPassword response;
     try {
-      Map<String, dynamic> body = {"email": _emailController.text.trim()};
-      response = await RestClient(await RetroApi().dioData(context))
-          .forgotPasswordScreen(body);
+      // Doctors' passwords live in Firebase Auth (email sign-in goes through
+      // it first). The old forgot_password route 404s on astra.
+      try {
+        await FirebaseAuth.instance
+            .sendPasswordResetEmail(email: _emailController.text.trim());
+        response = ForgotPassword(
+            success: true,
+            msg: "We've sent a password reset link to your email.");
+      } on FirebaseAuthException catch (e) {
+        response = ForgotPassword(
+            success: false,
+            msg: switch (e.code) {
+              'invalid-email' => "That email address doesn't look right.",
+              'user-not-found' => "There's no account with that email.",
+              _ => "Couldn't send the reset email. Please try again.",
+            });
+      }
 
       _isLoading = false;
       notifyListeners();

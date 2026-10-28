@@ -13,9 +13,8 @@ import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/models/EducationCertificate.dart';
 import 'package:doctro/models/EducationModel.dart';
 import 'package:doctro/models/Treatment.dart';
-import 'package:doctro/models/UpdateProfile.dart';
 import 'package:doctro/models/categories.dart';
-import 'package:doctro/models/doctor_profile.dart';
+import 'package:doctro/models/astra_doctor_mapper.dart';
 import 'package:doctro/models/expertise.dart';
 import 'package:doctro/models/hospital.dart';
 import 'package:doctro/models/update_profile_image.dart';
@@ -26,6 +25,7 @@ import 'package:doctro/network/server_error.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:doctro/widgets/osler_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -34,7 +34,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.fetchDoctor});
+
+  /// Loads the doctor record; defaults to [AstraApiService.getDoctorProfile].
+  /// Tests pass a fake so the screen can render without a server.
+  final Future<Map<String, dynamic>> Function(String doctorId)? fetchDoctor;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreen();
@@ -49,6 +53,13 @@ String? image;
 
 class _ProfileScreen extends State<ProfileScreen> {
   Future? doctorLoader;
+
+  /// Why the profile couldn't be loaded, shown instead of an empty form.
+  String? _loadError;
+
+  /// Values of the fields astra can't store, as loaded. [updateProfile]
+  /// diffs against these to tell the doctor which edits were not saved.
+  Map<String, String> _unsupportedAtLoad = const {};
 
   //Add List Data
   List<EducationModel> educationList = [];
@@ -158,7 +169,7 @@ class _ProfileScreen extends State<ProfileScreen> {
     Future.delayed(Duration.zero, () {
       if (!mounted) return;
       setState(() {
-        doctorLoader = treatment();
+        doctorLoader = Future.wait([treatment(), doctorProfile()]);
         name = SharedPreferenceHelper.getString(Preferences.name);
         isFilled = SharedPreferenceHelper.getInt(Preferences.is_filled);
         image = SharedPreferenceHelper.getString(Preferences.image);
@@ -190,6 +201,14 @@ class _ProfileScreen extends State<ProfileScreen> {
       body: FutureBuilder(
           future: doctorLoader,
           builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                _loadError != null) {
+              return OslerStateView.error(
+                title: "Couldn't load your profile",
+                message: _loadError,
+                onRetry: () => setState(() => doctorLoader = doctorProfile()),
+              );
+            }
             if (snapshot.connectionState == ConnectionState.done) {
               return Theme(
                 data: Theme.of(context).copyWith(
@@ -400,114 +419,109 @@ class _ProfileScreen extends State<ProfileScreen> {
     );
   }
 
-  Future<BaseModel<UpdateProfile>> updateProfile() async {
-    var eEducationList = JsonEncoder().convert(educationList);
-    var cCertificateList = JsonEncoder().convert(certificateList);
+  /// The fields of this screen that astra's doctor update
+  /// (UpdateDoctorRequest) can't store, keyed by the label shown to the
+  /// doctor. Only name, video call fee and description are saved.
+  Map<String, String> _unsupportedFields() => {
+        "Date of birth": _pDob.text,
+        "Gender": _genderSelect ?? "",
+        "Education":
+            [_pDegree.text, _pCollege.text, _pCollegeYear.text].join("|"),
+        "Certificates": [_pCertificate.text, _pCertificateYear.text].join("|"),
+        "Experience": _pExperience.text,
+        "Audio call fee": _aAppointmentFees.text,
+        "Time slot": _pTimeSlot.text,
+        "Working hours": "${_pStartTime.text}|${_pEndTime.text}",
+        "Revenue model": _pBasedOn.text,
+        "Popular": _selectedPopular ?? "",
+        "Hospitals": [
+          for (final h in hospitalReq)
+            if (h.isSelected == true) h.id.toString()
+        ].join(","),
+      };
 
-    //pass date formate
-    if (_selectedDate != null) {
-      temp = '$_selectedDate';
-    } else {
-      temp = '$showFormat';
+  Future<void> updateProfile() async {
+    final doctorId =
+        SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+    if (doctorId == null) {
+      OslerToast.error(context,
+          "We couldn't find your doctor ID. Please sign in again, then save your profile.");
+      return;
     }
-
-    String hospitalIds = '';
-    List<String> data = [];
-    for (int i = 0; i < hospitalReq.length; i++) {
-      if (hospitalReq[i].isSelected == true) {
-        data.add(hospitalReq[i].id.toString());
-      }
-    }
-    if (data.isEmpty) {
-      data.add("1");
-    }
-
-    for (int j = 0; j < data.length; j++) {
-      if (data.length <= 1) {
-        hospitalIds = data[j];
-      } else {
-        hospitalIds += '${data[j]},';
-      }
-    }
-
-    if (data.length > 1) {
-      String result = hospitalIds.substring(0, hospitalIds.length - 1);
-      hospitalIds = "$result ";
-    }
-
-    newDateApiPass = DateFormat('yyyy-MM-dd')
-        .format(DateFormat('dd-MM-yyyy').parse(_pDob.text));
-    Map<String, dynamic> body = {
-      "name": _pName.text,
-      "treatment_id": 1, // Default value as it is removed from UI
-      "category_id": 1,
-      "expertise_id": 1,
-      "hospital_id": hospitalIds,
-      "dob": newDateApiPass,
-      "gender": _genderSelect,
-      "education": eEducationList,
-      "certificate": cCertificateList,
-      "experience": _pExperience.text,
-      "appointment_fees": _aAppointmentFees.text,
-      "video_appointment_fees": _vAppointmentFees.text,
-      "start_time": _pStartTime.text.toLowerCase(),
-      "end_time": _pEndTime.text.toLowerCase(),
-      "timeslot": _pTimeSlot.text,
-      "desc": _pDesc.text,
-      "based_on": _pBasedOn.text,
-      "is_popular": _selectedPopular ==
-              getTranslated(context, AppString.popular_yes).toString()
-          ? 1
-          : 0
-    };
-    UpdateProfile response;
+    // PUT doctors/{id} accepts name, phone, specialization,
+    // consultation_fee, available_days, available_times and bio. This screen
+    // has name, description (bio) and the video call fee (the app's
+    // consultations are video calls, so that fee is consultation_fee).
+    // Everything else is diffed below and reported as not saved.
+    final unsaved = AstraDoctorMapper.changedFields(
+        _unsupportedAtLoad, _unsupportedFields());
     try {
-      response = await RestClient(await RetroApi().dioData(context))
-          .updateProfile(body);
+      await AstraApiService().updateDoctorProfile(
+        doctorId,
+        AstraDoctorMapper.updateBody(
+          name: _pName.text,
+          fee: _vAppointmentFees.text,
+          bio: _pDesc.text,
+        ),
+      );
       // The preference write is a side effect, not a UI action, so it stays
       // outside the guard. Only the context uses need mounted.
       SharedPreferenceHelper.setInt(Preferences.is_filled, 1);
+      SharedPreferenceHelper.setString(Preferences.name, _pName.text);
       if (mounted) {
         Navigator.pushNamed(context, "loginHome");
-        OslerToast.success(context, response.msg!);
+        if (unsaved.isEmpty) {
+          OslerToast.success(context, "Profile saved");
+        } else {
+          OslerToast.info(context, AstraDoctorMapper.unsavedMessage(unsaved));
+        }
       }
-    } catch (error) {
-      // print("Exception occur: $error stackTrace: $stacktrace");
-      return BaseModel()..setException(ServerError.withError(error: error));
+    } on AstraApiException catch (e) {
+      if (mounted) OslerToast.error(context, e.message);
+    } catch (e) {
+      if (mounted) {
+        OslerToast.error(
+            context, "Couldn't save your profile. Please try again.");
+      }
     }
-    return BaseModel()..data = response;
   }
 
-  // The legacy REST endpoint this used to call (Apis.doctor_profile) is
+  // The legacy REST endpoint this used to call (GET doctor_profile) is
   // permanently dead - confirmed 404 on the real backend. The real doctor
   // record lives at GET /api/v1/api/doctors/{doctor_id} (AstraApiService.
-  // getDoctorProfile, confirmed live 2026-10-13 with a real test account)
-  // and only has name/email/phone/gender/dob/specialization/photo_url/
-  // certificate_url/is_face_verified - none of the richer Laravel-era
-  // fields this screen also edits (hospital, education/certificate lists,
-  // fees, timeslot, based-on, popularity). Those controllers are simply
-  // left at their default empty text rather than force-unwrapping a field
-  // that no longer exists in the response.
-  Future<BaseModel<DoctorProfile>> doctorProfile() async {
+  // getDoctorProfile). Its response schema is undocumented; an earlier
+  // check (2026-10-13, a real test account) saw name/email/phone/gender/
+  // dob/specialization/photo_url/certificate_url/is_face_verified under
+  // `data`. AstraDoctor.fromResponse reads it defensively. Fields with no
+  // astra counterpart (hospital, education/certificate lists, audio fee,
+  // timeslot, hours, based-on, popularity) stay at their empty defaults.
+  Future<void> doctorProfile() async {
+    final doctorId =
+        SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+    if (doctorId == null) {
+      _loadError =
+          "We couldn't find your doctor ID. Please sign in again to load your profile.";
+      return;
+    }
     try {
-      final doctorId =
-          SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
-      if (doctorId == null) {
-        return BaseModel()
-          ..setException(
-              ServerError.withError(error: Exception('No doctor id saved')));
+      final fetch = widget.fetchDoctor ?? AstraApiService().getDoctorProfile;
+      final doctor = AstraDoctor.fromResponse(await fetch(doctorId));
+      if (!mounted) return;
+
+      _pName.text = doctor.name ?? _pName.text;
+      final gender = doctor.gender?.toLowerCase();
+      if (gender != null && this.gender.contains(gender)) {
+        _genderSelect = gender;
+      }
+      _pDesc.text = doctor.bio ?? _pDesc.text;
+      if (doctor.experienceYears != null) {
+        _pExperience.text = doctor.experienceText;
+      }
+      if (doctor.consultationFee != null) {
+        _vAppointmentFees.text = doctor.feeText;
       }
 
-      final json = await AstraApiService().getDoctorProfile(doctorId);
-      final data = json['data'] is Map
-          ? Map<String, dynamic>.from(json['data'])
-          : <String, dynamic>{};
-      if (!mounted) return BaseModel()..data = DoctorProfile.fromJson(json);
-
-      _pName.text = (data['name'] as String?) ?? _pName.text;
-      _genderSelect = (data['gender'] as String?) ?? _genderSelect;
-
-      final rawDob = data['dob'] as String?;
+      final rawDob = doctor.dob;
       if (rawDob != null && rawDob.isNotEmpty) {
         showFormat = rawDob;
         try {
@@ -528,10 +542,12 @@ class _ProfileScreen extends State<ProfileScreen> {
         }
       }
 
-      setState(() {});
-      return BaseModel()..data = DoctorProfile.fromJson(json);
-    } catch (error) {
-      return BaseModel()..setException(ServerError.withError(error: error));
+      _unsupportedAtLoad = _unsupportedFields();
+      setState(() => _loadError = null);
+    } on AstraApiException catch (e) {
+      _loadError = e.message;
+    } catch (_) {
+      _loadError = "Check your connection and try again.";
     }
   }
 
@@ -547,7 +563,6 @@ class _ProfileScreen extends State<ProfileScreen> {
           hospitalReq.add(response.data![i]);
         }
       });
-      doctorProfile();
     } catch (error) {
       // print("Exception occur: $error stackTrace: $stacktrace");
       return BaseModel()..setException(ServerError.withError(error: error));

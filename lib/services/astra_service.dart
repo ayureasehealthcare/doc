@@ -297,41 +297,6 @@ class AstraService {
     }
   }
 
-  /// Generate doctor summary from patient data
-  Future<Map<String, dynamic>> generateDoctorSummary(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/doctor-summary', data: data);
-      return response.data;
-    } catch (e) {
-      return {};
-    }
-  }
-
-  /// Analyze medication safety
-  Future<Map<String, dynamic>> analyzeMedicationSafety(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/analyze-safety', data: data);
-      return response.data;
-    } catch (e) {
-      return {'is_safe': true, 'warnings': []};
-    }
-  }
-
-  /// Extract medication schedule from text
-  Future<Map<String, dynamic>> extractSchedule(String text) async {
-    try {
-      final response = await _dio
-          .post('/api/v1/brain/extract-schedule', data: {'text': text});
-      return response.data;
-    } catch (e) {
-      return {};
-    }
-  }
-
   // ============================================================
   // ASTRA FILL (Voice Processing)
   // ============================================================
@@ -388,15 +353,6 @@ class AstraService {
   // ============================================================
   // CONSULTATION ENDPOINTS
   // ============================================================
-
-  /// Create consultation record
-  Future<Response> createConsultation(Map<String, dynamic> data) async {
-    try {
-      return await _dio.post('/api/v1/patients/consultation', data: data);
-    } catch (e) {
-      rethrow;
-    }
-  }
 
   // ============================================================
   // DOCUMENT ENDPOINTS
