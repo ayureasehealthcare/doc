@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:doctro/models/ChangePassword.dart';
+import 'package:doctro/models/change_password.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ChangePasswordViewModel extends ChangeNotifier {

@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:doctro/models/ForgotPassword.dart';
+import 'package:doctro/models/forgot_password.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/widgets/osler_toast.dart';

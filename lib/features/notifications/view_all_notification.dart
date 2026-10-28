@@ -2,7 +2,7 @@ import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/core/constants/date_util.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
-import 'package:doctro/models/Notification.dart';
+import 'package:doctro/models/notification.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';

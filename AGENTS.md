@@ -153,7 +153,7 @@ converge on the tokens when you touch a file.
 31 files have a `Scaffold`. All feature screens now build their loading,
 empty and error states, cards, toasts and overlay loaders from the kit
 (`OslerLoadingView`, `OslerStateView`, `OslerCard`, `OslerToast`,
-`OslerOverlayLoader`). Two use no Osler widgets, by design: `video_Call`
+`OslerOverlayLoader`). Two use no Osler widgets, by design: `video_call`
 (call controls over live video) and `app_shell` (a container). Do not
 hand-roll a spinner, empty state or toast in a screen - reach for the kit.
 

@@ -1,6 +1,6 @@
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/features/authentication/SignIn.dart';
+import 'package:doctro/features/authentication/sign_in.dart';
 import 'package:doctro/features/shell/app_shell.dart';
 import 'package:doctro/features/startup_gate.dart';
 import 'package:doctro/theme/theme_provider.dart';

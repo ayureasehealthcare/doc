@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/models/astra_doctor_mapper.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/network_api.dart';

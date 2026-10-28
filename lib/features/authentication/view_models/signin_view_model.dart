@@ -10,7 +10,7 @@ import 'dart:io' show Platform;
 import 'package:doctro/features/consultation/chat/providers/auth_provider.dart'
     as chat;
 import 'package:doctro/core/constants/common_function.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/models/login.dart';
 import 'package:doctro/network/api_header.dart';

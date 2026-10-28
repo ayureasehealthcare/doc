@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:doctro/models/CancelAppointment.dart';
+import 'package:doctro/models/cancel_appointment.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 
 class CancelAppointmentViewModel extends ChangeNotifier {
   bool _isLoading = false;

@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/core/constants/app_string.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
@@ -16,8 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:hugeicons/hugeicons.dart';
 
-import 'ChangePassword.dart';
-import 'changeLanguage.dart';
+import 'change_password.dart';
+import 'change_language.dart';
 import 'view_models/settings_view_model.dart';
 
 class SettingScreen extends StatefulWidget {

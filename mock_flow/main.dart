@@ -13,11 +13,11 @@ import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/language_localization.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/core/navigator_key.dart';
-import 'package:doctro/features/authentication/SignIn.dart';
+import 'package:doctro/features/authentication/sign_in.dart';
 import 'package:doctro/features/cashfree/payment.dart';
 import 'package:doctro/features/consultation/astra_chat/astra_chat_page.dart';
 import 'package:doctro/features/dashboard/login_home.dart';
-import 'package:doctro/features/schedule/ScheduleTimings.dart';
+import 'package:doctro/features/schedule/schedule_timings.dart';
 import 'package:doctro/theme/theme_provider.dart';
 
 import 'package:doctro/features/autopilot/review_queue_screen.dart';

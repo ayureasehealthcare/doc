@@ -6,7 +6,7 @@ import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/widgets/glass_surface.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/models/working_hours.dart';
-import 'package:doctro/models/UpdateTiming.dart';
+import 'package:doctro/models/update_timing.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/widgets/osler_state_view.dart';

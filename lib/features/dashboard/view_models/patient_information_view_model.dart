@@ -4,7 +4,7 @@ import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/models/appointment_details.dart';
-import 'package:doctro/models/DoctorStatusChange.dart';
+import 'package:doctro/models/doctor_status_change.dart';
 import 'package:doctro/services/astra_service.dart';
 import 'package:intl/intl.dart';
 

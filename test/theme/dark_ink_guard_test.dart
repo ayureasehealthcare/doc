@@ -16,7 +16,7 @@ import 'package:doctro/theme/ayureze_theme.dart';
 /// instead. If it is genuinely a fill or a tint pair, bump the count. If a
 /// count went DOWN, lower it here.
 const _reviewed = {
-  'lib/features/authentication/SignIn.dart': 1, // decorative glass blob
+  'lib/features/authentication/sign_in.dart': 1, // decorative glass blob
   'lib/features/authentication/phoneverification.dart': 1, // fill
   'lib/features/authentication/professional_registration_screen.dart':
       1, // date-picker accent (fill)
@@ -34,7 +34,7 @@ const _reviewed = {
       3, // stepper fill, date-picker accent, icon on lime avatar
   'lib/features/search/search_screen.dart':
       6, // fixed lime header + its chips, tint pair
-  'lib/features/settings/Setting.dart': 1, // switch thumb on lime track
+  'lib/features/settings/setting.dart': 1, // switch thumb on lime track
   'lib/widgets/astra_ai_button.dart': 1, // gradient fill, white icon
   'lib/widgets/astra_fill_display.dart':
       2, // chip text, severity pill: shade-100 on shade-10 tints

@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/core/constants/app_string.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 
@@ -20,7 +20,7 @@ import 'package:doctro/features/consultation/chat/constants/firestore_constants.
 import 'package:doctro/features/consultation/chat/models/user_chat.dart';
 import 'package:doctro/features/consultation/chat/pages/chat_page.dart';
 import 'package:doctro/features/consultation/chat/providers/home_provider.dart';
-import 'package:doctro/features/consultation/videoCall/video_Call.dart';
+import 'package:doctro/features/consultation/videoCall/video_call.dart';
 import 'package:doctro/features/dashboard/view_models/patient_information_view_model.dart';
 
 import 'package:flutter/material.dart';

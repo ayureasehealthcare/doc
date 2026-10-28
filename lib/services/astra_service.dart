@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:doctro/network/apis.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 
 /// Legacy Astra Service - Maintained for backward compatibility

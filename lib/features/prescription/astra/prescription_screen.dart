@@ -8,7 +8,7 @@ import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_card.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/widgets/astra_fill_display.dart';
 import 'package:doctro/features/prescription/astra/prescription_payload.dart';
 import 'dart:async';

@@ -1,7 +1,7 @@
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:doctro/features/consultation/videoCall/VideoCall/overlay_service.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/models/video_call_history_add_model.dart';
 import 'package:doctro/network/base_model.dart';
@@ -14,7 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/utils/logger.dart';
-import 'package:doctro/features/consultation/videoCall/video_Call.dart';
+import 'package:doctro/features/consultation/videoCall/video_call.dart';
 
 class VideoCallViewModel extends ChangeNotifier {
   int? remoteUid;

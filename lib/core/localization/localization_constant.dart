@@ -1,4 +1,4 @@
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:flutter/material.dart';
 import 'language_localization.dart';

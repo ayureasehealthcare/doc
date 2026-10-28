@@ -8,7 +8,7 @@ import 'package:doctro/models/pending_prescription.dart';
 import 'package:doctro/models/patient_wellness.dart';
 import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/network/apis.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 
 /// Astra AI Healthcare API Service

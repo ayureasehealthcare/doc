@@ -12,7 +12,7 @@ import 'package:doctro/features/authentication/registration_success_screen.dart'
 import 'package:doctro/services/supabase_service.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/models/astra_doctor_mapper.dart';
 import 'package:intl/intl.dart';
 
