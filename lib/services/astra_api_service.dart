@@ -52,7 +52,10 @@ class AstraApiService {
         // though a Firebase user stays signed in for the whole session.
         final String appToken =
             SharedPreferenceHelper.getString(Preferences.auth_token);
-        if (appToken.isNotEmpty && appToken != 'N_A') {
+        // The session exchange itself must carry the Firebase ID token, even
+        // when a stale Astra token is still stored from an earlier sign-in.
+        final bool firebaseOnly = options.extra[_firebaseAuthOnly] == true;
+        if (!firebaseOnly && appToken.isNotEmpty && appToken != 'N_A') {
           options.headers['Authorization'] = 'Bearer $appToken';
         } else {
           // No Astra session token yet (e.g. the /auth/login exchange call
@@ -94,13 +97,56 @@ class AstraApiService {
   // ============================================================
 
   /// Login with Firebase token
+  static const _firebaseAuthOnly = 'firebase_auth_only';
+
+  /// Exchanges the signed-in Firebase user for an Astra session.
+  ///
+  /// This used GET api/v1/auth/login, which astra doesn't serve (404), so
+  /// every sign-in failed. Astra's OpenAPI (Oct 2026) has POST
+  /// api/v1/auth/session instead: Firebase ID token in, `SessionResponse`
+  /// (`session_token`, `session_id`, `user`, `expires_at`) out. Returns the
+  /// legacy login shape the sign-in code reads; see [sessionToLogin].
   Future<Map<String, dynamic>> login() async {
     try {
-      final response = await _dio.get(Apis.astra_login);
-      return response.data;
+      final response = await _dio.post(
+        Apis.astra_session,
+        options: Options(extra: {_firebaseAuthOnly: true}),
+      );
+      return sessionToLogin(response.data);
     } catch (e) {
       throw _handleError(e);
     }
+  }
+
+  /// Maps a `SessionResponse` to `{success, token, data: {id, name, ...}}`.
+  /// The spec leaves `user` open (`additionalProperties`), so the key names
+  /// below are best guesses until checked against a real response.
+  static Map<String, dynamic> sessionToLogin(dynamic body) {
+    final Map session = body is Map ? body : const {};
+    final Map user = session['user'] is Map ? session['user'] as Map : const {};
+    String? pick(List<String> keys) {
+      for (final k in keys) {
+        final v = user[k]?.toString().trim();
+        if (v != null && v.isNotEmpty) return v;
+      }
+      return null;
+    }
+
+    final token = session['session_token']?.toString();
+    final image = pick(['picture', 'avatar_url', 'image', 'photo_url']);
+    return {
+      'success': token != null && token.isNotEmpty,
+      'token': token,
+      'data': {
+        'id': pick(['doctor_id', 'id', 'user_id', 'uid']) ?? '',
+        'name': pick(['name', 'full_name', 'display_name']) ?? '',
+        'phone': pick(['phone', 'phone_number']) ?? '',
+        'email': pick(['email']) ?? '',
+        'image': image ?? '',
+        'fullImage': image ?? '',
+        'is_filled': user['is_filled'] ?? 1,
+      },
+    };
   }
 
   /// Create a session for the authenticated user

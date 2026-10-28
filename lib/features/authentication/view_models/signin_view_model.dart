@@ -477,9 +477,14 @@ class SignInViewModel extends ChangeNotifier {
         return BaseModel()..setException(ServerError.withError(error: error));
       }
       CommonFunction.hideDialog(context);
-      // Fallback message for Missing Endpoint (404)
-      OslerToast.error(context,
-          "Failed to connect to Astra API (404/Missing Endpoint). Please ensure the backend route exists.");
+      // This used to claim "404/Missing Endpoint" for every failure, wrong
+      // password and no network included.
+      debugPrint('Astra sign-in failed: $error');
+      OslerToast.error(
+          context,
+          error is AstraApiException
+              ? "Couldn't sign in to Astra: ${error.message}"
+              : "Couldn't sign in. Please try again.");
       return BaseModel()..setException(ServerError.withError(error: error));
     }
     return BaseModel()..data = response;

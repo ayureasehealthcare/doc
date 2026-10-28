@@ -1,5 +1,6 @@
 import 'package:doctro/core/constants/common_function.dart';
 import 'package:dio/dio.dart' hide Headers;
+import 'package:doctro/services/astra_api_service.dart';
 
 class ServerError implements Exception {
   int? _errorCode;
@@ -17,7 +18,17 @@ class ServerError implements Exception {
     return _errorMessage;
   }
 
-  void _handleError(DioException error) {
+  void _handleError(Object? error) {
+    // Callers also pass Firebase and Astra errors here. This used to be typed
+    // DioException, so those threw a TypeError from inside the catch block.
+    // The caller has already told the user, so no toast for these.
+    if (error is! DioException) {
+      _errorMessage = error is AstraApiException
+          ? error.message
+          : "Something went wrong. Please try again.";
+      _errorCode = error is AstraApiException ? error.statusCode : null;
+      return;
+    }
     // A 404 or proxy error can come back as an HTML string, which can't be
     // indexed like JSON.
     final raw = error.response?.data;

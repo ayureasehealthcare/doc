@@ -57,4 +57,10 @@ void main() {
 
     expect(toasts, ['Prescription already submitted']);
   });
+
+  test('non-network errors no longer throw a TypeError', () {
+    final e = ServerError.withError(error: Exception('firebase said no'));
+    expect(e.getErrorMessage(), 'Something went wrong. Please try again.');
+    expect(toasts, isEmpty);
+  });
 }
