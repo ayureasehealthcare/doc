@@ -819,6 +819,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                       patientPhone: phoneNo,
                                                       astraFillData:
                                                           astraFillData,
+                                                      patientAge: age,
                                                     ),
                                                   ),
                                                 );

@@ -1,8 +1,8 @@
-/// Request building for the prescription screen's "Submit & Automate".
+/// Request building for the prescription screen's "Save for approval".
 ///
 /// Shapes are taken from astra's live OpenAPI spec (checked Oct 2026):
-/// `POST api/v1/api/prescriptions/create` takes a `CreatePrescriptionRequest`
-/// whose medicines are `MedicineItem`s keyed by `name`. Unknown keys are
+/// `POST api/v1/api/prescriptions/draft` (and `/create`) take a
+/// `CreatePrescriptionRequest` whose medicines are `MedicineItem`s keyed by `name`. Unknown keys are
 /// ignored by the server, not rejected.
 class PrescriptionPayload {
   PrescriptionPayload._();
@@ -36,6 +36,28 @@ class PrescriptionPayload {
     return '₹${value.toStringAsFixed(2)}';
   }
 
+  /// Readable text from a suggest-dosage response, whose schema astra
+  /// leaves open: the likely keys first, else every short value.
+  static String dosageText(Map<String, dynamic> body) {
+    for (final k in [
+      'suggested_dosage',
+      'recommended_dosage',
+      'dosage',
+      'recommendation',
+      'suggestion',
+      'message',
+    ]) {
+      final v = body[k];
+      if (v is String && v.trim().isNotEmpty) return v.trim();
+    }
+    final parts = [
+      for (final e in body.entries)
+        if (e.value is String || e.value is num)
+          '${e.key.replaceAll('_', ' ')}: ${e.value}',
+    ];
+    return parts.isEmpty ? 'No suggestion returned.' : parts.join('\n');
+  }
+
   static bool isLinked(Map<String, dynamic> medicine) =>
       (medicine['shopify_variant_id']?.toString().trim() ?? '').isNotEmpty;
 
@@ -47,6 +69,7 @@ class PrescriptionPayload {
     required String diagnosis,
     required List<Map<String, dynamic>> medicines,
     String? signatureBase64,
+    bool autoProcess = true,
   }) =>
       {
         "doctor_id": doctorId,
@@ -72,7 +95,7 @@ class PrescriptionPayload {
             },
         ],
         "lifestyle_advice": "Rest and hydration",
-        "auto_process": true,
+        "auto_process": autoProcess,
         // Not in CreatePrescriptionRequest today, so the server drops it.
         if (signatureBase64 != null) "signature_image": signatureBase64,
       };

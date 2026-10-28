@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:doctro/models/autopilot_action.dart';
+import 'package:doctro/models/pending_prescription.dart';
 import 'package:doctro/models/patient_wellness.dart';
 import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/network/apis.dart';
@@ -447,12 +448,97 @@ class AstraApiService {
     }
   }
 
-  /// Get pending prescription queue
-  Future<List<dynamic>> getPendingPrescriptionQueue() async {
+  // Doctor review flow (astra OpenAPI "Phase 3", checked Oct 2026): a
+  // draft is saved as pending_review with no automation; approving it with
+  // auto_process runs the cart, reminders and patient notification.
+
+  /// Saves a prescription to the review queue (`CreatePrescriptionRequest`).
+  Future<Map<String, dynamic>> draftPrescription(
+      Map<String, dynamic> data) async {
     try {
       final response =
-          await _dio.get('/api/v1/api/prescriptions/queue/pending');
-      return response.data ?? [];
+          await _dio.post('/api/v1/api/prescriptions/draft', data: data);
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Prescriptions awaiting clinical review.
+  Future<List<PendingPrescription>> getPendingPrescriptionQueue(
+      {int limit = 50}) async {
+    try {
+      final response = await _dio.get(
+        '/api/v1/api/prescriptions/queue/pending',
+        queryParameters: {'limit': limit},
+      );
+      return PendingPrescription.listFrom(response.data);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Approves a pending prescription and runs its automation
+  /// (`ApprovePrescriptionRequest`).
+  Future<Map<String, dynamic>> approvePrescription(
+    String prescriptionId, {
+    required String patientName,
+    String? patientPhone,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/v1/api/prescriptions/$prescriptionId/approve',
+        data: {
+          'auto_process': true,
+          'patient_name': patientName,
+          if (patientPhone != null && patientPhone.isNotEmpty)
+            'patient_phone': patientPhone,
+        },
+      );
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Rejects a pending prescription; the reason is a query parameter.
+  Future<Map<String, dynamic>> rejectPrescription(String prescriptionId,
+      {String? reason}) async {
+    try {
+      final response = await _dio.post(
+        '/api/v1/api/prescriptions/$prescriptionId/reject',
+        queryParameters: {
+          if (reason != null && reason.trim().isNotEmpty) 'reason': reason,
+        },
+      );
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// AI dosage suggestion (`DosageRequest`: all four fields required).
+  Future<Map<String, dynamic>> suggestDosage({
+    required String medicineName,
+    required int patientAge,
+    required String patientGender,
+    required List<String> symptoms,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/v1/api/prescriptions/suggest-dosage',
+        data: {
+          'medicine_name': medicineName,
+          'patient_age': patientAge,
+          'patient_gender': patientGender,
+          'symptoms': symptoms,
+        },
+      );
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
     } catch (e) {
       throw _handleError(e);
     }

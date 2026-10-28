@@ -435,9 +435,17 @@ per card or screen, not per line. For a field Astra pre-fills, use
 
 ## Prescription smart cart
 
-"Submit & Automate" posts a `CreatePrescriptionRequest` to
-`api/v1/api/prescriptions/create` with `auto_process: true`, built by
-`PrescriptionPayload.create` (shapes from astra's live OpenAPI, Oct 2026).
+"Save for approval" posts a `CreatePrescriptionRequest` to
+`api/v1/api/prescriptions/draft` (`auto_process: false`; astra marks it
+`pending_review`), built by `PrescriptionPayload.create` (shapes from astra's
+live OpenAPI, Oct 2026). The doctor approves it in
+`PendingPrescriptionsScreen` (drawer: "Prescriptions to approve"), which
+reads `queue/pending` and posts `{id}/approve` with `auto_process: true`
+(cart, reminders, notification) or `{id}/reject?reason=`. The queue takes no
+doctor filter, so the screen hides records naming another doctor. The
+queue's response shape is undocumented; `PendingPrescription.listFrom` reads
+it defensively. The edit-dosage dialog can ask astra's `suggest-dosage`
+(needs age, gender and symptoms; the doctor enters age/gender when unknown).
 It used to post to `prescription-workflow/execute`, which only takes
 `prescription_id` of a saved prescription, so every submit failed. Medicines
 must be keyed `name`; the cart line is `shopify_variant_id` - the catalogue's

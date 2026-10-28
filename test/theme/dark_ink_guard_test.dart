@@ -29,7 +29,7 @@ const _reviewed = {
   'lib/features/dashboard/login_home.dart': 1, // icon on lime fill
   'lib/features/dashboard/patient_information.dart': 1, // button fill
   'lib/features/prescription/astra/prescription_screen.dart':
-      2, // snackbar + avatar fills
+      3, // snackbar + avatar fills + dosage suggestion text (tint pair)
   'lib/features/profile/profile.dart':
       3, // stepper fill, date-picker accent, icon on lime avatar
   'lib/features/search/search_screen.dart':

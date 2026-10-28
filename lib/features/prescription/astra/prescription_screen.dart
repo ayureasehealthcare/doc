@@ -23,6 +23,10 @@ class PrescriptionScreen extends StatefulWidget {
   final String? doctorId;
   final Map<String, dynamic>? astraFillData;
 
+  /// Pre-fill the dosage suggestion, which astra needs both of.
+  final int? patientAge;
+  final String? patientGender;
+
   const PrescriptionScreen({
     super.key,
     required this.patientId,
@@ -30,6 +34,8 @@ class PrescriptionScreen extends StatefulWidget {
     this.patientPhone,
     this.doctorId,
     this.astraFillData,
+    this.patientAge,
+    this.patientGender,
   });
 
   @override
@@ -163,7 +169,27 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
         TextEditingController(text: (med['dosage'] ?? '1 tablet').toString());
     final TextEditingController durationController =
         TextEditingController(text: (med['duration_days'] ?? 5).toString());
+    // Stored as astra's codes (twice_daily); the dropdown shows labels.
+    // It used to be handed the code as its value, which isn't one of its
+    // items, and saved the label back instead of the code.
+    const frequencies = {
+      'once_daily': 'Once daily',
+      'twice_daily': 'Twice daily',
+      'thrice_daily': 'Thrice daily',
+    };
     String frequency = (med['frequency'] ?? 'twice_daily').toString();
+    if (!frequencies.containsKey(frequency)) {
+      frequency = frequencies.entries
+          .firstWhere((e) => e.value == frequency,
+              orElse: () => frequencies.entries.elementAt(1))
+          .key;
+    }
+    final ageController =
+        TextEditingController(text: widget.patientAge?.toString() ?? '');
+    String? gender = widget.patientGender?.toLowerCase();
+    if (gender != 'male' && gender != 'female') gender = null;
+    String? suggestion;
+    bool suggesting = false;
     final textTheme = Theme.of(context).textTheme;
 
     await showDialog(
@@ -197,11 +223,15 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                   OslerDropdown(
                     label: '',
                     hint: "Select frequency",
-                    value: frequency,
-                    items: const ['Once daily', 'Twice daily', 'Thrice daily'],
+                    value: frequencies[frequency],
+                    items: frequencies.values.toList(),
                     onChanged: (v) {
-                      if (v != null) {
-                        setLocalState(() => frequency = v);
+                      final code = frequencies.entries
+                          .where((e) => e.value == v)
+                          .map((e) => e.key)
+                          .firstOrNull;
+                      if (code != null) {
+                        setLocalState(() => frequency = code);
                       }
                     },
                   ),
@@ -213,6 +243,104 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                       labelText: "Duration (days)",
                       labelStyle: textTheme.bodyMedium
                           ?.copyWith(color: AyurezeTheme.textSecondary),
+                    ),
+                  ),
+                  const SizedBox(height: AyurezeTheme.spaceLg),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Astra dosage suggestion",
+                        style: textTheme.labelLarge
+                            ?.copyWith(color: AyurezeTheme.textPrimary)),
+                  ),
+                  const SizedBox(height: AyurezeTheme.spaceMd),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: ageController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: "Age"),
+                        ),
+                      ),
+                      const SizedBox(width: AyurezeTheme.spaceSm),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          initialValue: gender,
+                          decoration:
+                              const InputDecoration(labelText: "Gender"),
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'male', child: Text('Male')),
+                            DropdownMenuItem(
+                                value: 'female', child: Text('Female')),
+                          ],
+                          onChanged: (v) => setLocalState(() => gender = v),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AyurezeTheme.spaceSm),
+                  if (suggestion != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AyurezeTheme.spaceMd),
+                      decoration: BoxDecoration(
+                        color: AyurezeTheme.healingGreen10,
+                        borderRadius:
+                            BorderRadius.circular(AyurezeTheme.radiusMd),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const ContentOriginBadge(
+                              origin: ContentOrigin.astraSuggestion),
+                          const SizedBox(height: AyurezeTheme.spaceXs),
+                          Text(suggestion!,
+                              style: textTheme.bodyMedium?.copyWith(
+                                  color: AyurezeTheme.healingGreen100)),
+                        ],
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: suggesting
+                          ? null
+                          : () async {
+                              final age =
+                                  int.tryParse(ageController.text.trim());
+                              if (age == null || gender == null) {
+                                setLocalState(() => suggestion =
+                                    "Enter the patient's age and gender "
+                                        "first.");
+                                return;
+                              }
+                              setLocalState(() => suggesting = true);
+                              String text;
+                              try {
+                                text = PrescriptionPayload.dosageText(
+                                    await _astraApiService.suggestDosage(
+                                  medicineName:
+                                      (med['medicine_name'] ?? '').toString(),
+                                  patientAge: age,
+                                  patientGender: gender!,
+                                  symptoms: _symptoms(),
+                                ));
+                              } on AstraApiException catch (e) {
+                                text = "Couldn't get a suggestion: "
+                                    "${e.message}";
+                              } catch (_) {
+                                text = "Couldn't get a suggestion. "
+                                    "Try again.";
+                              }
+                              if (!context.mounted) return;
+                              setLocalState(() {
+                                suggesting = false;
+                                suggestion = text;
+                              });
+                            },
+                      child:
+                          Text(suggesting ? "Asking Astra…" : "Suggest dosage"),
                     ),
                   ),
                 ],
@@ -252,6 +380,17 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
     );
   }
 
+  /// Symptoms for the dosage suggestion: Astra's intake if there is one,
+  /// else the diagnosis text.
+  List<String> _symptoms() {
+    final fromIntake = widget.astraFillData?['extracted_symptoms'];
+    if (fromIntake is List && fromIntake.isNotEmpty) {
+      return fromIntake.map((s) => s.toString()).toList();
+    }
+    final diagnosis = _diagnosisController.text.trim();
+    return diagnosis.isEmpty ? const [] : [diagnosis];
+  }
+
   Future<void> _submitPrescription() async {
     if (_medicines.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -278,9 +417,9 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
       final bool allHaveShopify =
           _medicines.every(PrescriptionPayload.isLinked);
 
-      // Was posted to prescription-workflow/execute, which only takes the id
-      // of an already-saved prescription, so every submit failed with a
-      // validation error. Creating with auto_process runs the automation.
+      // Saved to astra's review queue (status pending_review, no
+      // automation). The doctor approves it from Prescriptions to approve,
+      // which runs the cart, reminders and patient notification.
       final payload = PrescriptionPayload.create(
         doctorId: doctorId,
         patientId: widget.patientId,
@@ -289,15 +428,15 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
         diagnosis: _diagnosisController.text,
         medicines: _medicines,
         signatureBase64: base64Encode(_signatureBytes!),
+        autoProcess: false,
       );
 
-      await _astraApiService.createPrescription(payload);
+      await _astraApiService.draftPrescription(payload);
 
       if (!mounted) return;
 
-      // The server doesn't report back what it automated, so don't claim a
-      // cart or WhatsApp message here.
-      String msg = "Prescription created and sent for processing.";
+      String msg = "Saved for your approval. Approve it in "
+          "Prescriptions to approve to send it to the patient.";
       if (!allHaveShopify) {
         msg += "\nSome medicines aren't linked to the store, so they "
             "can't go in the patient's cart.";
@@ -644,7 +783,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                         ),
                         const SizedBox(height: 20),
                         OslerButton(
-                          text: "Submit & Automate (PDF + WhatsApp)",
+                          text: "Save for approval",
                           isLoading: _isLoading,
                           onPressed: _submitPrescription,
                         ),

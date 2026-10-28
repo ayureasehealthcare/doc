@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doctro/features/autopilot/review_queue_screen.dart';
+import 'package:doctro/features/prescription/pending_prescriptions_screen.dart';
 import 'package:doctro/features/consultation/chat/pages/chat_page.dart'
     show ChatPage;
 import 'package:doctro/core/navigator_key.dart';
@@ -561,6 +562,8 @@ class _MyAppState extends State<MyApp> {
                       'search': (context) => const SearchScreen(),
                       ReviewQueueScreen.routeName: (context) =>
                           const ReviewQueueScreen(),
+                      PendingPrescriptionsScreen.routeName: (context) =>
+                          const PendingPrescriptionsScreen(),
                     },
                     onUnknownRoute: (settings) => MaterialPageRoute(
                       builder: (context) => const ErrorUtilityScreen(

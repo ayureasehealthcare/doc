@@ -23,6 +23,7 @@ import 'package:doctro/theme/theme_provider.dart';
 import 'package:doctro/features/autopilot/review_queue_screen.dart';
 import 'package:doctro/features/errors/error_utility_screen.dart';
 import 'package:doctro/features/prescription/astra/prescription_screen.dart';
+import 'package:doctro/features/prescription/pending_prescriptions_screen.dart';
 import 'package:doctro/models/autopilot_action.dart';
 import 'package:doctro/models/patient_wellness.dart';
 import 'package:doctro/models/sharing_consent.dart';
@@ -240,6 +241,11 @@ class _Home extends StatelessWidget {
               const ScheduleTimings()),
           tile('payments', '13. Payments', 'Real PaymentScreen.',
               const PaymentScreen()),
+          tile(
+              'rx-queue',
+              '14. Prescriptions to approve',
+              'Real PendingPrescriptionsScreen.',
+              const PendingPrescriptionsScreen()),
         ],
       ),
     );
