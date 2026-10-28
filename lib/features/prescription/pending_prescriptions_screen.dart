@@ -19,6 +19,7 @@ typedef PendingPrescriptionsLoader = Future<List<PendingPrescription>>
 typedef PrescriptionApprover = Future<void> Function(PendingPrescription rx);
 typedef PrescriptionRejecter = Future<void> Function(
     PendingPrescription rx, String? reason);
+typedef PatientLookup = Future<Map<String, dynamic>> Function(String patientId);
 
 /// Prescriptions saved for the doctor's approval. Approving one runs its
 /// automation on the server (Shopify cart, medicine reminders, patient
@@ -31,11 +32,15 @@ class PendingPrescriptionsScreen extends StatefulWidget {
   final PrescriptionApprover? onApprove;
   final PrescriptionRejecter? onReject;
 
+  /// Patient profile by id: the queue records carry no name or phone.
+  final PatientLookup? patientLookup;
+
   const PendingPrescriptionsScreen({
     super.key,
     this.loader,
     this.onApprove,
     this.onReject,
+    this.patientLookup,
   });
 
   @override
@@ -80,6 +85,7 @@ class _PendingPrescriptionsScreenState
             .where((rx) => rx.doctorId == null || rx.doctorId == me)
             .toList();
       }
+      result = await _withPatients(result);
     } on AstraApiException catch (e) {
       error = e.message;
     } catch (_) {
@@ -92,12 +98,44 @@ class _PendingPrescriptionsScreenState
     });
   }
 
+  /// Fills in each patient's name and phone from their profile
+  /// (`patients/profile/{id}`), one lookup per patient. A failed lookup
+  /// leaves the record as it was.
+  Future<List<PendingPrescription>> _withPatients(
+      List<PendingPrescription> items) async {
+    final lookup = widget.patientLookup ?? AstraApiService().getPatientProfile;
+    final ids = {
+      for (final rx in items)
+        if (rx.patientName == null && rx.patientId != null) rx.patientId!,
+    };
+    final profiles = <String, Map<String, dynamic>>{};
+    await Future.wait(ids.map((id) async {
+      try {
+        profiles[id] = await lookup(id);
+      } catch (_) {
+        // Shown as "Patient"; approval still goes through.
+      }
+    }));
+    String? field(Map? m, String k) {
+      final v = m?[k]?.toString().trim();
+      return (v == null || v.isEmpty) ? null : v;
+    }
+
+    return [
+      for (final rx in items)
+        rx.withPatient(
+          name: field(profiles[rx.patientId], 'name'),
+          phone: field(profiles[rx.patientId], 'phone'),
+        ),
+    ];
+  }
+
   Future<void> _approve(PendingPrescription rx) => _run(
         rx,
         () => (widget.onApprove ??
             (rx) => AstraApiService().approvePrescription(
                   rx.id,
-                  patientName: rx.patientName,
+                  patientName: rx.displayName,
                   patientPhone: rx.patientPhone,
                 ))(rx),
         'Approved and sent for processing.',
@@ -254,7 +292,7 @@ class _PrescriptionCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  rx.patientName,
+                  rx.displayName,
                   style: textTheme.titleMedium?.copyWith(
                     color: AyurezeTheme.textPrimary,
                     fontWeight: FontWeight.w700,
@@ -293,9 +331,35 @@ class _PrescriptionCard extends StatelessWidget {
                         style: textTheme.bodySmall
                             ?.copyWith(color: AyurezeTheme.textSecondary),
                       ),
+                    if (!m.linked)
+                      TextSpan(
+                        text: '  Not in store',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                   ]),
                 ),
               ),
+            const SizedBox(height: AyurezeTheme.spaceXs),
+            // What approval can put in the patient's Shopify cart: only
+            // medicines with a store variant become cart lines.
+            OslerTag(
+              label: rx.linkedCount == 0
+                  ? 'No smart cart: no medicine is linked to the store'
+                  : rx.linkedCount == rx.medicines.length
+                      ? (rx.medicines.length == 1
+                          ? 'Smart cart: 1 medicine'
+                          : 'Smart cart: all ${rx.medicines.length} medicines')
+                      : 'Smart cart: ${rx.linkedCount} of '
+                          '${rx.medicines.length} medicines',
+              style: rx.linkedCount == 0
+                  ? OslerTagStyle.danger
+                  : rx.linkedCount == rx.medicines.length
+                      ? OslerTagStyle.success
+                      : OslerTagStyle.warning,
+            ),
           ],
           if (created != null) ...[
             const SizedBox(height: AyurezeTheme.spaceSm),

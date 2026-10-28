@@ -39,6 +39,52 @@ void main() {
   });
 
   group('PendingPrescription.listFrom', () {
+    test('reads the live queue shape', () {
+      // Field names as astra returned them on 2026-10-28; values invented.
+      final items = PendingPrescription.listFrom({
+        'success': true,
+        'count': 1,
+        'queue': [
+          {
+            'id': '0b7c3c1e-0000-4000-8000-000000000001',
+            'prescription_id': 'RXAB-12345678',
+            'patient_id': 'p-1',
+            'doctor_id': 'doc-1',
+            'diagnosis': 'Dry cough',
+            'status': 'pending_review',
+            'prescribed_at': '2026-10-28T09:00:00Z',
+            'prescribed_medicines': [
+              {
+                'medicine_name': 'Sitopaladi Churna',
+                'dose': '3 g',
+                'schedule': 'twice_daily',
+                'duration': '7 days',
+                'quantity': 1,
+                'shopify_variant_id': '50789027905849',
+              },
+              {
+                'medicine_name': 'Tulsi drops',
+                'dose': '5 drops',
+                'schedule': 'once_daily',
+                'duration': '5',
+                'shopify_variant_id': null,
+              },
+            ],
+          },
+        ],
+      });
+
+      final rx = items.single;
+      expect(rx.id, 'RXAB-12345678', reason: 'approve takes prescription_id');
+      expect(rx.patientName, isNull, reason: 'the queue has no names');
+      expect(rx.displayName, 'Patient');
+      expect(rx.createdAt, isNotNull);
+      expect(rx.medicines.first.summary, '3 g · twice daily · 7 days');
+      expect(rx.medicines.last.durationDays, 5);
+      expect(rx.linkedCount, 1);
+      expect(rx.withPatient(name: 'Asha', phone: '+91').displayName, 'Asha');
+    });
+
     test('reads a wrapped list, skipping records with no id', () {
       final items = PendingPrescription.listFrom({
         'prescriptions': [
@@ -142,6 +188,45 @@ void main() {
     expect(sentReason, 'Wrong patient');
     expect(find.text('Asha Rao'), findsNothing);
     expect(find.text('Nothing to approve'), findsOneWidget);
+  });
+
+  testWidgets(
+      'names come from the patient profile; the cart tag counts '
+      'linked medicines', (tester) async {
+    final looked = <String>[];
+    await _pump(
+      tester,
+      PendingPrescriptionsScreen(
+        loader: () async => const [
+          PendingPrescription(
+            id: 'RX-1',
+            patientId: 'p-1',
+            diagnosis: 'Cough',
+            medicines: [
+              PendingMedicine(name: 'Linked', linked: true),
+              PendingMedicine(name: 'Unlinked'),
+            ],
+          ),
+          PendingPrescription(
+            id: 'RX-2',
+            patientId: 'p-1',
+            diagnosis: 'Fever',
+            medicines: [PendingMedicine(name: 'Unlinked too')],
+          ),
+        ],
+        patientLookup: (id) async {
+          looked.add(id);
+          return {'name': 'Asha Rao', 'phone': '+919800000001'};
+        },
+      ),
+    );
+
+    expect(looked, ['p-1'], reason: 'one lookup per patient');
+    expect(find.text('Asha Rao'), findsNWidgets(2));
+    expect(find.text('Smart cart: 1 of 2 medicines'), findsOneWidget);
+    expect(find.text('No smart cart: no medicine is linked to the store'),
+        findsOneWidget);
+    expect(find.textContaining('Not in store'), findsNWidgets(2));
   });
 
   testWidgets('a load failure shows the server\'s message with Retry',

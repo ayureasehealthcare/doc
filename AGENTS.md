@@ -442,9 +442,16 @@ live OpenAPI, Oct 2026). The doctor approves it in
 `PendingPrescriptionsScreen` (drawer: "Prescriptions to approve"), which
 reads `queue/pending` and posts `{id}/approve` with `auto_process: true`
 (cart, reminders, notification) or `{id}/reject?reason=`. The queue takes no
-doctor filter, so the screen hides records naming another doctor. The
-queue's response shape is undocumented; `PendingPrescription.listFrom` reads
-it defensively. The edit-dosage dialog can ask astra's `suggest-dosage`
+doctor filter, so the screen hides records naming another doctor. Its
+response is undocumented; seen live it is `{success, count, queue: [...]}`,
+each record with `prescription_id` (RXXX-..., what approve/reject take - not
+the uuid `id`), `prescribed_at` and `prescribed_medicines`
+(`medicine_name`, `dose`, `schedule`, `duration` as text,
+`shopify_variant_id`), and no patient name or phone: the screen looks those
+up from `patients/profile/{patient_id}` (approve requires the name, WhatsApp
+needs the phone). Only medicines with a `shopify_variant_id` can become cart
+lines; each card says how many will. On 2026-10-28 none of the 13 queued
+medicines from other clients had one. The edit-dosage dialog can ask astra's `suggest-dosage`
 (needs age, gender and symptoms; the doctor enters age/gender when unknown).
 It used to post to `prescription-workflow/execute`, which only takes
 `prescription_id` of a saved prescription, so every submit failed. Medicines
