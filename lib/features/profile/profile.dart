@@ -1166,14 +1166,7 @@ class _ProfileStep1PersonalInfoState extends State<_ProfileStep1PersonalInfo> {
                           color: AyurezeTheme.textSecondary,
                         ),
                       ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_birth_date)
-                              .toString();
-                        }
-                        return null;
-                      },
+                      // Optional: astra can't store this field yet.
                       onTap: widget.onDobTap,
                     ),
                   ],
@@ -1207,14 +1200,7 @@ class _ProfileStep1PersonalInfoState extends State<_ProfileStep1PersonalInfo> {
                         setState(() => _genderSelect = value);
                         widget.onGenderChanged(value);
                       },
-                      validator: (value) {
-                        if (_genderSelect == null) {
-                          return getTranslated(context,
-                                  AppString.please_enter_profile_valid_name)
-                              .toString();
-                        }
-                        return null;
-                      },
+                      // Optional: astra can't store this field yet.
                     ),
                   ],
                 ),
@@ -1345,18 +1331,7 @@ class _ProfileStep2Education extends StatelessWidget {
                           fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_degree)
-                            .toString();
-                      } else if (value.trim().isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_valid_degree)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
@@ -1390,18 +1365,7 @@ class _ProfileStep2Education extends StatelessWidget {
                           fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_college)
-                            .toString();
-                      } else if (value.trim().isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_valid_college)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
@@ -1439,14 +1403,7 @@ class _ProfileStep2Education extends StatelessWidget {
                           fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(context,
-                                AppString.please_enter_year_of_completion)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
@@ -1508,18 +1465,7 @@ class _ProfileStep2Education extends StatelessWidget {
                 hintStyle: TextStyle(
                     fontSize: width * 0.035, color: AyurezeTheme.textSecondary),
               ),
-              validator: (String? value) {
-                if (value!.isEmpty) {
-                  return getTranslated(
-                          context, AppString.dialog_please_enter_certificate)
-                      .toString();
-                } else if (value.trim().isEmpty) {
-                  return getTranslated(context,
-                          AppString.dialog_please_enter_valid_certificate)
-                      .toString();
-                }
-                return null;
-              },
+              // Optional: astra can't store this field yet.
               onSaved: (String? name) {},
             ),
             Container(
@@ -1555,14 +1501,7 @@ class _ProfileStep2Education extends StatelessWidget {
                 hintStyle: TextStyle(
                     fontSize: width * 0.035, color: AyurezeTheme.textSecondary),
               ),
-              validator: (String? value) {
-                if (value!.isEmpty) {
-                  return getTranslated(context,
-                          AppString.dialog_please_enter_certificate_year)
-                      .toString();
-                }
-                return null;
-              },
+              // Optional: astra can't store this field yet.
               onSaved: (String? name) {},
             ),
             Container(
@@ -1680,14 +1619,7 @@ class _ProfileStep3ProfessionalDetails extends StatelessWidget {
                           fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_experience)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
@@ -1770,14 +1702,7 @@ class _ProfileStep3ProfessionalDetails extends StatelessWidget {
                           fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(context,
-                                AppString.please_enter_appointment_fees)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
@@ -1816,14 +1741,7 @@ class _ProfileStep3ProfessionalDetails extends StatelessWidget {
                           fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_time_slot)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
@@ -1856,14 +1774,7 @@ class _ProfileStep3ProfessionalDetails extends StatelessWidget {
                       );
                     }).toList(),
                     onChanged: onBasedOnChanged,
-                    validator: (value) {
-                      if (basedOnController.text.isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_based_on)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     decoration: InputDecoration(
                       hintStyle: TextStyle(
                           fontSize: width * 0.035,
@@ -1903,14 +1814,7 @@ class _ProfileStep3ProfessionalDetails extends StatelessWidget {
                           color: AyurezeTheme.textSecondary),
                     ),
                     onTap: () => onPickStartTime(context),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_start_time)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
@@ -1946,14 +1850,7 @@ class _ProfileStep3ProfessionalDetails extends StatelessWidget {
                           color: AyurezeTheme.textSecondary),
                     ),
                     onTap: () => onPickEndTime(context),
-                    validator: (String? value) {
-                      if (value!.isEmpty) {
-                        return getTranslated(
-                                context, AppString.please_enter_end_time)
-                            .toString();
-                      }
-                      return null;
-                    },
+                    // Optional: astra can't store this field yet.
                     onSaved: (String? name) {},
                   ),
                 ],
