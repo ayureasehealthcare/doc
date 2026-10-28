@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,6 +18,7 @@ import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/services/astra_api_service.dart';
+import 'package:doctro/services/doctor_id_resolver.dart';
 import 'package:doctro/models/setting.dart';
 import 'package:doctro/widgets/osler_toast.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
@@ -362,6 +364,13 @@ class SignInViewModel extends ChangeNotifier {
         Preferences.user_name, response.data!.name ?? '');
     SharedPreferenceHelper.setString(
         Preferences.doctorId, response.data!.id.toString());
+    // The session's user id may not be the id astra's doctor records use;
+    // swap in the one astra knows (the profile also retries on a 404).
+    unawaited(DoctorIdResolver.ensure().then<String?>((id) => id,
+        onError: (Object e) {
+      debugPrint('Doctor id resolution failed (non-fatal): $e');
+      return null;
+    }));
 
     Provider.of<chat.AuthProvider>(context, listen: false).handleSignIn();
 

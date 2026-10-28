@@ -23,6 +23,7 @@ import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/services/astra_api_service.dart';
+import 'package:doctro/services/doctor_id_resolver.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
 import 'package:doctro/widgets/osler_state_view.dart';
@@ -505,7 +506,22 @@ class _ProfileScreen extends State<ProfileScreen> {
     }
     try {
       final fetch = widget.fetchDoctor ?? AstraApiService().getDoctorProfile;
-      final doctor = AstraDoctor.fromResponse(await fetch(doctorId));
+      Map<String, dynamic> record;
+      try {
+        record = await fetch(doctorId);
+      } on AstraApiException catch (e) {
+        // The stored id can be one astra doesn't know (see
+        // DoctorIdResolver); find the right one and try once more.
+        if (e.statusCode != 404 || widget.fetchDoctor != null) rethrow;
+        final resolved = await DoctorIdResolver.ensure();
+        if (resolved == null) {
+          _loadError = "Your doctor profile isn't set up on the Astra server "
+              "yet. Please contact support to have it created.";
+          return;
+        }
+        record = await fetch(resolved);
+      }
+      final doctor = AstraDoctor.fromResponse(record);
       if (!mounted) return;
 
       _pName.text = doctor.name ?? _pName.text;
