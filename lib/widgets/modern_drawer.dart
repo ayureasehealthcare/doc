@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:doctro/features/autopilot/review_queue_screen.dart';
+import 'package:doctro/features/prescription/pending_prescriptions_screen.dart';
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/widgets/glass_surface.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/features/authentication/professional_registration_screen.dart';
@@ -94,12 +96,12 @@ class ModernDrawer extends StatelessWidget {
                       phone ?? "",
                       style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.74),
-                          fontSize: 13),
+                          fontSize: AyurezeTheme.textMd),
                     ),
                     const SizedBox(height: 14),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                          horizontal: AyurezeTheme.spaceMd, vertical: 6),
                       decoration: BoxDecoration(
                         color: AyurezeTheme.healingGreen50,
                         borderRadius:
@@ -118,7 +120,8 @@ class ModernDrawer extends StatelessWidget {
               ),
               Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(14, 16, 14, 10),
+                  padding: const EdgeInsets.fromLTRB(
+                      14, AyurezeTheme.spaceLg, 14, 10),
                   children: [
                     _sectionHeader(context, "Clinical Desk"),
                     _drawerItem(
@@ -160,6 +163,18 @@ class ModernDrawer extends StatelessWidget {
                             .toString(),
                         () => Navigator.popAndPushNamed(
                             context, 'notifications')),
+                    _drawerItem(
+                        context,
+                        HugeIcons.strokeRoundedTaskDone01,
+                        "Review queue",
+                        () => Navigator.popAndPushNamed(
+                            context, ReviewQueueScreen.routeName)),
+                    _drawerItem(
+                        context,
+                        HugeIcons.strokeRoundedMedicineBottle01,
+                        "Prescriptions to approve",
+                        () => Navigator.popAndPushNamed(
+                            context, PendingPrescriptionsScreen.routeName)),
                     _drawerItem(
                         context,
                         HugeIcons.strokeRoundedSearch01,
@@ -220,7 +235,8 @@ class ModernDrawer extends StatelessWidget {
 
   Widget _sectionHeader(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 10, top: 16, bottom: 8),
+      padding: const EdgeInsets.only(
+          left: 10, top: AyurezeTheme.spaceLg, bottom: AyurezeTheme.spaceSm),
       child: Text(
         title.toUpperCase(),
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -258,47 +274,55 @@ class ModernDrawer extends StatelessWidget {
       child: GlassSurface(
         radius: AyurezeTheme.radius2xl,
         blur: 8,
-        child: ListTile(
-          leading: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: isDestructive
-                  ? AyurezeTheme.danger.withValues(alpha: 0.1)
-                  : AyurezeTheme.surfaceMuted,
-              borderRadius: BorderRadius.circular(14),
+        // ListTile paints its ripple on the nearest Material; without this
+        // one, the glass surface's fill hides it.
+        child: Material(
+          type: MaterialType.transparency,
+          child: ListTile(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AyurezeTheme.radius2xl),
             ),
-            child: HugeIcon(
-                icon: icon,
+            leading: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
                 color: isDestructive
-                    ? AyurezeTheme.danger
-                    : AyurezeTheme.textPrimary,
-                size: 20),
-          ),
-          title: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    ? AyurezeTheme.danger.withValues(alpha: 0.1)
+                    : AyurezeTheme.surfaceMuted,
+                borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg),
+              ),
+              child: HugeIcon(
+                  icon: icon,
                   color: isDestructive
                       ? AyurezeTheme.danger
                       : AyurezeTheme.textPrimary,
-                  fontWeight: FontWeight.w700,
+                  size: 20),
+            ),
+            title: Text(
+              label,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: isDestructive
+                        ? AyurezeTheme.danger
+                        : AyurezeTheme.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (badge != null) ...[badge, const SizedBox(width: 8)],
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedArrowRight01,
+                  size: 14,
+                  color: isDestructive
+                      ? AyurezeTheme.danger.withValues(alpha: 0.7)
+                      : AyurezeTheme.textSecondary,
                 ),
+              ],
+            ),
+            onTap: onTap,
+            dense: true,
           ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (badge != null) ...[badge, const SizedBox(width: 8)],
-              HugeIcon(
-                icon: HugeIcons.strokeRoundedArrowRight01,
-                size: 14,
-                color: isDestructive
-                    ? AyurezeTheme.danger.withValues(alpha: 0.7)
-                    : AyurezeTheme.textSecondary,
-              ),
-            ],
-          ),
-          onTap: onTap,
-          dense: true,
         ),
       ),
     );

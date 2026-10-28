@@ -1,28 +1,16 @@
 import 'dart:core';
 import 'package:hugeicons/hugeicons.dart';
-import 'dart:io';
 
 import 'package:country_picker/country_picker.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/theme/ayureze_date_picker.dart';
 import 'package:doctro/widgets/glass_surface.dart';
-import 'package:doctro/core/constants/common_function.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
-import 'package:doctro/models/register.dart';
-import 'package:doctro/models/otp_verify.dart';
-import 'package:doctro/network/api_header.dart';
-import 'package:doctro/network/base_model.dart';
-import 'package:doctro/network/network_api.dart';
-import 'package:doctro/network/server_error.dart';
-import 'package:doctro/features/authentication/phoneverification.dart';
 import 'package:doctro/features/authentication/professional_registration_screen.dart';
-import 'package:doctro/features/authentication/registration_success_screen.dart';
-import 'package:doctro/services/supabase_service.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_input.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
-import 'package:doctro/widgets/osler_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -31,7 +19,7 @@ class CreateAccount extends StatefulWidget {
   final Map<String, dynamic>? prefillData;
   const CreateAccount({super.key, this.prefillData});
   @override
-  _CreateAccountState createState() => _CreateAccountState();
+  State<CreateAccount> createState() => _CreateAccountState();
 }
 
 class _CreateAccountState extends State<CreateAccount> {
@@ -74,7 +62,6 @@ class _CreateAccountState extends State<CreateAccount> {
   }
 
   DateTime? _selectedDate;
-  String newDateApiPass = "";
 
   final _formkey = GlobalKey<FormState>();
 
@@ -85,9 +72,10 @@ class _CreateAccountState extends State<CreateAccount> {
   final TextEditingController _password = TextEditingController();
   final TextEditingController _phoneCode = TextEditingController(text: "+91");
 
-  final bool _isFaceVerified = false;
-  String? _capturedImagePath;
-  final SupabaseService _supabaseService = SupabaseService();
+  // Sign-up has no request of its own: the button below hands these fields
+  // to ProfessionalRegistrationScreen, which registers the doctor with astra
+  // (POST doctors/register). The old callApiForRegister here posted to the
+  // dead legacy register route and had no caller, so it was removed.
 
   @override
   Widget build(BuildContext context) {
@@ -142,9 +130,8 @@ class _CreateAccountState extends State<CreateAccount> {
                                 .textTheme
                                 .headlineLarge
                                 ?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    letterSpacing: -0.5),
+                                  color: Colors.white,
+                                ),
                           ),
                           const SizedBox(height: 10),
                           Text(
@@ -178,7 +165,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedUserCircle02,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             validator: (String? value) {
                               if (value!.isEmpty) {
                                 return getTranslated(context,
@@ -199,7 +186,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedMailAtSign01,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             validator: (String? value) {
                               if (value!.isEmpty) {
                                 return getTranslated(
@@ -248,7 +235,7 @@ class _CreateAccountState extends State<CreateAccount> {
                                   prefixIcon: HugeIcon(
                                       icon: HugeIcons.strokeRoundedSmartPhone01,
                                       size: 20,
-                                      color: AyurezeTheme.healingGreen100),
+                                      color: AyurezeTheme.iconPrimary),
                                   validator: (String? value) {
                                     if (value!.isEmpty) {
                                       return getTranslated(context,
@@ -280,7 +267,7 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedCalendar03,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             validator: (String? value) {
                               if (value!.isEmpty) {
                                 return getTranslated(context,
@@ -318,14 +305,14 @@ class _CreateAccountState extends State<CreateAccount> {
                             prefixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedSquareLock01,
                                 size: 20,
-                                color: AyurezeTheme.healingGreen100),
+                                color: AyurezeTheme.iconPrimary),
                             suffixIcon: IconButton(
                               icon: HugeIcon(
                                   icon: _isHidden
                                       ? HugeIcons.strokeRoundedViewOff
                                       : HugeIcons.strokeRoundedView,
                                   size: 20,
-                                  color: AyurezeTheme.healingGreen100),
+                                  color: AyurezeTheme.iconPrimary),
                               onPressed: () =>
                                   setState(() => _isHidden = !_isHidden),
                             ),
@@ -398,7 +385,7 @@ class _CreateAccountState extends State<CreateAccount> {
                                   .bodyMedium
                                   ?.copyWith(
                                       fontWeight: FontWeight.w800,
-                                      color: AyurezeTheme.healingGreen100),
+                                      color: AyurezeTheme.textPrimary),
                             ),
                           ),
                         ],
@@ -422,91 +409,6 @@ class _CreateAccountState extends State<CreateAccount> {
         ],
       ),
     );
-  }
-
-  Future<BaseModel<Register>> callApiForRegister() async {
-    if (_selectedDate == null) {
-      OslerToast.warning(context, "Please select your birth date");
-      return BaseModel()
-        ..setException(ServerError.withError(error: "Date not selected"));
-    }
-
-    newDateApiPass = DateUtilForPass().formattedDate(_selectedDate!);
-
-    Register response;
-    try {
-      CommonFunction.onLoading(context);
-
-      final doctorId = _supabaseService.generateDoctorID();
-
-      String? photoUrl;
-      if (_capturedImagePath != null) {
-        photoUrl = await _supabaseService.uploadProfilePhoto(
-            File(_capturedImagePath!), doctorId);
-      }
-
-      Map<String, dynamic> body = {
-        "name": _name.text,
-        "email": _email.text,
-        "dob": newDateApiPass,
-        "gender": _genderSelect,
-        "phone": _phone.text,
-        "password": _password.text,
-        "phone_code": _phoneCode.text,
-        "unique_id": doctorId,
-        "is_face_verified": _isFaceVerified ? 1 : 0,
-        "photo_url": photoUrl ?? "",
-      };
-
-      await _supabaseService.saveDoctorProfile(
-        doctorId: doctorId,
-        name: _name.text,
-        email: _email.text,
-        phone: _phoneCode.text + _phone.text,
-        gender: _genderSelect ?? "",
-        dob: newDateApiPass,
-        photoUrl: photoUrl,
-        isFaceVerified: _isFaceVerified,
-      );
-
-      // The uploads above can outlive the screen; dioData(context) reads the
-      // context, so bail before the request rather than after it.
-      if (!mounted) {
-        return BaseModel()
-          ..setException(
-              ServerError.withError(error: "Screen closed during signup"));
-      }
-      response = await RestClient(await RetroApi().dioData(context))
-          .registerRequest(body);
-
-      if (!mounted) return BaseModel()..data = response;
-      CommonFunction.hideDialog(context);
-      final data = OtpData(otp: response.data!.otp, id: response.data!.id);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => RegistrationSuccessScreen(
-            doctorName: _name.text,
-            doctorId: doctorId,
-            email: _email.text,
-            subtitle:
-                "Step 1 complete! Now verify your phone number to activate your account.",
-            onContinue: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PhoneVerificationScreen(data: data)),
-              );
-            },
-          ),
-        ),
-      );
-    } catch (error) {
-      if (mounted) CommonFunction.hideDialog(context);
-      return BaseModel()..setException(ServerError.withError(error: error));
-    }
-    return BaseModel()..data = response;
   }
 
   _selectDate(BuildContext context) async {

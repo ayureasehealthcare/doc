@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:doctro/features/errors/error_utility_screen.dart';
 
+/// Swastu breathes in an endless idle loop, so a screen showing it never
+/// "settles". Turning on the platform's reduce-motion setting (which
+/// Swastu honours) lets pumpAndSettle finish, and covers that path too.
+void _reduceMotion(WidgetTester tester) {
+  tester.platformDispatcher.accessibilityFeaturesTestValue =
+      const FakeAccessibilityFeatures(disableAnimations: true);
+  addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+}
+
 void main() {
   group('ErrorUtilityScreen', () {
     testWidgets('renders each kind with its title and default badge',
         (WidgetTester tester) async {
+      _reduceMotion(tester);
       const cases = {
         ErrorUtilityKind.notFound: 'Not Found',
         ErrorUtilityKind.noInternet: 'No Internet',
@@ -27,6 +37,7 @@ void main() {
 
     testWidgets('invokes onAction instead of the default navigation',
         (WidgetTester tester) async {
+      _reduceMotion(tester);
       var tapped = false;
 
       await tester.pumpWidget(
@@ -47,6 +58,7 @@ void main() {
 
     testWidgets('honors a custom badge label override',
         (WidgetTester tester) async {
+      _reduceMotion(tester);
       await tester.pumpWidget(
         const MaterialApp(
           home: ErrorUtilityScreen(

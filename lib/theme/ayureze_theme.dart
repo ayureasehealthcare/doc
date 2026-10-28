@@ -2,12 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class AyurezeTheme {
-  /// The one font family for the whole app: Uni Neue, a licensed family
-  /// bundled under assets/fonts/UniNeue/ (declared in pubspec.yaml). Screens
-  /// should reach `Theme.of(context).textTheme` rather than naming this
-  /// directly, but centralizing it here is what keeps every screen's type on
-  /// the same family instead of drifting to the platform default.
-  static const String fontFamily = 'Uni Neue';
+  /// Interface and data font, shared with the patient app's "Serene
+  /// Herbalist" design system: Inter (bundled, SIL OFL). Screens should
+  /// reach `Theme.of(context).textTheme` rather than naming this directly;
+  /// centralising it here keeps every screen on the same family.
+  static const String fontFamily = 'Inter';
+
+  /// Editorial serif for greetings and headlines ("Good morning, Dr Rao"),
+  /// never for clinical data. Newsreader (bundled, SIL OFL), as in the
+  /// patient app.
+  static const String serifFamily = 'Newsreader';
 
   static TextStyle font(
     double size,
@@ -25,44 +29,71 @@ class AyurezeTheme {
         letterSpacing: letterSpacing,
       );
 
-  // Osler UI Kit Colors
-  static const Color oslerGray100 = Color(0xFF111A14);
-  static const Color oslerGray50 = Color(0xFF849087);
-  static const Color oslerGray10 = Color(0xFFF5F5F5);
+  /// Like [font] but in the editorial serif. For headings and greetings.
+  static TextStyle serif(
+    double size,
+    FontWeight weight,
+    Color color, {
+    double? height,
+    double? letterSpacing,
+  }) =>
+      TextStyle(
+        fontFamily: serifFamily,
+        fontSize: size,
+        fontWeight: weight,
+        color: color,
+        height: height,
+        letterSpacing: letterSpacing,
+      );
+
+  // Palette: the patient app's Serene Herbalist system (deep sage, sage
+  // mint, turmeric, clay, warm cream) mapped onto the existing token names
+  // by ROLE, so every pairing the app already relies on keeps its meaning:
+  //   *100  deep ink / dark fill under white
+  //   *50   bright accent (icons/borders on dark, fills under dark ink)
+  //   *10   pale tint behind its own *100 ink
+  //   *Fill mid tone that carries white text on filled controls
+  // The token names predate the rebrand (healingGreen, sunshineYellow,
+  // remoteRed); the values are sage, turmeric and clay now.
+  static const Color oslerGray100 = Color(0xFF1B231F);
+  static const Color oslerGray50 = Color(0xFF717973);
+  static const Color oslerGray10 = Color(0xFFEFF4F0);
 
   // NOTE: these are mode-independent constants, not dark-aware tokens.
   // They intentionally keep their value in dark mode, which makes them safe
   // as accents and foregrounds but unsafe as page/card backgrounds. For
   // backgrounds, borders and body text use the getters below (surface,
   // surfaceMuted, canvas, border, textPrimary, textSecondary).
-  //
-  // Pixel-verified against the real Osler UI Kit (Figma community file,
-  // strangehelix.bio) source PDFs: healingGreen50 is the kit's actual
-  // primary brand green (a lime, not the emerald this app had drifted to -
-  // #10B981 never once appeared across ~25 sampled kit screens, while
-  // #84CC16 was the dominant accent on nearly every one).
-  static const Color healingGreen100 = Color(0xFF1A2E05); // kit green-950
-  static const Color healingGreen50 = Color(0xFF84CC16); // kit green-500
-  static const Color healingGreen10 = Color(0xFFECFCCB); // kit green-100
+  static const Color healingGreen100 = Color(0xFF1E4F3C); // deep sage ink
+  // Sage mint: same lightness role the old lime had, so dark ink on it
+  // still clears AA (healingGreen100 on it: 4.88:1).
+  static const Color healingGreen50 = Color(0xFF8FC7AC);
+  static const Color healingGreen10 = Color(0xFFE8F5EE); // sage tint
 
-  // Fill for filled controls that carry a white glyph or label (FAB,
-  // checkbox, circular play/AI buttons). healingGreen50 is a bright lime
-  // and only reaches 1.98:1 against white, which fails both WCAG AA for
-  // text (4.5:1) and the UI-component threshold (3:1). green-700 from the
-  // same kit scale reaches 4.99:1, so white content is legible.
-  static const Color healingGreenFill = Color(0xFF4D7C0F); // kit green-700
+  // Fill for filled controls that carry a white glyph or label (primary
+  // buttons, FAB, checkbox, circular play/AI buttons): the patient app's
+  // primary sage. White on it: 5.78:1.
+  static const Color healingGreenFill = Color(0xFF3F6F5A);
 
-  static const Color remoteRed100 = Color(0xFF4C050B);
-  static const Color remoteRed50 = Color(0xFFF43F5E);
-  static const Color remoteRed10 = Color(0xFFFFE4E7);
+  static const Color remoteRed100 = Color(0xFF410002);
+  static const Color remoteRed50 =
+      Color(0xFFC4473A); // clay red, 4.87:1 on white
+  static const Color remoteRed10 = Color(0xFFFFDAD6);
 
-  static const Color sunshineYellow100 = Color(0xFF422006);
-  // Confirmed against the real kit's own published Color Palette
-  // reference page (Yellow 50 = #EAB308) - the app had drifted to
-  // #F59E0B (Tailwind amber-500), which isn't any step of this scale.
-  static const Color sunshineYellow50 = Color(0xFFEAB308);
-  static const Color sunshineYellow10 = Color(0xFFFEF9C3);
+  // Red counterpart of healingGreenFill, for destructive filled buttons
+  // with a white label (the patient app's clay alert). White on it: 6.46:1.
+  static const Color remoteRedFill = Color(0xFFBA1A1A);
 
+  // Error ink for dark mode (Material's dark error tone): 8.7-10.4:1 on the
+  // dark surfaces, where remoteRedFill is only 2.5:1.
+  static const Color darkError = Color(0xFFFFB4AB);
+
+  // Turmeric gold - streaks, highlights, gentle warnings.
+  static const Color sunshineYellow100 = Color(0xFF2B1700);
+  static const Color sunshineYellow50 = Color(0xFFC98A3E);
+  static const Color sunshineYellow10 = Color(0xFFFCEFDC);
+
+  // Violet stays the Astra/AI accent.
   static const Color caringViolet100 = Color(0xFF311065);
   static const Color caringViolet50 = Color(0xFF8B5CF6);
   static const Color caringViolet10 = Color(0xFFEDE9FE);
@@ -76,22 +107,22 @@ class AyurezeTheme {
   static void updateThemeMode(bool value) => _isDark = value;
 
   // Semantic Colors - Light Definitions
-  static const Color lightCanvas = Color(0xFFE9EEE4);
-  static const Color lightSurface = Color(0xFFF7F8F2);
-  static const Color lightSurfaceMuted = Color(0xFFEFF3EA);
-  static const Color lightBorder = Color(0xFFD4DDCC);
-  static const Color lightTextPrimary = Color(0xFF203126);
-  static const Color lightTextSecondary = Color(0xFF607063);
+  // Warm cream canvas, white cards, warm-parchment containers.
+  static const Color lightCanvas = Color(0xFFFBF9F4);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightSurfaceMuted = Color(0xFFF4EFE6);
+  static const Color lightBorder = Color(0xFFDDE5DF);
+  static const Color lightTextPrimary = Color(0xFF1B231F);
+  static const Color lightTextSecondary = Color(0xFF4A5A52); // 6.38:1 on muted
 
   // Semantic Colors - Dark Definitions
-  static const Color darkCanvas = Color(0xFF1A1A1A);
-  static const Color darkSurface = Color(0xFF2D2D2D);
-  static const Color darkSurfaceMuted = Color(0xFF3D3D3D);
-  static const Color darkBorder = Color(0xFF4D4D4D);
-  static const Color darkTextPrimary = Color(0xFFE0E0E0);
-  // 4.15:1 against darkSurfaceMuted (#3D3D3D) failed WCAG AA (needs 4.5).
-  // #B4B4B4 gives 5.24:1 on darkSurfaceMuted and 6.64:1 on darkSurface.
-  static const Color darkTextSecondary = Color(0xFFB4B4B4);
+  // Sage-tinted darks, as in the patient app (not neutral grey).
+  static const Color darkCanvas = Color(0xFF131A16);
+  static const Color darkSurface = Color(0xFF18221D);
+  static const Color darkSurfaceMuted = Color(0xFF1E2B24);
+  static const Color darkBorder = Color(0xFF34463C);
+  static const Color darkTextPrimary = Color(0xFFE6EFE9);
+  static const Color darkTextSecondary = Color(0xFFA5B4AB); // 6.81:1 on muted
 
   // Dynamic Getters
   static Color get canvas => _isDark ? darkCanvas : lightCanvas;
@@ -117,8 +148,15 @@ class AyurezeTheme {
   static Color get surfaceDark => darkSurface;
   static Color get textMuted => darkTextSecondary;
   static Color get borderMuted => border;
+  // Diffused, warm-tinted ambient shadow - never a hard black drop.
   static Color get shadow =>
-      _isDark ? const Color(0x66000000) : const Color(0x26000000);
+      _isDark ? const Color(0x59000000) : const Color(0x142D3730);
+
+  /// Brand accent drawn straight on the page (spinners, progress, active
+  /// marks): primary sage in light mode, sage mint in dark. The fixed
+  /// healingGreen50 mint is only ~1.8:1 on the cream canvas - too faint for
+  /// a progress indicator (3:1).
+  static Color get accent => _isDark ? healingGreen50 : healingGreenFill;
 
   // Dynamic Icon/SVG Colors - ensures visibility in both modes
   static Color get iconPrimary => _isDark ? Colors.white : healingGreen100;
@@ -146,11 +184,25 @@ class AyurezeTheme {
   static const double radiusSm = 8; // tooltips, small badges
   static const double radiusMd = 12; // inline alerts, toast
   static const double radiusLg = 16; // inputs, dropdowns, alert cards
-  static const double radiusXl = 24; // cards, sheets
+  static const double radiusCard = 20; // standard cards (design master radius)
+  static const double radiusXl = 24; // hero containers, sheets
   static const double radius2xl = 28; // modals
   static const double radiusPill = 999; // fully rounded / pills
 
   // Spacing scale, in the 4pt rhythm the screens mostly follow already.
+  // Type size scale. The theme's textTheme is built from these, so a
+  // literal TextStyle(fontSize: AyurezeTheme.textMd) lands on the same
+  // steps as Theme.of(context).textTheme.* - prefer the textTheme where a
+  // BuildContext is handy, these where it isn't (const styles, painters).
+  static const double textXs = 11; // labelSmall
+  static const double textSm = 12; // bodySmall
+  static const double textMd = 14; // bodyMedium, labelLarge
+  static const double textBase = 15; // bodyLarge
+  static const double textLg = 16; // titleMedium
+  static const double textXl = 20; // titleLarge
+  static const double text2xl = 24; // headlineMedium
+  static const double text3xl = 32; // headlineLarge
+
   static const double spaceXs = 4;
   static const double spaceSm = 8;
   static const double spaceMd = 12;
@@ -174,7 +226,7 @@ class AyurezeTheme {
 
   static ThemeData lightTheme() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: healingGreen100,
+      seedColor: healingGreenFill,
       brightness: Brightness.light,
       primary: healingGreenFill,
       secondary: oslerGray50,
@@ -183,7 +235,7 @@ class AyurezeTheme {
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: lightTextPrimary,
-      error: remoteRed50,
+      error: remoteRedFill,
       onError: Colors.white,
     );
 
@@ -199,35 +251,47 @@ class AyurezeTheme {
       ),
       cardColor: lightSurface,
       dividerColor: lightBorder,
-      shadowColor: const Color(0x16000000),
+      shadowColor: const Color(0x142D3730),
       textTheme: ThemeData.light()
           .textTheme
           .apply(fontFamily: fontFamily)
           .copyWith(
-            headlineLarge: font(
-              32,
-              FontWeight.w800,
-              lightTextPrimary,
-              height: 1.05,
-            ),
-            headlineMedium: font(
-              24,
-              FontWeight.w800,
-              lightTextPrimary,
-              height: 1.15,
-            ),
-            titleLarge: font(20, FontWeight.w700, lightTextPrimary),
-            titleMedium: font(16, FontWeight.w700, lightTextPrimary),
-            bodyLarge: font(15, FontWeight.w500, lightTextPrimary, height: 1.4),
-            bodyMedium: font(
-              14,
+            // Editorial serif for greetings and section entrances;
+            // everything functional stays in the sans.
+            headlineLarge: serif(
+              text3xl,
               FontWeight.w500,
+              lightTextPrimary,
+              height: 1.2,
+              letterSpacing: -0.3,
+            ),
+            headlineMedium: serif(
+              text2xl,
+              FontWeight.w500,
+              lightTextPrimary,
+              height: 1.25,
+            ),
+            // Hero titles (OslerHero) - was unset, so it fell back to the
+            // stock Material style instead of the serif.
+            headlineSmall: serif(
+              textXl,
+              FontWeight.w500,
+              lightTextPrimary,
+              height: 1.3,
+            ),
+            titleLarge: font(textXl, FontWeight.w600, lightTextPrimary),
+            titleMedium: font(textLg, FontWeight.w600, lightTextPrimary),
+            bodyLarge:
+                font(textBase, FontWeight.w400, lightTextPrimary, height: 1.6),
+            bodyMedium: font(
+              textMd,
+              FontWeight.w400,
               lightTextSecondary,
-              height: 1.35,
+              height: 1.55,
             ),
             labelLarge: font(
-              14,
-              FontWeight.w700,
+              textMd,
+              FontWeight.w600,
               lightTextPrimary,
               letterSpacing: 0.2,
             ),
@@ -239,7 +303,7 @@ class AyurezeTheme {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: font(22, FontWeight.w800, lightTextPrimary),
+        titleTextStyle: font(textXl, FontWeight.w600, lightTextPrimary),
       ),
       cardTheme: CardThemeData(
         color: lightSurface,
@@ -247,57 +311,60 @@ class AyurezeTheme {
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(radiusCard),
           side: const BorderSide(color: lightBorder),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: healingGreen100,
+          backgroundColor: healingGreenFill,
           foregroundColor: Colors.white,
+          elevation: 0,
           minimumSize: const Size.fromHeight(56),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
-          ),
-          textStyle: font(15, FontWeight.w700, Colors.white),
+          shape: const StadiumBorder(),
+          textStyle: font(textBase, FontWeight.w600, Colors.white),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          backgroundColor: lightSurface,
-          foregroundColor: lightTextPrimary,
+          backgroundColor: Colors.transparent,
+          foregroundColor: healingGreen100,
           minimumSize: const Size.fromHeight(56),
-          side: const BorderSide(color: lightBorder),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          textStyle: font(15, FontWeight.w700, lightTextPrimary),
+          side: const BorderSide(color: healingGreenFill, width: 1.5),
+          shape: const StadiumBorder(),
+          textStyle: font(textBase, FontWeight.w600, healingGreen100),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        // Warm parchment fields, no cold white; the border only appears
+        // on focus (1.5px sage), as in the patient app.
         filled: true,
-        fillColor: lightSurface,
-        hintStyle: font(14, FontWeight.w500, lightTextSecondary),
-        labelStyle: font(14, FontWeight.w500, lightTextSecondary),
+        fillColor: lightSurfaceMuted,
+        hintStyle: font(textMd, FontWeight.w400, lightTextSecondary),
+        labelStyle: font(textMd, FontWeight.w500, lightTextSecondary),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 18,
-          vertical: 18,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: lightBorder),
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: Colors.transparent),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: healingGreen100, width: 1.4),
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: healingGreenFill, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: remoteRed50),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(color: remoteRed50, width: 1.4),
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: remoteRed50, width: 1.5),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -306,24 +373,25 @@ class AyurezeTheme {
         selectedColor: healingGreen50,
         secondarySelectedColor: healingGreen50,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        labelStyle: font(13, FontWeight.w700, healingGreen100),
-        secondaryLabelStyle: font(13, FontWeight.w700, healingGreen100),
+        labelStyle: font(textMd, FontWeight.w600, healingGreen100),
+        secondaryLabelStyle: font(textMd, FontWeight.w600, healingGreen100),
         brightness: Brightness.light,
         side: BorderSide.none,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusPill)),
       ),
     );
   }
 
   static BoxDecoration heroDecoration() {
     return BoxDecoration(
-      borderRadius: BorderRadius.circular(32),
+      borderRadius: BorderRadius.circular(radiusXl),
       gradient: auroraGradient,
       boxShadow: const [
         BoxShadow(
-          color: Color(0x22000000),
+          color: Color(0x1F1E4F3C),
           blurRadius: 24,
-          offset: Offset(0, 16),
+          offset: Offset(0, 10),
         ),
       ],
     );
@@ -332,14 +400,11 @@ class AyurezeTheme {
   static BoxDecoration panelDecoration() {
     return BoxDecoration(
       color: surface,
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(radiusCard),
       border: Border.all(color: border),
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x10000000),
-          blurRadius: 18,
-          offset: Offset(0, 10),
-        ),
+      // Tier-1 card: ultra-diffused ambient shadow, not a drop.
+      boxShadow: [
+        BoxShadow(color: shadow, blurRadius: 20, offset: const Offset(0, 4)),
       ],
     );
   }
@@ -347,14 +412,14 @@ class AyurezeTheme {
   static BoxDecoration mutedPanelDecoration() {
     return BoxDecoration(
       color: surfaceMuted,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(radiusXl),
       border: Border.all(color: border),
     );
   }
 
   static ThemeData darkTheme() {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: healingGreen100,
+      seedColor: healingGreenFill,
       brightness: Brightness.dark,
       primary: healingGreenFill,
       secondary: oslerGray50,
@@ -363,8 +428,8 @@ class AyurezeTheme {
       onPrimary: Colors.white,
       onSecondary: Colors.white,
       onSurface: darkTextPrimary,
-      error: remoteRed50,
-      onError: Colors.white,
+      error: darkError,
+      onError: remoteRed100,
     );
 
     return ThemeData(
@@ -384,57 +449,70 @@ class AyurezeTheme {
           .textTheme
           .apply(fontFamily: fontFamily)
           .copyWith(
-            headlineLarge: font(
-              32,
-              FontWeight.w800,
-              darkTextPrimary,
-              height: 1.05,
-            ),
-            headlineMedium: font(
-              24,
-              FontWeight.w800,
-              darkTextPrimary,
-              height: 1.15,
-            ),
-            titleLarge: font(20, FontWeight.w700, darkTextPrimary),
-            titleMedium: font(16, FontWeight.w700, darkTextPrimary),
-            bodyLarge: font(15, FontWeight.w500, darkTextPrimary, height: 1.4),
-            bodyMedium: font(
-              14,
+            // Editorial serif for greetings and section entrances;
+            // everything functional stays in the sans.
+            headlineLarge: serif(
+              text3xl,
               FontWeight.w500,
-              darkTextSecondary,
-              height: 1.35,
+              darkTextPrimary,
+              height: 1.2,
+              letterSpacing: -0.3,
             ),
-            labelLarge: font(14, FontWeight.w700, darkTextPrimary),
+            headlineMedium: serif(
+              text2xl,
+              FontWeight.w500,
+              darkTextPrimary,
+              height: 1.25,
+            ),
+            // Hero titles (OslerHero) - was unset, so it fell back to the
+            // stock Material style instead of the serif.
+            headlineSmall: serif(
+              textXl,
+              FontWeight.w500,
+              darkTextPrimary,
+              height: 1.3,
+            ),
+            titleLarge: font(textXl, FontWeight.w600, darkTextPrimary),
+            titleMedium: font(textLg, FontWeight.w600, darkTextPrimary),
+            bodyLarge:
+                font(textBase, FontWeight.w400, darkTextPrimary, height: 1.6),
+            bodyMedium: font(
+              textMd,
+              FontWeight.w400,
+              darkTextSecondary,
+              height: 1.55,
+            ),
+            labelLarge: font(textMd, FontWeight.w600, darkTextPrimary,
+                letterSpacing: 0.2),
           ),
       appBarTheme: AppBarTheme(
-        backgroundColor: darkSurface,
+        backgroundColor: darkCanvas,
+        surfaceTintColor: Colors.transparent,
         foregroundColor: darkTextPrimary,
         elevation: 0,
-        centerTitle: true,
-        titleTextStyle: font(18, FontWeight.w700, darkTextPrimary),
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: font(textXl, FontWeight.w600, darkTextPrimary),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: healingGreenFill,
           foregroundColor: Colors.white,
           elevation: 0,
+          minimumSize: const Size.fromHeight(56),
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          textStyle: font(15, FontWeight.w700, Colors.white),
+          shape: const StadiumBorder(),
+          textStyle: font(textBase, FontWeight.w600, Colors.white),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: healingGreen50,
           side: const BorderSide(color: healingGreen50, width: 1.5),
+          minimumSize: const Size.fromHeight(56),
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          textStyle: font(15, FontWeight.w700, healingGreen50),
+          shape: const StadiumBorder(),
+          textStyle: font(textBase, FontWeight.w600, healingGreen50),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -445,28 +523,28 @@ class AyurezeTheme {
           vertical: 18,
         ),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: darkBorder),
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: Colors.transparent),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: healingGreen50, width: 2),
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: healingGreen50, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: remoteRed50),
         ),
-        hintStyle: font(14, FontWeight.w500, darkTextSecondary),
+        hintStyle: font(textMd, FontWeight.w500, darkTextSecondary),
       ),
       cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(radiusCard),
           side: const BorderSide(color: darkBorder),
         ),
       ),
@@ -479,7 +557,8 @@ class AyurezeTheme {
       drawerTheme: const DrawerThemeData(backgroundColor: darkSurface),
       dialogTheme: DialogThemeData(
         backgroundColor: darkSurface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusXl)),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: healingGreenFill,
@@ -487,7 +566,9 @@ class AyurezeTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: darkSurfaceMuted,
-        labelStyle: font(13, FontWeight.w700, darkTextPrimary),
+        labelStyle: font(textMd, FontWeight.w600, darkTextPrimary),
+        side: BorderSide.none,
+        shape: const StadiumBorder(),
       ),
       tabBarTheme: TabBarThemeData(
         labelColor: healingGreen50,
@@ -498,14 +579,14 @@ class AyurezeTheme {
 
   static BoxDecoration darkPanelDecoration() {
     return BoxDecoration(
-      color: const Color(0xFF2D2D2D),
-      borderRadius: BorderRadius.circular(28),
-      border: Border.all(color: const Color(0xFF4D4D4D)),
+      color: darkSurface,
+      borderRadius: BorderRadius.circular(radiusCard),
+      border: Border.all(color: darkBorder),
       boxShadow: const [
         BoxShadow(
-          color: Color(0x30000000),
-          blurRadius: 18,
-          offset: Offset(0, 10),
+          color: Color(0x40000000),
+          blurRadius: 20,
+          offset: Offset(0, 4),
         ),
       ],
     );
@@ -520,53 +601,70 @@ class AyurezeTheme {
       hintText: hintText,
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: border),
+        borderRadius: BorderRadius.circular(radiusLg),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: border),
+        borderRadius: BorderRadius.circular(radiusLg),
+        borderSide: const BorderSide(color: Colors.transparent),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: healingGreen100, width: 2),
+        borderRadius: BorderRadius.circular(radiusLg),
+        borderSide: BorderSide(color: iconPrimary, width: 1.5),
       ),
       filled: true,
-      fillColor: surface,
-      labelStyle: font(14, FontWeight.w500, textSecondary),
+      fillColor: surfaceMuted,
+      labelStyle: font(textMd, FontWeight.w500, textSecondary),
       hintStyle: font(
-        14,
+        textMd,
         FontWeight.w500,
         textSecondary.withValues(alpha: 0.6),
       ),
     );
   }
 
-  /// A frosted, translucent surface for headers/sheets that sit over other
-  /// content (e.g. a sticky app bar over a scrolling hero). Pair with
-  /// `BackdropFilter(filter: ImageFilter.blur(...))` in the widget; this only
-  /// supplies the fill/border/shadow so every glass surface in the app looks
-  /// the same.
+  /// The panel behind every `GlassSurface`. In the Serene Herbalist system
+  /// this is a Tier-1 card: a near-opaque surface with a faint sage outline
+  /// and an ultra-diffused ambient shadow (the old 14% white frost was
+  /// near-invisible on the cream canvas, so panels read as borderless).
+  /// Still slightly translucent, so a `BackdropFilter` behind it softens
+  /// any imagery underneath. Every panel's content uses dark-aware ink, so
+  /// the surface follows the theme.
   static BoxDecoration glassDecoration({double radius = radius2xl}) {
     return BoxDecoration(
-      color: (_isDark ? Colors.black : Colors.white).withValues(alpha: 0.14),
+      color: surface.withValues(alpha: _isDark ? 0.92 : 0.94),
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(
-        color: Colors.white.withValues(alpha: _isDark ? 0.08 : 0.35),
+        color: _isDark ? darkBorder : healingGreenFill.withValues(alpha: 0.1),
       ),
       boxShadow: [
-        BoxShadow(color: shadow, blurRadius: 24, offset: const Offset(0, 12)),
+        BoxShadow(color: shadow, blurRadius: 20, offset: const Offset(0, 4)),
       ],
     );
   }
 
-  /// The signature multi-stop brand gradient for hero surfaces that want more
-  /// depth than `heroDecoration`'s flat two-stop gradient - the dashboard
-  /// header, onboarding, and other "first thing you see" moments.
+  // In-call (video) surfaces. Deliberately dark in BOTH themes - a call
+  // UI stays dark so video is the brightest thing on screen - so these are
+  // constants, not dark-aware getters.
+  static const Color callBackground = darkCanvas;
+  static const LinearGradient callWaitingGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFF0F766E), Color(0xFF134E4A)], // teal-700 -> teal-900
+  );
+  static const Color callTileShadow = Color(0x55000000);
+  // Text and icons drawn straight on the call background. NOT textPrimary:
+  // that flips to dark ink in light mode, 1.45:1 on the teal gradient.
+  static const Color callForeground = Colors.white;
+
+  /// The signature brand gradient for hero surfaces - the dashboard header,
+  /// onboarding and other "first thing you see" moments. Deep forest to
+  /// primary sage, like the patient app's "Talk to Astra" card; white text
+  /// clears AA on every stop (5.78:1 at the lightest).
   static const LinearGradient auroraGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [healingGreen100, healingGreenFill, healingGreen50],
+    colors: [healingGreen100, Color(0xFF265643), healingGreenFill],
     stops: [0.0, 0.55, 1.0],
   );
 }

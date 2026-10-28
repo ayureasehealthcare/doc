@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print -- CLI helper that prints usage to stdout.
+
 // Astra Core Test Suite
 // Run all tests: flutter test test/astra/
 

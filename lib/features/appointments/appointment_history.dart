@@ -84,7 +84,7 @@ class _AppointmentHistoryViewState extends State<_AppointmentHistoryView>
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             icon: HugeIcon(
                 icon: HugeIcons.strokeRoundedMenu01,
-                color: AyurezeTheme.forestDeep,
+                color: AyurezeTheme.iconPrimary,
                 size: 22),
           ),
         ],
@@ -92,7 +92,7 @@ class _AppointmentHistoryViewState extends State<_AppointmentHistoryView>
       body: Consumer<AppointmentHistoryViewModel>(
         builder: (context, viewModel, _) {
           return RefreshIndicator(
-            color: AyurezeTheme.forestDeep,
+            color: AyurezeTheme.iconPrimary,
             onRefresh: () => viewModel.fetchAppointments(context),
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -166,7 +166,9 @@ class _AppointmentHistoryViewState extends State<_AppointmentHistoryView>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AyurezeTheme.spaceMd,
+                vertical: AyurezeTheme.spaceSm),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(AyurezeTheme.radiusPill),
@@ -184,7 +186,6 @@ class _AppointmentHistoryViewState extends State<_AppointmentHistoryView>
                 .toString(),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.w800,
                 ),
           ),
           const SizedBox(height: 8),

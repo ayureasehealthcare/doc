@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:doctro/features/consultation/chat/constants/firestore_constants.dart';
 import 'package:doctro/features/consultation/chat/models/user_chat.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -73,7 +73,7 @@ class AuthProvider extends ChangeNotifier {
               SharedPreferenceHelper.getString(Preferences.chat_profile),
           FirestoreConstants.userType: "doctor",
           FirestoreConstants.doctorId:
-              SharedPreferenceHelper.getString(Preferences.doctorId),
+              SharedPreferenceHelper.getStringOrNull(Preferences.doctorId),
           FirestoreConstants.id: user.uid,
           'createdAt': DateTime.now().millisecondsSinceEpoch.toString(),
           FirestoreConstants.chattingWith: null

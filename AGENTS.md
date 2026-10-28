@@ -9,7 +9,7 @@ Flutter telehealth app for doctors. Branch: `astra-ai-integration`.
 # sandbox recycles $HOME mid-session and wipes anything installed there.
 export PATH="/workspace/tools/flutter/bin:$PATH"
 flutter analyze                                   # expect 0 errors, 0 warnings
-flutter test                                      # 132 tests
+flutter test                                      # 232 tests
 flutter build web --release
 dart format lib test
 ```
@@ -53,33 +53,25 @@ files nobody committed.
 
 ## Font and motion
 
-The app font is Uni Neue, a licensed family bundled under
-`assets/fonts/UniNeue/` (14 files: 7 weights x roman/italic, declared as a
-single `Uni Neue` family in `pubspec.yaml`). It is **not** a Google Font - do
-not add `google_fonts` back or call `GoogleFonts.*`. Applied once in
-`AyurezeTheme.lightTheme()`/`darkTheme()` via
-`ThemeData.light().textTheme.apply(fontFamily: AyurezeTheme.fontFamily)` as
-the textTheme base, plus `AyurezeTheme.font(size, weight, color, {height,
-letterSpacing})` for every explicit style override (headline/title/body/label,
-app bar title, button/chip/input text styles). Because `Text.style` merges
-with the nearest `DefaultTextStyle` by default, a literal `TextStyle(...)`
-that leaves `fontFamily` null still inherits Uni Neue through that chain - so
-existing screens that build their own `TextStyle` (rather than reading
-`Theme.of(context).textTheme`) get the font for free. Never hardcode a
-different `fontFamily`.
+The doctor app follows the patient app's **Serene Herbalist** design system
+(the Stitch export plus the shipped patient `lib/theme.dart`): warm cream
+canvas `#FBF9F4`, white cards with a faint sage outline, deep sage and sage
+mint, turmeric and clay accents, sage-tinted dark mode, pill buttons, warm
+filled inputs with a 1.5px sage focus ring, and whisper-soft ambient
+shadows. Keep the two apps visually in step: when the patient design
+changes, change it here too.
 
-Only 7 weights are bundled (usWeightClass, verified with fonttools rather
-than guessed from filenames): Thin=100, Light=300, Book=400, Regular=500,
-Bold=700, Heavy=800, Black=900. `AyurezeTheme.font()` only ever asks for
-w500/w700/w800 today; if you need a weight this family doesn't have, the
-renderer falls back to the nearest available weight rather than erroring, but
-prefer picking one of the seven.
-
-The `assets/fonts/UniNeue/` files came from a purchased Fontfabric license
-(distinct from an earlier "Trial" bundle that was rejected - trial fonts are
-watermarked and forbidden from shipping in a public product per their EULA;
-only the actual purchased kit was used here). Do not replace these with
-trial/demo files from a font's marketing site.
+Fonts (bundled, SIL OFL, licences next to the files): **Inter** for all
+interface text and data (`AyurezeTheme.fontFamily`, applied as the
+textTheme base and by `AyurezeTheme.font(...)`), **Newsreader** serif for
+greetings and headlines only (`headlineLarge`/`Medium`/`Small` - `OslerHero`
+titles use `headlineSmall` - and
+`AyurezeTheme.serif(...)`). Never set the serif on clinical data. Do not add
+`google_fonts`; the files are bundled so text renders offline. The
+purchased Uni Neue files were deleted (Oct 2026); restore
+`assets/fonts/UniNeue/` and its `pubspec.yaml` block from git history to
+switch back. Bundled weights: Inter 400/500/600/700, Newsreader
+400/500/600/700.
 
 Android's `pageTransitionsTheme` uses `ZoomPageTransitionsBuilder` (Flutter's
 own Material 3 default) instead of the old `FadeUpwardsPageTransitionsBuilder`,
@@ -97,12 +89,42 @@ back-swipe gesture.
   cascade for lists/grids (see `_buildStatCard`/`_buildAppointmentCard` in
   `login_home.dart`).
 
-`AyurezeTheme.heroDecoration()` now paints `auroraGradient` (a 3-stop
-green gradient) instead of a flat 2-stop one. It is shared by ~12 screens
+`AyurezeTheme.heroDecoration()` paints `auroraGradient`, deep forest to
+primary sage (the patient app's "Talk to Astra" card); white text clears AA
+on every stop. It is shared by ~12 screens
 (SignIn, signup, profile, settings, notifications, schedule,
 appointment_history, dashboard, the drawer, `osler_hero.dart` ...), so this
 one change reaches all of them without per-screen edits. `glassDecoration()`
-is available for a frosted surface (pair it with `BackdropFilter`).
+(behind every `GlassSurface`) is now a near-opaque Tier-1 card - the old 14%
+frost was near-invisible on cream. Every glass panel's content uses
+dark-aware ink; keep it that way (no white text inside a `GlassSurface`).
+
+## Swastu
+
+Swastu is AyurEze's companion character, shared with the patient app
+(where it is the face of Astra). `lib/widgets/swastu.dart` has the
+character (`Swastu`, 12 `SwastuMood`s, one PNG each in `assets/swastu/`),
+`SwastuWordmark`, `SwastuNameTag` and `SwastuSays`. It breathes and floats
+when idle, squishes on tap, stays still for calm moods (urgent, concerned)
+and for reduced motion. No sounds: this is a clinical tool.
+
+Where it appears, and in which mood (match the patient app):
+- `OslerStateView` - every empty/error state: idle when empty, concerned on
+  error, or the `mood:` you pass (review queue empty: happy). The state's
+  icon stays as a small badge beside Swastu.
+- `OslerLoadingView` - thinking, over a small spinner.
+- `ErrorUtilityScreen` - offline/maintenance sleepy, errors concerned, 404
+  thinking.
+- Startup intro (waking), sign-in hero and dashboard hero (greeting),
+  Astra chat app bar (listening) and welcome (greeting), Astra floating
+  buttons (happy, `idleMotion: false` - they sit on many screens).
+
+**Testing:** a screen showing an idle Swastu never "settles", so
+`pumpAndSettle` times out. Turn on reduced motion for that test (see the
+`_reduceMotion` helper in `test/widgets/search_screen_test.dart`): Swastu
+honours it. If the screen also has a wall-clock Timer (the startup intro),
+advance time past it before settling - see `_settle` in
+`test/startup/startup_gate_test.dart`.
 
 Formatting caveat: this sandbox's `dart format` (freshly downloaded "latest
 stable") disagrees with the repo's checked-in style on ~136 of 217 files -
@@ -116,8 +138,8 @@ rather than trusting a freshly-fetched formatter's opinion wholesale.
 ## Layout tokens
 
 `AyurezeTheme` has a named radius scale (`radiusXs` 6, `radiusSm` 8,
-`radiusMd` 12, `radiusLg` 16, `radiusXl` 24, `radius2xl` 28, `radiusPill`
-999) and a 4pt spacing scale (`spaceXs`..`space3xl`). Use these instead of
+`radiusMd` 12, `radiusLg` 16, `radiusCard` 20 - the design's card radius,
+`radiusXl` 24, `radius2xl` 28, `radiusPill` 999) and a 4pt spacing scale (`spaceXs`..`space3xl`). Use these instead of
 literal `BorderRadius.circular(16)` or ad-hoc `EdgeInsets`.
 
 Before the scale existed the UI used 14 different radii with no shared
@@ -126,22 +148,33 @@ depending on who wrote them. The Osler kit was migrated to the tokens;
 feature screens still largely hardcode, so expect mixed usage and
 converge on the tokens when you touch a file.
 
-## Screen layout: the kit is under-used
+## Screen layout and the Osler kit
 
-28 screens have a `Scaffold`. Ten of them use **zero** Osler widgets,
-including `login_home` (the dashboard), `chat_page` and
-`cancel_appointment` - the highest-traffic surfaces in the app. New work
-on those screens should move them onto the kit rather than adding more
-hand-rolled Flutter.
+31 files have a `Scaffold`. All feature screens now build their loading,
+empty and error states, cards, toasts and overlay loaders from the kit
+(`OslerLoadingView`, `OslerStateView`, `OslerCard`, `OslerToast`,
+`OslerOverlayLoader`). Two use no Osler widgets, by design: `video_call`
+(call controls over live video) and `app_shell` (a container). Do not
+hand-roll a spinner, empty state or toast in a screen - reach for the kit.
 
-`profile.dart` is 2,395 lines - by far the largest file, with 52
-hardcoded font sizes and 26 raw insets. Treat edits there carefully and
-prefer extracting a section over growing it.
+`CommonFunction.toastMessage` (fired by `ServerError` with no context)
+routes to `OslerToast` through `navigatorKey` when the app is mounted, and
+only falls back to Fluttertoast (an off-theme gradient on web) before then.
+When a screen's `FutureBuilder` gets a failed `BaseModel` (`data == null`),
+show `OslerStateView.error` with a retry, as `ScheduleTimings` does - not an
+empty form that looks like real data.
 
-Repo-wide drift, measured: 147 hardcoded `fontSize:`, 200 raw
-`EdgeInsets`, 74 `BorderRadius.circular` across 14 distinct values, 56
-`Colors.white`, and only 14 literal `Color(0x..)` (low, which is the
-healthy signal that the token system is followed).
+`profile.dart` is ~2,200 lines - by far the largest file. Treat edits
+there carefully and prefer extracting a section over growing it.
+
+Drift, measured (Oct 2026): **no** literal font sizes or radii remain
+outside `lib/theme/` - every `fontSize:`, `AyurezeTheme.font(<size>)` and
+`(Border)Radius.circular(<n>)` uses a token. Inside the theme, ten radii
+were off-scale `20`s; they are now `radiusCard`, which the Serene
+Herbalist spec makes the master card radius. `EdgeInsets` in shared widgets
+and `lib/core/astra` use the `space*` tokens; the dozen left as numbers are
+deliberate half-steps (2, 6, 10, 14) for chip, badge and button padding,
+where snapping to the 4px scale would change their height.
 
 ## Conventions
 
@@ -152,14 +185,24 @@ healthy signal that the token system is followed).
   as a **surface** (card, tray, avatar background). Judging these by
   count rather than by role led to an overstated bug list once already -
   see the Dark mode section for the test that actually decides it.
-- The theme defines text styles (`headlineLarge` … `labelLarge`). Prefer
-  `Theme.of(context).textTheme.*` over a literal `fontSize:` — there are
-  still ~108 hardcoded `fontSize` values.
+- The theme defines text styles (`headlineLarge` … `labelLarge`), built on
+  a size scale (`textXs` 11, `textSm` 12, `textMd` 14, `textBase` 15,
+  `textLg` 16, `textXl` 20, `text2xl` 24, `text3xl` 32). Prefer
+  `Theme.of(context).textTheme.*`; where there is no context (const
+  styles, painters) use `fontSize: AyurezeTheme.textMd` - never a bare
+  number. `theme_contrast_test.dart` checks the textTheme matches the scale.
+- The video call screen is dark in both themes on purpose. Use the
+  `call*` tokens there (`callBackground`, `callWaitingGradient`,
+  `callForeground`), never `textPrimary`, which is dark ink in light mode.
 - Guard `BuildContext` use after any `await` with `if (!mounted) return;`
   (or `context.mounted` in view models). This was a genuine crash source
   across the auth and video-call flows.
 - Barrel files that start with a `///` doc comment need a `library;`
   directive, otherwise `dangling_library_doc_comments` fires.
+- `SharedPreferenceHelper.getString` returns the `'N_A'` sentinel for a
+  missing key. For anything shown or sent (`currency_symbol`, `doctorId`)
+  use `getStringOrNull` - the sentinel once showed as "N_A0.00" and was
+  posted as a payout doctor id.
 - Empty `catch` blocks should keep a comment explaining why swallowing is
   correct, otherwise it reads as a bug.
 
@@ -178,6 +221,37 @@ main source of dark-mode bugs:
   accents* (a badge, an icon on a pale chip) but wrong as a page or card
   background, where they strand pale fills behind themed text.
 
+The mirror-image bug is the commoner one: `forestDeep` / `healingGreen100`
+(the same `#1A2E05`) used as **ink** - text, icons, spinners, focus
+borders - straight on `canvas`/`surface`/`surfaceMuted`/glass. 12-14:1 in
+light mode, 1.06-1.35:1 in dark mode, i.e. invisible. ~90 such uses were
+fixed across 25+ screens and widgets (back arrows, app bars, the bottom
+nav's selected tab, the date picker's OK button, the live signature pad).
+Use `iconPrimary` (identical to `forestDeep` in light mode, white in dark)
+for icons and ink, `textPrimary` for text. Keep the dark constant only as
+a **fill** under white content, as the 100 shade on its own 10 tint, or as
+ink on a fixed bright fill (the sage-mint `healingGreen50` header/avatars).
+
+Token names predate the rebrand: `healingGreen*` are now sage
+(`100` deep sage ink `#1E4F3C`, `Fill` primary sage `#3F6F5A`, `50` sage mint
+`#8FC7AC`, `10` sage tint), `sunshineYellow*` turmeric, `remoteRed*` clay
+red. They were remapped by role, so the rules in this section still hold.
+For an accent drawn straight on the page (spinner, progress) use the
+dark-aware `accent` getter, not `healingGreen50` (only ~1.8:1 on cream).
+
+`test/theme/dark_ink_guard_test.dart` enforces this with a reviewed count
+of the remaining uses per file in `lib/features` and `lib/widgets`. If it
+fails because a count went up, check the new use rather than just bumping
+the number. `mock_flow/main.dart` builds with `--dart-define=MOCK_DARK=true`
+to eyeball screens in dark mode. Tiles 9-13 mount the real sign-in,
+dashboard, Astra chat, schedule and payments screens with a stored profile
+and no backend, so their loading, empty and error states can be checked
+in a browser. The harness stores a demo doctor id and currency; to see
+screens with data, answer `astra.ayureze.in` requests with Playwright
+`page.route` mocks (reply to the CORS preflight too). The payments list
+cannot show entries in any build: there is no per-transaction endpoint,
+so `paymentsFunction` returns an empty list on purpose.
+
 Where such a fill already carries the accent 100 shade as foreground
 (`healingGreen100` on `healingGreen10` is 14:1), the pairing is
 intentional and readable in both modes — leave it alone. It only breaks
@@ -194,10 +268,10 @@ mode.
 
 Use `healingGreenFill` (not `healingGreen50`) whenever a filled control
 carries a white glyph or label: FAB, checkbox, circular play/AI/record
-buttons, success discs. `healingGreen50` is the brand emerald but reaches
-only 2.54:1 against white, which fails WCAG AA (4.5:1) and even the 3:1
-UI-component threshold, and it fails in *both* modes. `healingGreenFill`
-is the same hue at 5.48:1.
+buttons, success discs. `healingGreen50` is the light sage mint and reaches
+only 1.92:1 against white, failing WCAG AA (4.5:1) and the 3:1
+UI-component threshold in *both* modes. `healingGreenFill` is primary sage
+at 5.78:1.
 
 `healingGreen50` remains correct as a bare accent: an icon or border on a
 neutral surface, or the 10%-alpha tint used behind an idle control.
@@ -211,8 +285,7 @@ Body text must clear WCAG AA (4.5:1) on its surface.
 `test/theme/theme_contrast_test.dart` enforces this for the theme's text
 and surface tokens using a self-contained contrast-ratio helper; add a
 case there when introducing a new text/surface pair. `darkTextSecondary`
-is `#B4B4B4` rather than `#A0A0A0` because the latter scored only 4.15:1
-on `darkSurfaceMuted`.
+(`#A5B4AB`) scores 6.81:1 on `darkSurfaceMuted`.
 
 ## Testing notes
 
@@ -328,3 +401,86 @@ fingerprint, or Google Sign-In breaks again on every subsequent build.
 `AuthProvider.signInWithGoogle` (`lib/features/consultation/chat/providers/auth_provider.dart`)
 logs the real exception via `debugPrint` on failure - check logcat/CI logs
 there before assuming a new failure is code, not a fingerprint mismatch.
+
+## Companion features awaiting astra endpoints
+
+Four doctor-side counterparts of patient-app features are built against
+stubs in `AstraApiService`, because the backend routes don't exist yet
+(the astra repo is empty and the live OpenAPI spec was not reachable when
+they were written). Each stub makes **no request** and is marked
+`TODO(astra-backend)`. Do not "fix" them by guessing a route.
+
+| Feature | Stub | Today | To light up |
+|---|---|---|---|
+| Wellness section (patient screen, illness tab) | `getPatientWellness` | `null` -> "Not available yet" | flip `wellnessEndpointLive`; check `PatientWellness.fromJson` keys |
+| Sharing consent | `getSharingConsent` | `unknown` -> limited-sharing banner | call the real route, parse with `SharingConsent.fromJson` |
+| Review queue (`ReviewQueueScreen`) | `getPendingAutopilotActions`, `acknowledge…`, `dismiss…` | `[]` / `false` | add routes + `AutopilotAction.fromJson` |
+
+Only the wellness path (`Apis.astra_companion_wellness`) exists as a
+constant, because the brief named it. Model parsers mirror the patient
+app's local JSON keys (`sleep_hours`, `share_full_record`, ...) and are
+unconfirmed against any server.
+
+Consent rules: `SharingConsentGuard` wraps the patient detail body and is
+the single place consent is checked. Anything other than an explicit
+`SharingConsent.full` (loading, limited, unknown, failure, missing ids)
+shows the banner, and descendants read it via `SharingConsentScope.of`,
+which defaults to `unknown` with no guard above. Keep failures mapping to
+`unknown`, never `full`.
+
+Content origin: label Astra output with `ContentOriginBadge` (same
+"Astra suggestion" / "Doctor-approved" wording as the patient app), once
+per card or screen, not per line. For a field Astra pre-fills, use
+`ContentOrigin.forDraft` so the label flips when the doctor edits it.
+
+## Prescription smart cart
+
+"Save for approval" posts a `CreatePrescriptionRequest` to
+`api/v1/api/prescriptions/draft` (`auto_process: false`; astra marks it
+`pending_review`), built by `PrescriptionPayload.create` (shapes from astra's
+live OpenAPI, Oct 2026). The doctor approves it in
+`PendingPrescriptionsScreen` (drawer: "Prescriptions to approve"), which
+reads `queue/pending` and posts `{id}/approve` with `auto_process: true`
+(cart, reminders, notification) or `{id}/reject?reason=`. The queue takes no
+doctor filter, so the screen hides records naming another doctor. Its
+response is undocumented; seen live it is `{success, count, queue: [...]}`,
+each record with `prescription_id` (RXXX-..., what approve/reject take - not
+the uuid `id`), `prescribed_at` and `prescribed_medicines`
+(`medicine_name`, `dose`, `schedule`, `duration` as text,
+`shopify_variant_id`), and no patient name or phone: the screen looks those
+up from `patients/profile/{patient_id}` (approve requires the name, WhatsApp
+needs the phone). Only medicines with a `shopify_variant_id` can become cart
+lines; each card says how many will. On 2026-10-28 none of the 13 queued
+medicines from other clients had one. The edit-dosage dialog can ask astra's `suggest-dosage`
+(needs age, gender and symptoms; the doctor enters age/gender when unknown).
+It used to post to `prescription-workflow/execute`, which only takes
+`prescription_id` of a saved prescription, so every submit failed. Medicines
+must be keyed `name`; the cart line is `shopify_variant_id` - the catalogue's
+`variant_id`, never the product id. Catalogue prices are text with a rupee
+sign ("₹180.00") and `price_pending` items come back as "₹0.00"; show them
+through `PrescriptionPayload.priceLabel`. The server has no signature field
+and doesn't say what it automated, so don't claim a cart or WhatsApp send in
+the UI.
+
+## Legacy API vs astra (checked Oct 2026)
+
+Every route in `RestClient` (`lib/network/network_api.dart`, the old
+Laravel-style API) 404s on astra. Before adding a call, check the route is in
+astra's live OpenAPI (`https://astra.ayureze.in/openapi.json`); match its
+method, path and body schema, not just the name.
+- Sign-in: `AstraApiService.login()` posts the Firebase ID token to
+  `auth/session`.
+- Profile and sign-up: astra `api/doctors/{id}` (GET/PUT) and
+  `api/doctors/register`, mapped by `lib/models/astra_doctor_mapper.dart`.
+  The GET response is undocumented; the mapper tries the likely keys. Only
+  name, phone, specialization, consultation fee, availability and bio can be
+  saved.
+- Passwords: Firebase Auth (`sendPasswordResetEmail`, re-authenticate +
+  `updatePassword`), not the server.
+- Brain routes use underscores (`brain/doctor_summary`) and take one text
+  field each (`notes`, `text`, `prescription_text`).
+- Still missing on astra: appointments, video calls, schedule, reviews,
+  payment list, notifications, settings, phone OTP, profile extras and
+  Shopify sync. Their calls remain and fail quietly until the backend adds
+  them.
+

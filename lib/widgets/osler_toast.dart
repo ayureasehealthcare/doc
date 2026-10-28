@@ -32,8 +32,12 @@ class OslerToast {
         icon = HugeIcons.strokeRoundedAlert02;
         break;
       case OslerToastType.info:
-        backgroundColor = AyurezeTheme.connectivityBlue100;
-        textColor = Colors.white;
+        // Neutral sage ink, inverted in dark mode like a Material
+        // snackbar: blue sat outside the Serene Herbalist palette.
+        final dark = Theme.of(context).brightness == Brightness.dark;
+        backgroundColor =
+            dark ? AyurezeTheme.darkTextPrimary : AyurezeTheme.oslerGray100;
+        textColor = dark ? AyurezeTheme.oslerGray100 : Colors.white;
         icon = HugeIcons.strokeRoundedInformationCircle;
         break;
     }

@@ -179,8 +179,9 @@ class AstraRepository {
   Future<Map<String, dynamic>> analyzeMedicationSafety(
     List<String> medicineNames,
   ) async {
+    // SafetyRequest in astra's OpenAPI takes one free-text field.
     return _service.analyzeSafety({
-      'medicines': medicineNames,
+      'text': 'Medicines: ${medicineNames.join(', ')}',
     });
   }
 
@@ -196,11 +197,15 @@ class AstraRepository {
     String? symptoms,
     String? vitalSigns,
   }) async {
+    // SummaryRequest in astra's OpenAPI takes one free-text `notes` field;
+    // the structured keys sent before were rejected.
     return _service.generateDoctorSummary({
-      'patient_id': patientId,
-      if (chiefComplaint != null) 'chief_complaint': chiefComplaint,
-      if (symptoms != null) 'symptoms': symptoms,
-      if (vitalSigns != null) 'vital_signs': vitalSigns,
+      'notes': [
+        'Patient ID: $patientId',
+        if (chiefComplaint != null) 'Chief complaint: $chiefComplaint',
+        if (symptoms != null) 'Symptoms: $symptoms',
+        if (vitalSigns != null) 'Vital signs: $vitalSigns',
+      ].join('\n'),
     });
   }
 

@@ -46,6 +46,7 @@ class ConnectionMonitor extends ChangeNotifier {
   }
 
   /// Stop monitoring
+  @override
   void dispose() {
     _subscription?.cancel();
     super.dispose();
@@ -184,7 +185,8 @@ class ConnectionStatusBanner extends StatelessWidget {
                 const Expanded(
                   child: Text(
                     'You are offline. Messages will be sent when connected.',
-                    style: TextStyle(color: Colors.white, fontSize: 13),
+                    style: TextStyle(
+                        color: Colors.white, fontSize: AyurezeTheme.textMd),
                   ),
                 ),
               ],

@@ -3,8 +3,12 @@ import 'package:path/path.dart' as p;
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:doctro/models/autopilot_action.dart';
+import 'package:doctro/models/pending_prescription.dart';
+import 'package:doctro/models/patient_wellness.dart';
+import 'package:doctro/models/sharing_consent.dart';
 import 'package:doctro/network/apis.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 
 /// Astra AI Healthcare API Service
@@ -49,7 +53,10 @@ class AstraApiService {
         // though a Firebase user stays signed in for the whole session.
         final String appToken =
             SharedPreferenceHelper.getString(Preferences.auth_token);
-        if (appToken.isNotEmpty && appToken != 'N_A') {
+        // The session exchange itself must carry the Firebase ID token, even
+        // when a stale Astra token is still stored from an earlier sign-in.
+        final bool firebaseOnly = options.extra[_firebaseAuthOnly] == true;
+        if (!firebaseOnly && appToken.isNotEmpty && appToken != 'N_A') {
           options.headers['Authorization'] = 'Bearer $appToken';
         } else {
           // No Astra session token yet (e.g. the /auth/login exchange call
@@ -91,13 +98,56 @@ class AstraApiService {
   // ============================================================
 
   /// Login with Firebase token
+  static const _firebaseAuthOnly = 'firebase_auth_only';
+
+  /// Exchanges the signed-in Firebase user for an Astra session.
+  ///
+  /// This used GET api/v1/auth/login, which astra doesn't serve (404), so
+  /// every sign-in failed. Astra's OpenAPI (Oct 2026) has POST
+  /// api/v1/auth/session instead: Firebase ID token in, `SessionResponse`
+  /// (`session_token`, `session_id`, `user`, `expires_at`) out. Returns the
+  /// legacy login shape the sign-in code reads; see [sessionToLogin].
   Future<Map<String, dynamic>> login() async {
     try {
-      final response = await _dio.get(Apis.astra_login);
-      return response.data;
+      final response = await _dio.post(
+        Apis.astra_session,
+        options: Options(extra: {_firebaseAuthOnly: true}),
+      );
+      return sessionToLogin(response.data);
     } catch (e) {
       throw _handleError(e);
     }
+  }
+
+  /// Maps a `SessionResponse` to `{success, token, data: {id, name, ...}}`.
+  /// The spec leaves `user` open (`additionalProperties`), so the key names
+  /// below are best guesses until checked against a real response.
+  static Map<String, dynamic> sessionToLogin(dynamic body) {
+    final Map session = body is Map ? body : const {};
+    final Map user = session['user'] is Map ? session['user'] as Map : const {};
+    String? pick(List<String> keys) {
+      for (final k in keys) {
+        final v = user[k]?.toString().trim();
+        if (v != null && v.isNotEmpty) return v;
+      }
+      return null;
+    }
+
+    final token = session['session_token']?.toString();
+    final image = pick(['picture', 'avatar_url', 'image', 'photo_url']);
+    return {
+      'success': token != null && token.isNotEmpty,
+      'token': token,
+      'data': {
+        'id': pick(['doctor_id', 'id', 'user_id', 'uid']) ?? '',
+        'name': pick(['name', 'full_name', 'display_name']) ?? '',
+        'phone': pick(['phone', 'phone_number']) ?? '',
+        'email': pick(['email']) ?? '',
+        'image': image ?? '',
+        'fullImage': image ?? '',
+        'is_filled': user['is_filled'] ?? 1,
+      },
+    };
   }
 
   /// Create a session for the authenticated user
@@ -321,18 +371,6 @@ class AstraApiService {
     }
   }
 
-  /// Create consultation record
-  Future<Map<String, dynamic>> createConsultation(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post(Apis.astra_create_consultation, data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   // ============================================================
   // PRESCRIPTION ENDPOINTS
   // ============================================================
@@ -410,12 +448,97 @@ class AstraApiService {
     }
   }
 
-  /// Get pending prescription queue
-  Future<List<dynamic>> getPendingPrescriptionQueue() async {
+  // Doctor review flow (astra OpenAPI "Phase 3", checked Oct 2026): a
+  // draft is saved as pending_review with no automation; approving it with
+  // auto_process runs the cart, reminders and patient notification.
+
+  /// Saves a prescription to the review queue (`CreatePrescriptionRequest`).
+  Future<Map<String, dynamic>> draftPrescription(
+      Map<String, dynamic> data) async {
     try {
       final response =
-          await _dio.get('/api/v1/api/prescriptions/queue/pending');
-      return response.data ?? [];
+          await _dio.post('/api/v1/api/prescriptions/draft', data: data);
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Prescriptions awaiting clinical review.
+  Future<List<PendingPrescription>> getPendingPrescriptionQueue(
+      {int limit = 50}) async {
+    try {
+      final response = await _dio.get(
+        '/api/v1/api/prescriptions/queue/pending',
+        queryParameters: {'limit': limit},
+      );
+      return PendingPrescription.listFrom(response.data);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Approves a pending prescription and runs its automation
+  /// (`ApprovePrescriptionRequest`).
+  Future<Map<String, dynamic>> approvePrescription(
+    String prescriptionId, {
+    required String patientName,
+    String? patientPhone,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/v1/api/prescriptions/$prescriptionId/approve',
+        data: {
+          'auto_process': true,
+          'patient_name': patientName,
+          if (patientPhone != null && patientPhone.isNotEmpty)
+            'patient_phone': patientPhone,
+        },
+      );
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// Rejects a pending prescription; the reason is a query parameter.
+  Future<Map<String, dynamic>> rejectPrescription(String prescriptionId,
+      {String? reason}) async {
+    try {
+      final response = await _dio.post(
+        '/api/v1/api/prescriptions/$prescriptionId/reject',
+        queryParameters: {
+          if (reason != null && reason.trim().isNotEmpty) 'reason': reason,
+        },
+      );
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// AI dosage suggestion (`DosageRequest`: all four fields required).
+  Future<Map<String, dynamic>> suggestDosage({
+    required String medicineName,
+    required int patientAge,
+    required String patientGender,
+    required List<String> symptoms,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/v1/api/prescriptions/suggest-dosage',
+        data: {
+          'medicine_name': medicineName,
+          'patient_age': patientAge,
+          'patient_gender': patientGender,
+          'symptoms': symptoms,
+        },
+      );
+      final body = response.data;
+      return body is Map ? Map<String, dynamic>.from(body) : {};
     } catch (e) {
       throw _handleError(e);
     }
@@ -476,30 +599,6 @@ class AstraApiService {
   // UNIFIED PRESCRIPTION WORKFLOW
   // ============================================================
 
-  /// Execute unified prescription workflow (Save, PDF, WhatsApp, Cart, Reminders)
-  Future<Map<String, dynamic>> executePrescriptionWorkflow(
-      Map<String, dynamic> data) async {
-    try {
-      final response = await _dio.post(Apis.astra_execute_workflow, data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Check workflow status
-  Future<Map<String, dynamic>> checkWorkflowStatus(
-      String prescriptionId) async {
-    try {
-      final String path = Apis.astra_workflow_status
-          .replaceFirst('{prescription_id}', prescriptionId);
-      final response = await _dio.get(path);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   // ============================================================
   // SMART AUTO-CART (Shopify Integration)
   // ============================================================
@@ -511,26 +610,6 @@ class AstraApiService {
       return response.data;
     } catch (e) {
       throw _handleError(e);
-    }
-  }
-
-  /// Check Shopify sync status
-  Future<Map<String, dynamic>> getShopifyStatus() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/status');
-      return response.data;
-    } catch (e) {
-      return {'error': e.toString(), 'connected': false};
-    }
-  }
-
-  /// Test Shopify connection
-  Future<Map<String, dynamic>> testShopifyConnection() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/test-connection');
-      return {'success': true, 'data': response.data};
-    } catch (e) {
-      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -571,56 +650,12 @@ class AstraApiService {
   /// Get available medicines
   Future<List<dynamic>> getAvailableMedicines() async {
     try {
+      // The only catalogue route astra serves. The shopify/products and
+      // shopify/products/all fallbacks that used to follow it both 404.
       final response = await _dio.get('/api/v1/shopify/products/available');
-      final products = _extractProducts(response.data);
-      if (products.isNotEmpty) return products;
-
-      // Fallback 1: generic products endpoint
-      final fallbackResponse = await _dio.get('/api/v1/shopify/products');
-      final fallbackProducts = _extractProducts(fallbackResponse.data);
-      if (fallbackProducts.isNotEmpty) return fallbackProducts;
-
-      // Fallback 2: explicit all-products endpoint
-      final allResponse = await _dio.get('/api/v1/shopify/products/all');
-      return _extractProducts(allResponse.data);
+      return _extractProducts(response.data);
     } catch (e) {
-      try {
-        final allResponse = await _dio.get('/api/v1/shopify/products/all');
-        return _extractProducts(allResponse.data);
-      } catch (_) {
-        return [];
-      }
-    }
-  }
-
-  /// Get ALL Shopify products (for debugging)
-  Future<Map<String, dynamic>> getAllShopifyProducts() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/products/all');
-      List products = _extractProducts(response.data);
-      return {'success': true, 'products': products, 'count': products.length};
-    } catch (e) {
-      try {
-        final response = await _dio.get('/api/v1/shopify/products');
-        List products = _extractProducts(response.data);
-        return {
-          'success': true,
-          'products': products,
-          'count': products.length
-        };
-      } catch (e2) {
-        return {'success': false, 'error': e2.toString()};
-      }
-    }
-  }
-
-  /// Get Shopify store info
-  Future<Map<String, dynamic>> getShopifyStoreInfo() async {
-    try {
-      final response = await _dio.get('/api/v1/shopify/store-info');
-      return response.data;
-    } catch (e) {
-      return {'error': e.toString()};
+      throw _handleError(e);
     }
   }
 
@@ -664,65 +699,6 @@ class AstraApiService {
       }
 
       final response = await _dio.post(Apis.astra_brain_chat, data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// AI-powered doctor summary generation
-  Future<Map<String, dynamic>> generateDoctorSummary(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/doctor-summary', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Analyze medication safety
-  Future<Map<String, dynamic>> analyzeSafety(Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/analyze-safety', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Extract medication schedule from text
-  Future<Map<String, dynamic>> extractSchedule(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/extract-schedule', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Patient profile analysis
-  Future<Map<String, dynamic>> profileAnalysis(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/profile-analysis', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
-  /// Generate wellness recommendations
-  Future<Map<String, dynamic>> generateWellness(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/brain/generate-wellness', data: data);
       return response.data;
     } catch (e) {
       throw _handleError(e);
@@ -796,8 +772,17 @@ class AstraApiService {
   /// Get the latest Astra Fill record for a patient
   Future<Map<String, dynamic>> getLatestAstraFill(String patientId) async {
     try {
-      final response = await _dio.get('/api/v1/astra-fill/latest/$patientId');
-      return response.data ?? {};
+      // astra serves this at patient/{id}/latest; astra-fill/latest/{id}
+      // 404ed, so the intake card on the patient screen never loaded.
+      final response =
+          await _dio.get('/api/v1/astra-fill/patient/$patientId/latest');
+      final data = response.data;
+      if (data is List) {
+        return data.isNotEmpty && data.first is Map
+            ? Map<String, dynamic>.from(data.first as Map)
+            : {};
+      }
+      return data is Map ? Map<String, dynamic>.from(data) : {};
     } catch (e) {
       return {};
     }
@@ -904,18 +889,6 @@ class AstraApiService {
     }
   }
 
-  /// Update order status
-  Future<Map<String, dynamic>> updateOrderStatus(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.patch('/api/v1/orders/prescription/status', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
-
   /// Get patient order history
   Future<List<dynamic>> getPatientOrderHistory(String patientId) async {
     try {
@@ -935,16 +908,6 @@ class AstraApiService {
       return response.data;
     } catch (e) {
       return {};
-    }
-  }
-
-  /// Get orders by status
-  Future<List<dynamic>> getOrdersByStatus(String status) async {
-    try {
-      final response = await _dio.get('/api/v1/orders/status/$status');
-      return response.data ?? [];
-    } catch (e) {
-      return [];
     }
   }
 
@@ -1109,16 +1072,6 @@ class AstraApiService {
     }
   }
 
-  /// Check if API is ready
-  Future<bool> checkReady() async {
-    try {
-      final response = await _dio.get('/health/ready');
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
-
   /// Check Astra Brain health
   Future<Map<String, dynamic>> checkBrainHealth() async {
     try {
@@ -1132,18 +1085,6 @@ class AstraApiService {
   // ============================================================
   // PRESCRIPTION PDF
   // ============================================================
-
-  /// Send prescription PDF manually
-  Future<Map<String, dynamic>> sendPrescriptionPdf(
-      Map<String, dynamic> data) async {
-    try {
-      final response =
-          await _dio.post('/api/v1/prescription-pdf/send', data: data);
-      return response.data;
-    } catch (e) {
-      throw _handleError(e);
-    }
-  }
 
   // ============================================================
   // COMPANION CASE
@@ -1179,6 +1120,86 @@ class AstraApiService {
     } catch (e) {
       return null;
     }
+  }
+
+  // ============================================================
+  // COMPANION: PATIENT WELLNESS (endpoint not live yet)
+  // ============================================================
+
+  /// TODO(astra-backend): flip to true once
+  /// GET /api/companion/wellness/{patient_id} exists in astra, after
+  /// checking its response against [PatientWellness.fromJson].
+  static const bool wellnessEndpointLive = false;
+
+  /// The patient's self-reported wellness log and goals, or null when it
+  /// isn't available (endpoint not live, 404, or any other failure) - the
+  /// caller shows a "not available yet" state, never fabricated data.
+  ///
+  /// Uses the authenticated client, unlike [getCompanionCase]: this is the
+  /// patient's own tracking data, so it should not be readable by id alone.
+  Future<PatientWellness?> getPatientWellness(String patientId) async {
+    if (!wellnessEndpointLive) return null;
+    try {
+      final path = Apis.astra_companion_wellness
+          .replaceAll('{patient_id}', Uri.encodeComponent(patientId));
+      final response = await _dio.get(path);
+      final data = response.data;
+      if (data is Map) {
+        return PatientWellness.fromJson(Map<String, dynamic>.from(data));
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // ============================================================
+  // COMPANION: DOCTOR-SHARING CONSENT (no endpoint yet)
+  // ============================================================
+
+  /// Whether [patientId] has shared their full record with [doctorId].
+  ///
+  /// TODO(astra-backend): STUB. No consent endpoint exists in astra (the
+  /// patient app stores the toggle on-device only), and no route has been
+  /// agreed, so this deliberately makes no request and has no path
+  /// constant. It always returns [SharingConsent.unknown], which every
+  /// caller treats as limited sharing. Once the companion astra work adds
+  /// the route, call it here and parse with [SharingConsent.fromJson];
+  /// keep failures mapping to unknown, never to full.
+  Future<SharingConsent> getSharingConsent(
+      String doctorId, String patientId) async {
+    return SharingConsent.unknown;
+  }
+
+  // ============================================================
+  // COMPANION: AUTOPILOT REVIEW QUEUE (no endpoint yet)
+  // ============================================================
+  //
+  // TODO(astra-backend): STUBS. The pending-actions, acknowledge and
+  // dismiss routes are being added to astra separately; none exist today,
+  // and neither their paths nor their response shapes have been agreed.
+  // So these make no request and define no path constants. Wire them up
+  // (and add AutopilotAction.fromJson) against the real contract.
+
+  /// Autopilot actions awaiting [doctorId]'s awareness or sign-off. Empty
+  /// until the backend exists, which the review queue shows as "nothing to
+  /// review".
+  Future<List<AutopilotAction>> getPendingAutopilotActions(
+      String doctorId) async {
+    return const [];
+  }
+
+  /// Marks an action as seen/approved by the doctor. Returns whether the
+  /// server accepted it; the stub always reports failure, so nothing is
+  /// ever shown as handled when it wasn't.
+  Future<bool> acknowledgeAutopilotAction(String actionId) async {
+    return false;
+  }
+
+  /// Dismisses an action as not relevant. Same contract as
+  /// [acknowledgeAutopilotAction].
+  Future<bool> dismissAutopilotAction(String actionId) async {
+    return false;
   }
 
   // ============================================================

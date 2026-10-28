@@ -3,6 +3,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:doctro/features/search/models/search_result.dart';
 import 'package:doctro/features/search/search_screen.dart';
 
+/// Swastu breathes in an endless idle loop, so a screen showing it never
+/// "settles". Turning on the platform's reduce-motion setting (which
+/// Swastu honours) lets pumpAndSettle finish, and covers that path too.
+void _reduceMotion(WidgetTester tester) {
+  tester.platformDispatcher.accessibilityFeaturesTestValue =
+      const FakeAccessibilityFeatures(disableAnimations: true);
+  addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+}
+
 void main() {
   const results = [
     SearchResult(
@@ -21,6 +30,7 @@ void main() {
 
   testWidgets('shows the start-searching state, then filters as you type',
       (WidgetTester tester) async {
+    _reduceMotion(tester);
     await tester.pumpWidget(
       const MaterialApp(home: SearchScreen(results: results)),
     );
@@ -38,6 +48,7 @@ void main() {
 
   testWidgets('shows the start-searching state when there are no results',
       (WidgetTester tester) async {
+    _reduceMotion(tester);
     await tester.pumpWidget(
       const MaterialApp(home: SearchScreen(results: [])),
     );
@@ -48,6 +59,7 @@ void main() {
 
   testWidgets('shows a not-found state for a query that matches nothing',
       (WidgetTester tester) async {
+    _reduceMotion(tester);
     await tester.pumpWidget(
       const MaterialApp(home: SearchScreen(results: results)),
     );
@@ -60,6 +72,7 @@ void main() {
   });
 
   testWidgets('filters by category chip', (WidgetTester tester) async {
+    _reduceMotion(tester);
     await tester.pumpWidget(
       const MaterialApp(home: SearchScreen(results: results)),
     );
@@ -74,6 +87,7 @@ void main() {
 
   testWidgets('tapping a result with a routeName navigates to it',
       (WidgetTester tester) async {
+    _reduceMotion(tester);
     const withRoute = [
       SearchResult(
         title: 'My Medications',
@@ -103,6 +117,7 @@ void main() {
 
   testWidgets('tapping a result without a routeName does nothing',
       (WidgetTester tester) async {
+    _reduceMotion(tester);
     const noRoute = [
       SearchResult(
         title: 'My Medications',

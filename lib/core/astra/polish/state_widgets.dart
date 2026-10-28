@@ -82,7 +82,7 @@ class AstraInlineLoading extends StatelessWidget {
             message!,
             style: TextStyle(
               color: AyurezeTheme.textSecondary,
-              fontSize: 13,
+              fontSize: AyurezeTheme.textMd,
             ),
           ),
         ],
@@ -130,7 +130,7 @@ class AstraErrorState extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: AyurezeTheme.textLg,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,
               ),
@@ -141,7 +141,7 @@ class AstraErrorState extends StatelessWidget {
                 details!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AyurezeTheme.textMd,
                   color: AyurezeTheme.textSecondary,
                 ),
               ),
@@ -211,7 +211,7 @@ class AstraEmptyState extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: AyurezeTheme.textLg,
                 fontWeight: FontWeight.w500,
                 color: Colors.black87,
               ),
@@ -222,7 +222,7 @@ class AstraEmptyState extends StatelessWidget {
                 subtitle!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: AyurezeTheme.textMd,
                   color: AyurezeTheme.textSecondary,
                 ),
               ),
@@ -328,7 +328,8 @@ class AstraOfflineBanner extends StatelessWidget {
             const Expanded(
               child: Text(
                 'You are offline',
-                style: TextStyle(color: Colors.white, fontSize: 13),
+                style: TextStyle(
+                    color: Colors.white, fontSize: AyurezeTheme.textMd),
               ),
             ),
           ],

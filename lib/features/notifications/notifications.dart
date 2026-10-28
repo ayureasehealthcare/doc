@@ -3,10 +3,10 @@ import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/core/constants/date_util.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
-import 'package:doctro/models/Notification.dart';
+import 'package:doctro/models/notification.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
@@ -24,7 +24,7 @@ class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  _NotificationsScreenState createState() => _NotificationsScreenState();
+  State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
@@ -63,7 +63,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           },
           icon: HugeIcon(
             icon: AppIcons.back,
-            color: AyurezeTheme.forestDeep,
+            color: AyurezeTheme.iconPrimary,
             size: 20,
           ),
         ),
@@ -83,7 +83,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               "assets/icons/dMenuBar.svg",
               height: 16,
               colorFilter:
-                  ColorFilter.mode(AyurezeTheme.forestDeep, BlendMode.srcIn),
+                  ColorFilter.mode(AyurezeTheme.iconPrimary, BlendMode.srcIn),
             ),
           ),
         ],
@@ -100,7 +100,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         },
         child: RefreshIndicator(
           onRefresh: bookNotifications,
-          color: AyurezeTheme.forestDeep,
+          color: AyurezeTheme.iconPrimary,
           child: FutureBuilder(
             future: loadData,
             builder: (context, snapshot) {
@@ -288,14 +288,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               'assets/icons/longArrow.svg',
               height: 12,
               colorFilter:
-                  ColorFilter.mode(AyurezeTheme.forestDeep, BlendMode.srcIn),
+                  ColorFilter.mode(AyurezeTheme.iconPrimary, BlendMode.srcIn),
             ),
             const SizedBox(width: 10),
             Text(
               "${patientNotification.length}",
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: AyurezeTheme.forestDeep,
+                    color: AyurezeTheme.textPrimary,
                   ),
             ),
           ],
@@ -307,7 +307,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget _buildEmptyState() {
     return GlassSurface(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 36),
+      padding: const EdgeInsets.symmetric(
+          vertical: AyurezeTheme.space3xl + AyurezeTheme.spaceXs),
       child: Column(
         children: [
           Image.asset("assets/images/no-data.png", height: 88),

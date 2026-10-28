@@ -1,10 +1,10 @@
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
-import 'package:doctro/models/CancelAppointment.dart';
+import 'package:doctro/models/cancel_appointment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:doctro/widgets/modern_drawer.dart';
@@ -18,7 +18,7 @@ class CancelAppointmentScreen extends StatefulWidget {
   const CancelAppointmentScreen({super.key});
 
   @override
-  _CancelAppointmentScreen createState() => _CancelAppointmentScreen();
+  State<CancelAppointmentScreen> createState() => _CancelAppointmentScreen();
 }
 
 class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
@@ -148,11 +148,9 @@ class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
                                         textAlign: TextAlign.left,
                                       ),
                                     ),
-                                    Container(
-                                      child: SvgPicture.asset(
-                                        'assets/icons/dSearch.svg',
-                                        height: 20,
-                                      ),
+                                    SvgPicture.asset(
+                                      'assets/icons/dSearch.svg',
+                                      height: 20,
                                     ),
                                   ],
                                 )),
@@ -175,10 +173,8 @@ class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
                                   ? Container(
                                       margin:
                                           EdgeInsets.only(top: height * 0.2),
-                                      child: Container(
-                                        child: Image.asset(
-                                            "assets/images/no-data.png"),
-                                      ),
+                                      child: Image.asset(
+                                          "assets/images/no-data.png"),
                                     )
                                   : Container(
                                       color: AyurezeTheme.surfaceMuted,
@@ -283,7 +279,7 @@ class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.copyWith(color: AyurezeTheme.forestDeep),
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
                   ),
                 ),
                 Container(
@@ -294,7 +290,7 @@ class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
                     style: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.copyWith(color: AyurezeTheme.forestDeep),
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
                   ),
                 )
               ],
@@ -307,75 +303,71 @@ class _CancelAppointmentScreen extends State<CancelAppointmentScreen> {
                   child: OslerCard(
                       padding: EdgeInsets.zero,
                       child: Column(children: <Widget>[
-                        Container(
-                          child: ListTile(
-                            isThreeLine: true,
-                            leading: SizedBox(
-                              height: 70,
-                              width: 60,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                    AyurezeTheme.radiusMd),
-                                child: Container(
-                                    decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                            fit: BoxFit.fitHeight,
-                                            image: NetworkImage(appointment
-                                                .user!.fullImage!)))),
-                              ),
+                        ListTile(
+                          isThreeLine: true,
+                          leading: SizedBox(
+                            height: 70,
+                            width: 60,
+                            child: ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(AyurezeTheme.radiusMd),
+                              child: Container(
+                                  decoration: BoxDecoration(
+                                      image: DecorationImage(
+                                          fit: BoxFit.fitHeight,
+                                          image: NetworkImage(
+                                              appointment.user!.fullImage!)))),
                             ),
-                            title: Container(
-                              alignment: AlignmentDirectional.topStart,
-                              margin: EdgeInsets.only(
-                                top: height * 0.01,
-                              ),
-                              child: Text(
-                                appointment.patientName!,
-                                style: Theme.of(context).textTheme.titleMedium,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
+                          ),
+                          title: Container(
+                            alignment: AlignmentDirectional.topStart,
+                            margin: EdgeInsets.only(
+                              top: height * 0.01,
                             ),
-                            trailing: Container(
-                                child: Text(
-                              (SharedPreferenceHelper.getStringOrNull(
-                                          Preferences.currency_symbol) ??
-                                      '') +
-                                  appointment.amount.toString(),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(color: AyurezeTheme.textSecondary),
-                            )),
-                            subtitle: Column(
-                              children: <Widget>[
-                                Container(
-                                    alignment: AlignmentDirectional.topStart,
-                                    child: Text(
-                                      "${getTranslated(context, AppString.home_age_data)}:${appointment.age}",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                              color:
-                                                  AyurezeTheme.textSecondary),
-                                    )),
-                                Container(
-                                  width: width * 0.6,
+                            child: Text(
+                              appointment.patientName!,
+                              style: Theme.of(context).textTheme.titleMedium,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                          trailing: Text(
+                            (SharedPreferenceHelper.getStringOrNull(
+                                        Preferences.currency_symbol) ??
+                                    '') +
+                                appointment.amount.toString(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(color: AyurezeTheme.textSecondary),
+                          ),
+                          subtitle: Column(
+                            children: <Widget>[
+                              Container(
                                   alignment: AlignmentDirectional.topStart,
                                   child: Text(
-                                    appointment.patientAddress!,
+                                    "${getTranslated(context, AppString.home_age_data)}:${appointment.age}",
                                     style: Theme.of(context)
                                         .textTheme
                                         .bodySmall
                                         ?.copyWith(
                                             color: AyurezeTheme.textSecondary),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 2,
-                                  ),
+                                  )),
+                              Container(
+                                width: width * 0.6,
+                                alignment: AlignmentDirectional.topStart,
+                                child: Text(
+                                  appointment.patientAddress!,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                          color: AyurezeTheme.textSecondary),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         )
                       ]))),

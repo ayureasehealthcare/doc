@@ -9,7 +9,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   SharedPreferences.setMockInitialValues({});
 
-  // patientDetailsScreen requires a live Firebase/Firestore platform channel
+  // PatientDetailsScreen requires a live Firebase/Firestore platform channel
   // (Firebase.initializeApp -> pigeon host API), which isn't available in a
   // pure widget test. Its build path is instead covered by the integration
   // build (flutter build web) and the existing view-model unit tests.
@@ -35,7 +35,8 @@ void main() {
     ));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
-    expect(find.text('Prescription for Test Patient'), findsOneWidget);
+    expect(find.text('Prescription'), findsOneWidget);
+    expect(find.text('Test Patient'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

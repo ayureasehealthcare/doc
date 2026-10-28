@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
+import 'package:doctro/models/astra_doctor_mapper.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/network_api.dart';
+import 'package:doctro/services/astra_api_service.dart';
 
 class SettingsViewModel extends ChangeNotifier {
   bool isCallEnable = false;
@@ -33,13 +35,21 @@ class SettingsViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response =
-          await RestClient(await RetroApi().dioData(context)).doctorProfile();
-      if (response.data?.patientVCall != null) {
-        isCallEnable = response.data?.patientVCall == 1;
+      // astra's doctor record (GET doctors/{id}) has no documented
+      // patient_vcall field; the toggle only changes if the record happens
+      // to carry one. With no stored doctor id there is nothing to fetch.
+      final doctorId =
+          SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+      if (doctorId != null) {
+        final doctor = AstraDoctor.fromResponse(
+            await AstraApiService().getDoctorProfile(doctorId));
+        if (doctor.patientVCall != null) {
+          isCallEnable = doctor.patientVCall == 1;
+        }
       }
     } catch (error) {
-      // Handle error if needed
+      // The toggle keeps its current value; the settings screen still works
+      // without the server's copy.
     } finally {
       isLoading = false;
       notifyListeners();

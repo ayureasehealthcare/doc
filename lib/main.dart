@@ -5,6 +5,8 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:doctro/features/autopilot/review_queue_screen.dart';
+import 'package:doctro/features/prescription/pending_prescriptions_screen.dart';
 import 'package:doctro/features/consultation/chat/pages/chat_page.dart'
     show ChatPage;
 import 'package:doctro/core/navigator_key.dart';
@@ -18,15 +20,15 @@ import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
-import 'package:doctro/features/authentication/SignIn.dart';
+import 'package:doctro/features/authentication/sign_in.dart';
 import 'package:doctro/features/startup_gate.dart';
 import 'package:doctro/features/authentication/forgotpassword.dart';
-import 'package:doctro/features/notifications/ViewAllNotification.dart';
-import 'package:doctro/features/schedule/ScheduleTimings.dart';
-import 'package:doctro/features/settings/ChangePassword.dart';
-import 'package:doctro/features/settings/Setting.dart';
+import 'package:doctro/features/notifications/view_all_notification.dart';
+import 'package:doctro/features/schedule/schedule_timings.dart';
+import 'package:doctro/features/settings/change_password.dart';
+import 'package:doctro/features/settings/setting.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:doctro/features/settings/changeLanguage.dart';
+import 'package:doctro/features/settings/change_language.dart';
 import 'package:doctro/features/consultation/videoCall/videocallhistory.dart';
 import 'package:doctro/features/authentication/signup.dart';
 import 'package:doctro/features/authentication/phoneverification.dart';
@@ -55,7 +57,7 @@ import 'package:doctro/features/consultation/chat/providers/auth_provider.dart'
     as provider;
 import 'package:doctro/features/consultation/chat/providers/chat_provider.dart';
 import 'package:doctro/features/consultation/chat/providers/home_provider.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/features/shell/app_shell.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/features/profile/profile.dart';
@@ -63,7 +65,7 @@ import 'package:doctro/firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:doctro/features/dashboard/patient_information.dart';
 import 'package:doctro/features/notifications/notifications.dart';
-import 'package:doctro/features/review/rate&review.dart';
+import 'package:doctro/features/review/rate_and_review.dart';
 import 'package:doctro/features/cashfree/payment.dart';
 import 'package:doctro/features/errors/error_utility_screen.dart';
 import 'package:doctro/features/search/search_screen.dart';
@@ -210,7 +212,7 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key, required this.prefs});
 
   @override
-  _MyAppState createState() => _MyAppState();
+  State<MyApp> createState() => _MyAppState();
 
   static void setLocale(BuildContext context, Locale newLocale) {
     _MyAppState state = context.findAncestorStateOfType<_MyAppState>()!;
@@ -532,7 +534,7 @@ class _MyAppState extends State<MyApp> {
                       'phoneverification': (context) =>
                           PhoneVerificationScreen(),
                       'loginHome': (context) => const AppShell(),
-                      'patientInformation': (context) => patientDetailsScreen(),
+                      'patientInformation': (context) => PatientDetailsScreen(),
                       'cancelAppoitmentRoutes': (context) =>
                           CancelAppointmentScreen(),
                       'AppointmentHistoryScreen': (context) =>
@@ -558,6 +560,10 @@ class _MyAppState extends State<MyApp> {
                       'notAllowed': (context) => const ErrorUtilityScreen(
                           kind: ErrorUtilityKind.notAllowed),
                       'search': (context) => const SearchScreen(),
+                      ReviewQueueScreen.routeName: (context) =>
+                          const ReviewQueueScreen(),
+                      PendingPrescriptionsScreen.routeName: (context) =>
+                          const PendingPrescriptionsScreen(),
                     },
                     onUnknownRoute: (settings) => MaterialPageRoute(
                       builder: (context) => const ErrorUtilityScreen(

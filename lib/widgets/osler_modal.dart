@@ -41,8 +41,13 @@ class OslerModal {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AyurezeTheme.radius2xl),
           ),
-          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          contentPadding: const EdgeInsets.fromLTRB(
+              AyurezeTheme.space2xl,
+              AyurezeTheme.spaceXl,
+              AyurezeTheme.space2xl,
+              AyurezeTheme.spaceSm),
+          titlePadding: const EdgeInsets.fromLTRB(AyurezeTheme.space2xl,
+              AyurezeTheme.space2xl, AyurezeTheme.space2xl, 0),
           title: Column(
             children: [
               if (icon != null) ...[
@@ -74,7 +79,7 @@ class OslerModal {
                 title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: AyurezeTheme.textXl,
                   fontWeight: FontWeight.w800,
                   color: AyurezeTheme.textPrimary,
                 ),
@@ -90,7 +95,8 @@ class OslerModal {
                 ),
           ),
           actionsAlignment: MainAxisAlignment.center,
-          actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+          actionsPadding: const EdgeInsets.fromLTRB(AyurezeTheme.spaceLg,
+              AyurezeTheme.spaceSm, AyurezeTheme.spaceLg, AyurezeTheme.spaceXl),
           actions: [
             if (secondaryText != null) ...[
               SizedBox(
@@ -126,7 +132,7 @@ class OslerModal {
                 onPressed: primaryAction ?? () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isDanger
-                      ? AyurezeTheme.remoteRed50
+                      ? AyurezeTheme.remoteRedFill
                       : AyurezeTheme.healingGreen100,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(

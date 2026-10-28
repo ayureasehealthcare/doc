@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:hugeicons/hugeicons.dart';
 
 /// Astra Dark Mode Support
@@ -155,7 +156,7 @@ class AstraDarkModeCard extends StatelessWidget {
       margin: margin,
       decoration: BoxDecoration(
         color: AstraDarkMode.cardDark(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusMd),
         border: Border.all(
           color: AstraDarkMode.borderDark(context),
         ),

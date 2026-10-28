@@ -24,7 +24,7 @@ class OslerHero extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(AyurezeTheme.space2xl),
       decoration: AyurezeTheme.heroDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,8 +51,6 @@ class OslerHero extends StatelessWidget {
             title,
             style: textTheme.headlineSmall?.copyWith(
               color: Colors.white,
-              height: 1.05,
-              fontWeight: FontWeight.w800,
             ),
           ),
           if (subtitle != null) ...[

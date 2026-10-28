@@ -292,6 +292,7 @@ class AppString {
   static const String schedule_add_more = "schedule_add_more";
   static const String schedule_ok_button = "schedule_ok_button";
   static const String schedule_day_status = "schedule_day_status";
+  static const String schedule_day_off = "schedule_day_off";
 
 //Stripe Payment
   static const String stripe_number = "stripe_number";

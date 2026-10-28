@@ -11,21 +11,22 @@ import 'package:doctro/features/consultation/chat/providers/auth_provider.dart';
 import 'package:doctro/features/consultation/chat/providers/chat_provider.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/osler_loader.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
+import 'package:doctro/widgets/osler_toast.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/core/utils/safe_parse.dart';
 import 'package:doctro/features/dashboard/login_home.dart';
 import 'package:doctro/theme/app_motion.dart';
-import 'package:firebase_auth/firebase_auth.dart' as FA;
+import 'package:firebase_auth/firebase_auth.dart' as fa;
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../widgets/widgets.dart';
 import 'pages.dart';
 
 class ChatPage extends StatefulWidget {
@@ -44,26 +45,16 @@ class ChatPage extends StatefulWidget {
       required this.isNavigate});
 
   @override
-  State createState() => ChatPageState(
-        peerId: peerId,
-        peerAvatar: peerAvatar,
-        peerNickname: peerNickname,
-      );
+  State<ChatPage> createState() => ChatPageState();
 }
 
 class ChatPageState extends State<ChatPage> {
   final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   late SharedPreferences prefs;
 
-  ChatPageState(
-      {Key? key,
-      required this.peerId,
-      required this.peerAvatar,
-      required this.peerNickname});
-
-  String peerId;
-  String peerAvatar;
-  String peerNickname;
+  late String peerId;
+  late String peerAvatar;
+  late String peerNickname;
   late String currentUserId;
 
   File? galleryImageFile;
@@ -93,6 +84,9 @@ class ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    peerId = widget.peerId;
+    peerAvatar = widget.peerAvatar;
+    peerNickname = widget.peerNickname;
 
     init();
     chatProvider = context.read<ChatProvider>();
@@ -132,7 +126,7 @@ class ChatPageState extends State<ChatPage> {
   }
 
   void readLocal() {
-    currentUserId = FA.FirebaseAuth.instance.currentUser?.uid ?? "";
+    currentUserId = fa.FirebaseAuth.instance.currentUser?.uid ?? "";
     if (authProvider.getUserFirebaseId()?.isNotEmpty == true) {
       currentUserId = authProvider.getUserFirebaseId()!;
     } else {}
@@ -249,9 +243,8 @@ class ChatPageState extends State<ChatPage> {
       listScrollController.animateTo(0,
           duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
     } else {
-      Fluttertoast.showToast(
-          msg: getTranslated(context, AppString.nothing_send).toString(),
-          backgroundColor: AyurezeTheme.textSecondary);
+      OslerToast.warning(
+          context, getTranslated(context, AppString.nothing_send).toString());
     }
   }
 
@@ -276,7 +269,7 @@ class ChatPageState extends State<ChatPage> {
                         bottom: isLastMessageRight(index) ? 20 : 10, right: 10),
                     child: Text(
                       messageChat.content,
-                      style: TextStyle(color: AyurezeTheme.forestDeep),
+                      style: TextStyle(color: AyurezeTheme.textPrimary),
                     ),
                   )
                 : messageChat.type == TypeMessage.image
@@ -299,8 +292,8 @@ class ChatPageState extends State<ChatPage> {
                               padding: WidgetStateProperty.all<EdgeInsets>(
                                   EdgeInsets.zero)),
                           child: Material(
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(8)),
+                            borderRadius: const BorderRadius.all(
+                                Radius.circular(AyurezeTheme.radiusSm)),
                             clipBehavior: Clip.hardEdge,
                             child: Image.network(
                               messageChat.content,
@@ -312,7 +305,7 @@ class ChatPageState extends State<ChatPage> {
                                   decoration: BoxDecoration(
                                     color: AyurezeTheme.border,
                                     borderRadius: BorderRadius.all(
-                                      Radius.circular(8),
+                                      Radius.circular(AyurezeTheme.radiusSm),
                                     ),
                                   ),
                                   width: 200,
@@ -337,16 +330,16 @@ class ChatPageState extends State<ChatPage> {
                               },
                               errorBuilder: (context, object, stackTrace) {
                                 return Material(
+                                  borderRadius: const BorderRadius.all(
+                                    Radius.circular(AyurezeTheme.radiusSm),
+                                  ),
+                                  clipBehavior: Clip.hardEdge,
                                   child: Image.asset(
                                     'images/img_not_available.jpeg',
                                     width: 200,
                                     height: 200,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius: const BorderRadius.all(
-                                    Radius.circular(8),
-                                  ),
-                                  clipBehavior: Clip.hardEdge,
                                 );
                               },
                               width: 200,
@@ -372,7 +365,7 @@ class ChatPageState extends State<ChatPage> {
         );
       } else {
         return Container(
-          margin: const EdgeInsets.only(bottom: 10),
+          margin: const EdgeInsets.only(bottom: AyurezeTheme.spaceMd),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -381,7 +374,7 @@ class ChatPageState extends State<ChatPage> {
                   isLastMessageLeft(index)
                       ? Material(
                           borderRadius: const BorderRadius.all(
-                            Radius.circular(18),
+                            Radius.circular(AyurezeTheme.radiusLg),
                           ),
                           clipBehavior: Clip.hardEdge,
                           child: Image.network(
@@ -425,7 +418,8 @@ class ChatPageState extends State<ChatPage> {
                               color: AyurezeTheme.forestDeep,
                               borderRadius:
                                   BorderRadius.circular(AyurezeTheme.radiusSm)),
-                          margin: const EdgeInsets.only(left: 10),
+                          margin:
+                              const EdgeInsets.only(left: AyurezeTheme.spaceMd),
                           child: Text(
                             messageChat.content,
                             style: TextStyle(color: Colors.white),
@@ -433,7 +427,8 @@ class ChatPageState extends State<ChatPage> {
                         )
                       : messageChat.type == TypeMessage.image
                           ? Container(
-                              margin: const EdgeInsets.only(left: 10),
+                              margin: const EdgeInsets.only(
+                                  left: AyurezeTheme.spaceMd),
                               child: TextButton(
                                 onPressed: () {
                                   Navigator.push(
@@ -449,6 +444,9 @@ class ChatPageState extends State<ChatPage> {
                                         WidgetStateProperty.all<EdgeInsets>(
                                             EdgeInsets.zero)),
                                 child: Material(
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(AyurezeTheme.radiusSm)),
+                                  clipBehavior: Clip.hardEdge,
                                   child: Image.network(
                                     messageChat.content,
                                     loadingBuilder: (BuildContext context,
@@ -459,7 +457,8 @@ class ChatPageState extends State<ChatPage> {
                                         decoration: BoxDecoration(
                                           color: AyurezeTheme.border,
                                           borderRadius: BorderRadius.all(
-                                            Radius.circular(8),
+                                            Radius.circular(
+                                                AyurezeTheme.radiusSm),
                                           ),
                                         ),
                                         width: 200,
@@ -485,24 +484,21 @@ class ChatPageState extends State<ChatPage> {
                                     errorBuilder:
                                         (context, object, stackTrace) =>
                                             Material(
+                                      borderRadius: const BorderRadius.all(
+                                        Radius.circular(AyurezeTheme.radiusSm),
+                                      ),
+                                      clipBehavior: Clip.hardEdge,
                                       child: Image.asset(
                                         'images/img_not_available.jpeg',
                                         width: 200,
                                         height: 200,
                                         fit: BoxFit.cover,
                                       ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.circular(8),
-                                      ),
-                                      clipBehavior: Clip.hardEdge,
                                     ),
                                     width: 200,
                                     height: 200,
                                     fit: BoxFit.cover,
                                   ),
-                                  borderRadius: const BorderRadius.all(
-                                      Radius.circular(8)),
-                                  clipBehavior: Clip.hardEdge,
                                 ),
                               ),
                             )
@@ -522,8 +518,10 @@ class ChatPageState extends State<ChatPage> {
               isLastMessageLeft(index) &&
                       safeIntOrNull(messageChat.timestamp) != null
                   ? Container(
-                      margin:
-                          const EdgeInsets.only(left: 50, top: 5, bottom: 5),
+                      margin: const EdgeInsets.only(
+                          left: AyurezeTheme.space3xl + AyurezeTheme.spaceLg,
+                          top: AyurezeTheme.spaceXs,
+                          bottom: AyurezeTheme.spaceXs),
                       child: Text(
                         DateFormat('dd MMM kk:mm').format(
                             DateTime.fromMillisecondsSinceEpoch(
@@ -587,7 +585,7 @@ class ChatPageState extends State<ChatPage> {
         backgroundColor: AyurezeTheme.border,
         title: Text(
           peerNickname,
-          style: TextStyle(color: AyurezeTheme.forestDeep),
+          style: TextStyle(color: AyurezeTheme.textPrimary),
         ),
         centerTitle: true,
         leading: InkWell(
@@ -626,7 +624,9 @@ class ChatPageState extends State<ChatPage> {
 
   Widget buildLoading() {
     return Positioned(
-      child: isLoading ? LoadingView() : const SizedBox.shrink(),
+      child: isLoading
+          ? const OslerOverlayLoader(message: 'Loading workspace...')
+          : const SizedBox.shrink(),
     );
   }
 
@@ -650,7 +650,7 @@ class ChatPageState extends State<ChatPage> {
                   HapticFeedback.selectionClick();
                   _modalBottomSheetMenu();
                 },
-                color: AyurezeTheme.forestDeep,
+                color: AyurezeTheme.iconPrimary,
               ),
             ),
           ),
@@ -662,7 +662,7 @@ class ChatPageState extends State<ChatPage> {
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
-                  ?.copyWith(color: AyurezeTheme.forestDeep),
+                  ?.copyWith(color: AyurezeTheme.textPrimary),
               controller: textEditingController,
               decoration: InputDecoration.collapsed(
                 hintText:
@@ -683,7 +683,7 @@ class ChatPageState extends State<ChatPage> {
                   HapticFeedback.lightImpact();
                   onSendMessage(textEditingController.text, TypeMessage.text);
                 },
-                color: AyurezeTheme.forestDeep,
+                color: AyurezeTheme.iconPrimary,
               ),
             ),
           ),
@@ -712,26 +712,20 @@ class ChatPageState extends State<ChatPage> {
                       controller: listScrollController,
                     );
                   } else {
-                    return Center(
-                        child: ScreenEntrance(
-                      child: Text(getTranslated(context, AppString.no_message)
-                          .toString()),
-                    ));
+                    return ScreenEntrance(
+                      child: OslerStateView(
+                        icon: HugeIcons.strokeRoundedMessage01,
+                        title: getTranslated(context, AppString.no_message)
+                            .toString(),
+                      ),
+                    );
                   }
                 } else {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      color: AyurezeTheme.healingGreen50,
-                    ),
-                  );
+                  return const OslerLoadingView();
                 }
               },
             )
-          : Center(
-              child: CircularProgressIndicator(
-                color: AyurezeTheme.healingGreen50,
-              ),
-            ),
+          : const OslerLoadingView(),
     );
   }
 
@@ -789,7 +783,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         isLoading = false;
       });
-      Fluttertoast.showToast(msg: e.message ?? e.toString());
+      OslerToast.error(context, e.message ?? e.toString());
     }
   }
 
@@ -809,7 +803,7 @@ class ChatPageState extends State<ChatPage> {
       setState(() {
         isLoading = false;
       });
-      Fluttertoast.showToast(msg: e.message ?? e.toString());
+      OslerToast.error(context, e.message ?? e.toString());
     }
   }
 }

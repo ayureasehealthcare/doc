@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/astra/utils/astra_config.dart';
 import 'package:doctro/core/astra/utils/astra_logger.dart';
@@ -393,7 +393,8 @@ class AstraService {
     try {
       final response = await _postWithRetry(
         AstraConfig.brainExtractSchedule,
-        data: {'text': text},
+        // ExtractScheduleRequest in astra's OpenAPI.
+        data: {'prescription_text': text},
       );
       return _parseResponse(response);
     } catch (e) {
@@ -424,16 +425,6 @@ class AstraService {
   Future<bool> checkHealth() async {
     try {
       final response = await _dio.get(AstraConfig.health);
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Check if API is ready
-  Future<bool> checkReady() async {
-    try {
-      final response = await _dio.get(AstraConfig.healthReady);
       return response.statusCode == 200;
     } catch (e) {
       return false;

@@ -45,7 +45,8 @@ class AstraActionChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AyurezeTheme.spaceLg, vertical: 10),
             decoration: BoxDecoration(
               color: _getBackgroundColor(),
               borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
@@ -105,21 +106,21 @@ class AstraActionChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: Colors.red,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AyurezeTheme.radiusMd),
         ),
-        child: const Text('⚡', style: TextStyle(fontSize: 10)),
+        child: const Text('⚡', style: TextStyle(fontSize: AyurezeTheme.textXs)),
       );
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: Colors.orange.shade100,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusMd),
       ),
       child: Text(
         '!',
         style: TextStyle(
-          fontSize: 10,
+          fontSize: AyurezeTheme.textXs,
           fontWeight: FontWeight.bold,
           color: Colors.orange.shade700,
         ),

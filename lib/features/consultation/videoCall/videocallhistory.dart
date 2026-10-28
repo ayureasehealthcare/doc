@@ -3,6 +3,9 @@ import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/osler_card.dart';
+import 'package:doctro/widgets/osler_loader.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:doctro/core/constants/date_util.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/core/utils/safe_parse.dart';
@@ -16,10 +19,21 @@ class VideoCallHistory extends StatefulWidget {
   const VideoCallHistory({super.key});
 
   @override
-  _VideoCallHistoryState createState() => _VideoCallHistoryState();
+  State<VideoCallHistory> createState() => _VideoCallHistoryState();
 }
 
 class _VideoCallHistoryState extends State<VideoCallHistory> {
+  /// Puts a state view in a scrollable so the surrounding RefreshIndicator
+  /// can still be pulled - a bare Center gives it nothing to drag.
+  Widget _pullable(Widget child) => LayoutBuilder(
+        builder: (context, constraints) => ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            SizedBox(height: constraints.maxHeight, child: child),
+          ],
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -30,6 +44,7 @@ class _VideoCallHistoryState extends State<VideoCallHistory> {
           VideoCallHistoryViewModel()..fetchVideoCallHistory(context),
       child: Builder(
         builder: (context) => Scaffold(
+          backgroundColor: AyurezeTheme.canvas,
           appBar: AppBar(
             elevation: 0,
             leading: IconButton(
@@ -57,9 +72,17 @@ class _VideoCallHistoryState extends State<VideoCallHistory> {
               return RefreshIndicator(
                 onRefresh: () => viewModel.fetchVideoCallHistory(context),
                 child: viewModel.isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const OslerLoadingView()
                     : viewModel.hasError
-                        ? Center(child: Text(viewModel.errorMessage))
+                        ? _pullable(OslerStateView(
+                            icon: HugeIcons.strokeRoundedAlert02,
+                            tone: OslerStateTone.error,
+                            title: "Couldn't load call history",
+                            message: viewModel.errorMessage,
+                            actionLabel: 'Retry',
+                            onAction: () =>
+                                viewModel.fetchVideoCallHistory(context),
+                          ))
                         : viewModel.callHistory.isNotEmpty
                             ? ListView.builder(
                                 itemCount: viewModel.callHistory.length,
@@ -97,10 +120,12 @@ class _VideoCallHistoryState extends State<VideoCallHistory> {
 
                                   final row = Column(
                                     children: [
-                                      Container(
-                                        margin: EdgeInsets.symmetric(
-                                            horizontal: width * 0.01,
-                                            vertical: width * 0.02),
+                                      OslerCard(
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: AyurezeTheme.spaceLg,
+                                            vertical: AyurezeTheme.spaceXs),
+                                        padding: const EdgeInsets.all(
+                                            AyurezeTheme.spaceSm),
                                         child: Row(
                                           children: [
                                             Container(
@@ -128,13 +153,10 @@ class _VideoCallHistoryState extends State<VideoCallHistory> {
                                                         fit: BoxFit.fitHeight,
                                                         placeholder:
                                                             (context, url) =>
-                                                                Transform.scale(
-                                                          scale: 0.4,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            color: AyurezeTheme
-                                                                .actionButtonPrimary,
-                                                          ),
+                                                                const Center(
+                                                          child: OslerLoader(
+                                                              size: 16,
+                                                              strokeWidth: 2),
                                                         ),
                                                         errorWidget: (context,
                                                                 url, error) =>
@@ -254,12 +276,10 @@ class _VideoCallHistoryState extends State<VideoCallHistory> {
                                             horizontal: AyurezeTheme.spaceSm),
                                         child: Column(
                                           children: [
-                                            Container(
-                                              child: Divider(
-                                                height: height * 0.005,
-                                                thickness: width * 0.005,
-                                                color: AyurezeTheme.border,
-                                              ),
+                                            Divider(
+                                              height: height * 0.005,
+                                              thickness: width * 0.005,
+                                              color: AyurezeTheme.border,
                                             ),
                                           ],
                                         ),
@@ -271,9 +291,12 @@ class _VideoCallHistoryState extends State<VideoCallHistory> {
                                       index: index % 8, child: row);
                                 },
                               )
-                            : Center(
-                                child: Image.asset("assets/images/no-data.png"),
-                              ),
+                            : _pullable(const OslerStateView(
+                                icon: HugeIcons.strokeRoundedVideo01,
+                                title: 'No calls yet',
+                                message: 'Video consultations you take will '
+                                    'appear here.',
+                              )),
               );
             },
           ),

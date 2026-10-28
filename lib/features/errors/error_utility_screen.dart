@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_tag.dart';
@@ -58,19 +59,34 @@ class ErrorUtilityScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              // Swastu carries the state, with the kind's icon as a badge -
+              // the same moods the patient app uses (offline: sleepy,
+              // errors: concerned).
               ScreenEntrance(
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    color: spec.tint,
-                    shape: BoxShape.circle,
-                  ),
-                  child: HugeIcon(
-                    icon: spec.icon,
-                    color: spec.foreground,
-                    size: 56,
-                  ),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Swastu(mood: _moodFor(kind), size: 150, named: false),
+                    Positioned(
+                      right: -AyurezeTheme.spaceXs,
+                      bottom: AyurezeTheme.spaceSm,
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: spec.tint,
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: AyurezeTheme.surface, width: 2),
+                        ),
+                        child: HugeIcon(
+                          icon: spec.icon,
+                          color: spec.foreground,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: AyurezeTheme.space3xl),
@@ -171,6 +187,16 @@ class ErrorUtilityScreen extends StatelessWidget {
     }
   }
 }
+
+SwastuMood _moodFor(ErrorUtilityKind kind) => switch (kind) {
+      ErrorUtilityKind.noInternet ||
+      ErrorUtilityKind.maintenance =>
+        SwastuMood.sleepy,
+      ErrorUtilityKind.internalError ||
+      ErrorUtilityKind.notAllowed =>
+        SwastuMood.concerned,
+      ErrorUtilityKind.notFound => SwastuMood.thinking,
+    };
 
 class _ErrorUtilitySpec {
   final List<List<dynamic>> icon;

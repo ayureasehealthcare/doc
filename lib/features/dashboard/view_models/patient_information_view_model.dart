@@ -4,8 +4,7 @@ import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/models/appointment_details.dart';
-import 'package:doctro/models/DoctorStatusChange.dart';
-import 'package:doctro/models/AllMedicines.dart';
+import 'package:doctro/models/doctor_status_change.dart';
 import 'package:doctro/services/astra_service.dart';
 import 'package:intl/intl.dart';
 
@@ -136,26 +135,6 @@ class PatientInformationViewModel extends ChangeNotifier {
       }
 
       hideButton = false;
-      notifyListeners();
-
-      return BaseModel()..data = response;
-    } catch (error) {
-      return BaseModel()..setException(ServerError.withError(error: error));
-    }
-  }
-
-  Future<BaseModel<AllMedicines>> allMedicinesRequest() async {
-    AllMedicines response;
-
-    try {
-      medicineReq.clear();
-
-      response =
-          await RestClient(await RetroApi().dioData(context)).allMedicines();
-
-      for (int i = 0; i < response.data!.length; i++) {
-        medicineReq.add(response.data![i].name.toString());
-      }
       notifyListeners();
 
       return BaseModel()..data = response;

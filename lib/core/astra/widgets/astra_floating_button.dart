@@ -4,6 +4,7 @@ import 'package:doctro/core/astra/context/context_builder.dart';
 import 'package:doctro/core/astra/context/patient_context.dart';
 import 'package:doctro/core/astra/navigation/app_router.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 
 /// Floating Astra AI Button
 ///
@@ -106,10 +107,12 @@ class AstraFloatingButton extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                HugeIcon(
-                  icon: HugeIcons.strokeRoundedBrain01,
-                  color: Colors.white,
-                  size: size * 0.45,
+                // Still, not breathing: this button sits on many screens.
+                Swastu(
+                  mood: SwastuMood.happy,
+                  size: size * 0.5,
+                  named: false,
+                  idleMotion: false,
                 ),
                 SizedBox(height: size * 0.05),
                 Text(
@@ -215,10 +218,10 @@ class AstraMiniButton extends StatelessWidget {
       button: true,
       child: Material(
         color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
         child: InkWell(
           onTap: onTap ?? () => AstraFloatingButton.openAstraChat(),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
           child: Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: AyurezeTheme.spaceMd,
@@ -237,7 +240,7 @@ class AstraMiniButton extends StatelessWidget {
                   style: TextStyle(
                     color: AyurezeTheme.healingGreen50,
                     fontWeight: FontWeight.w500,
-                    fontSize: 13,
+                    fontSize: AyurezeTheme.textMd,
                   ),
                 ),
               ],

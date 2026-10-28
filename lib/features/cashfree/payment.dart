@@ -7,13 +7,14 @@ import 'package:doctro/widgets/osler_hero.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/core/constants/common_function.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 import 'package:doctro/models/payment.dart';
 import 'package:doctro/network/base_model.dart';
-import 'package:doctro/features/authentication/SignIn.dart';
+import 'package:doctro/features/authentication/sign_in.dart';
 import 'package:doctro/widgets/modern_drawer.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:flutter/material.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/widgets/osler_button.dart';
@@ -24,7 +25,7 @@ class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
 
   @override
-  _PaymentScreen createState() => _PaymentScreen();
+  State<PaymentScreen> createState() => _PaymentScreen();
 }
 
 class _PaymentScreen extends State<PaymentScreen> {
@@ -83,7 +84,7 @@ class _PaymentScreen extends State<PaymentScreen> {
       },
       child: RefreshIndicator(
         onRefresh: paymentsFunction,
-        color: AyurezeTheme.forestDeep,
+        color: AyurezeTheme.iconPrimary,
         child: Scaffold(
           key: _scaffoldKey,
           backgroundColor: AyurezeTheme.canvas,
@@ -97,29 +98,14 @@ class _PaymentScreen extends State<PaymentScreen> {
                     color: AyurezeTheme.textPrimary,
                   ),
             ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  _scaffoldKey.currentState!.openDrawer();
-                },
-                icon: SvgPicture.asset(
-                  "assets/icons/dMenuBar.svg",
-                  height: 16,
-                  colorFilter: ColorFilter.mode(
-                      AyurezeTheme.forestDeep, BlendMode.srcIn),
-                ),
-              ),
-            ],
+            // No custom menu action: a Scaffold with a drawer already gets
+            // a leading menu button, so this screen showed two.
           ),
           body: FutureBuilder(
             future: payments,
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done) {
-                return Center(
-                  child: CircularProgressIndicator(
-                    color: AyurezeTheme.forestDeep,
-                  ),
-                );
+                return const OslerLoadingView(message: 'Loading payments…');
               }
 
               return Stack(
@@ -192,7 +178,8 @@ class _PaymentScreen extends State<PaymentScreen> {
 
   Widget _buildSearchCard() {
     return GlassSurface(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AyurezeTheme.spaceXl, vertical: AyurezeTheme.spaceSm),
       child: Row(
         children: [
           Expanded(
@@ -212,7 +199,7 @@ class _PaymentScreen extends State<PaymentScreen> {
             'assets/icons/dSearch.svg',
             height: 20,
             colorFilter:
-                ColorFilter.mode(AyurezeTheme.forestDeep, BlendMode.srcIn),
+                ColorFilter.mode(AyurezeTheme.iconPrimary, BlendMode.srcIn),
           ),
         ],
       ),
@@ -259,7 +246,7 @@ class _PaymentScreen extends State<PaymentScreen> {
     if (_searching() && source.isEmpty) {
       return [
         Padding(
-          padding: const EdgeInsets.only(top: 18),
+          padding: const EdgeInsets.only(top: AyurezeTheme.spaceXl),
           child: Center(
             child: Text(
               getTranslated(context, AppString.result_not_found).toString(),
@@ -288,7 +275,7 @@ class _PaymentScreen extends State<PaymentScreen> {
             ),
             child: HugeIcon(
               icon: HugeIcons.strokeRoundedMoney03,
-              color: AyurezeTheme.forestDeep,
+              color: AyurezeTheme.iconPrimary,
             ),
           ),
           const SizedBox(width: 14),
@@ -314,10 +301,10 @@ class _PaymentScreen extends State<PaymentScreen> {
             ),
           ),
           Text(
-            "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${payment.amount}",
+            "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}${payment.amount}",
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: AyurezeTheme.forestDeep,
+                  color: AyurezeTheme.textPrimary,
                 ),
           ),
         ],
@@ -349,14 +336,14 @@ class _PaymentScreen extends State<PaymentScreen> {
               'assets/icons/longArrow.svg',
               height: 12,
               colorFilter:
-                  ColorFilter.mode(AyurezeTheme.forestDeep, BlendMode.srcIn),
+                  ColorFilter.mode(AyurezeTheme.iconPrimary, BlendMode.srcIn),
             ),
             const SizedBox(width: 10),
             Text(
               "${paymentsRequest.length}",
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: AyurezeTheme.forestDeep,
+                    color: AyurezeTheme.textPrimary,
                   ),
             ),
           ],
@@ -371,7 +358,7 @@ class _PaymentScreen extends State<PaymentScreen> {
       padding: const EdgeInsets.symmetric(
           horizontal: AyurezeTheme.spaceXl, vertical: AyurezeTheme.spaceXl),
       decoration: BoxDecoration(
-        color: AyurezeTheme.forestDeep,
+        color: AyurezeTheme.iconPrimary,
         borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
       ),
       child: Row(
@@ -385,7 +372,7 @@ class _PaymentScreen extends State<PaymentScreen> {
                 ),
           ),
           Text(
-            "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}$sum",
+            "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}$sum",
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
@@ -397,18 +384,17 @@ class _PaymentScreen extends State<PaymentScreen> {
   }
 
   Widget _buildEmptyState() {
+    // Was a stock "No data found!" box captioned "No users" - the wrong
+    // noun for a payments ledger. Swastu state, worded for what's empty.
+    final searching = _searching();
     return GlassSurface(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 36),
-      child: Column(
-        children: [
-          Image.asset("assets/images/no-data.png", height: 88),
-          const SizedBox(height: 10),
-          Text(
-            getTranslated(context, AppString.no_user).toString(),
-            style: TextStyle(color: AyurezeTheme.textSecondary),
-          ),
-        ],
+      child: OslerStateView(
+        icon: HugeIcons.strokeRoundedInvoice03,
+        title: searching ? 'No matching payments' : 'No payments yet',
+        message: searching
+            ? 'Try a different patient name.'
+            : 'Payments from your consultations will appear here.',
       ),
     );
   }
@@ -501,9 +487,11 @@ class _PaymentScreen extends State<PaymentScreen> {
 
   Future<void> loadWalletStats() async {
     try {
-      final String doctorId =
-          SharedPreferenceHelper.getString(Preferences.doctorId);
-      if (doctorId.isNotEmpty) {
+      // getString returns 'N_A' for a missing key, which was sent to the
+      // server as the doctor id.
+      final String? doctorId =
+          SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+      if (doctorId != null && doctorId.isNotEmpty) {
         final stats = await AstraApiService().getDashboardStats(doctorId);
         if (!mounted) return;
         setState(() {
@@ -538,7 +526,7 @@ class _PaymentScreen extends State<PaymentScreen> {
               ),
               HugeIcon(
                   icon: AppIcons.wallet,
-                  color: AyurezeTheme.forestDeep,
+                  color: AyurezeTheme.iconPrimary,
                   size: 24),
             ],
           ),
@@ -551,9 +539,9 @@ class _PaymentScreen extends State<PaymentScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${availableBalance.toStringAsFixed(2)}",
-            style:
-                AyurezeTheme.font(28, FontWeight.w800, AyurezeTheme.forestDeep),
+            "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}${availableBalance.toStringAsFixed(2)}",
+            style: AyurezeTheme.font(AyurezeTheme.text3xl, FontWeight.w800,
+                AyurezeTheme.textPrimary),
           ),
           const SizedBox(height: 16),
           Row(
@@ -638,38 +626,37 @@ class _PaymentScreen extends State<PaymentScreen> {
                       onChanged: (val) => setDialogState(() {}),
                       decoration: InputDecoration(
                         labelText: "Amount to Withdraw (Min ₹100)",
-                        prefixText: SharedPreferenceHelper.getString(
-                            Preferences.currency_symbol),
+                        prefixText: (SharedPreferenceHelper.getStringOrNull(
+                                Preferences.currency_symbol) ??
+                            ''),
                       ),
                     ),
                     const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text("UPI",
-                                style: Theme.of(context).textTheme.bodySmall),
-                            value: "UPI",
-                            groupValue: payoutMode,
-                            contentPadding: EdgeInsets.zero,
-                            onChanged: (val) {
-                              setDialogState(() => payoutMode = val!);
-                            },
+                    RadioGroup<String>(
+                      groupValue: payoutMode,
+                      onChanged: (val) {
+                        setDialogState(() => payoutMode = val!);
+                      },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: Text("UPI",
+                                  style: Theme.of(context).textTheme.bodySmall),
+                              value: "UPI",
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<String>(
-                            title: Text("Bank",
-                                style: Theme.of(context).textTheme.bodySmall),
-                            value: "Bank",
-                            groupValue: payoutMode,
-                            contentPadding: EdgeInsets.zero,
-                            onChanged: (val) {
-                              setDialogState(() => payoutMode = val!);
-                            },
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: Text("Bank",
+                                  style: Theme.of(context).textTheme.bodySmall),
+                              value: "Bank",
+                              contentPadding: EdgeInsets.zero,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     if (payoutMode == "UPI") ...[
                       TextField(
@@ -726,9 +713,19 @@ class _PaymentScreen extends State<PaymentScreen> {
                           Navigator.pop(context); // close modal
 
                           try {
-                            final String doctorId =
-                                SharedPreferenceHelper.getString(
+                            // getString returns the 'N_A' sentinel when the
+                            // key was never written, which would have sent a
+                            // payout request for a doctor called "N_A".
+                            final String? doctorId =
+                                SharedPreferenceHelper.getStringOrNull(
                                     Preferences.doctorId);
+                            if (doctorId == null) {
+                              if (parentContext.mounted) {
+                                OslerToast.error(parentContext,
+                                    "Couldn't identify your account. Please sign in again.");
+                              }
+                              return;
+                            }
                             final response = await AstraApiService()
                                 .requestWithdraw(
                                     doctorId, amount, payoutDetails);
@@ -760,7 +757,7 @@ class _PaymentScreen extends State<PaymentScreen> {
                     "Submit Request",
                     style: TextStyle(
                         color: isFormValid && !isWithdrawing
-                            ? AyurezeTheme.forestDeep
+                            ? AyurezeTheme.textPrimary
                             : AyurezeTheme.textSecondary,
                         fontWeight: FontWeight.bold),
                   ),

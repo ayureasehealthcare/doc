@@ -1,6 +1,8 @@
 // Standalone validation script for Astra Core
 // Run: dart test/astra/validate_core.dart
 
+// ignore_for_file: avoid_print -- standalone script that reports to stdout.
+
 import 'dart:io';
 
 void main() {

@@ -109,6 +109,159 @@ void main() {
         lessThan(4.5),
       );
     });
+
+    test('both reds are legible under white', () {
+      // The old rose remoteRed50 (#F43F5E) was 3.67:1 under white, which is
+      // why remoteRedFill exists. The Serene Herbalist clay red clears AA
+      // too, so a white label is safe on either.
+      for (final red in [
+        AyurezeTheme.remoteRedFill,
+        AyurezeTheme.remoteRed50
+      ]) {
+        expect(
+          contrastRatio(red.toARGB32(), const Color(0xFFFFFFFF).toARGB32()),
+          greaterThanOrEqualTo(4.5),
+          reason: '$red',
+        );
+      }
+    });
+  });
+
+  group('ink drawn straight on the page', () {
+    // forestDeep/healingGreen100 were used as icon and text colour on
+    // canvas/surface across 20+ screens: 12-14:1 in light mode but
+    // 1.06-1.35:1 in dark mode. iconPrimary/textPrimary are the
+    // replacement; they must clear AA on every page surface in both modes.
+    for (final dark in [false, true]) {
+      test(
+          'iconPrimary and textPrimary on page surfaces '
+          '(${dark ? 'dark' : 'light'})', () {
+        AyurezeTheme.updateThemeMode(dark);
+        addTearDown(() => AyurezeTheme.updateThemeMode(false));
+        for (final ink in [
+          AyurezeTheme.iconPrimary,
+          AyurezeTheme.textPrimary
+        ]) {
+          for (final bg in [
+            AyurezeTheme.canvas,
+            AyurezeTheme.surface,
+            AyurezeTheme.surfaceMuted,
+          ]) {
+            expect(contrastRatio(ink.toARGB32(), bg.toARGB32()),
+                greaterThanOrEqualTo(4.5),
+                reason: '$ink on $bg');
+          }
+        }
+      });
+    }
+
+    test('forestDeep is NOT valid ink on the dark-mode page', () {
+      // Documents why screens must not draw it straight on canvas/surface.
+      expect(
+        contrastRatio(AyurezeTheme.forestDeep.toARGB32(),
+            AyurezeTheme.darkCanvas.toARGB32()),
+        lessThan(3),
+      );
+    });
+  });
+
+  group('error ink', () {
+    // Form errors and "Not in store" draw colorScheme.error straight on the
+    // page. The dark theme used the light theme's deep red: 2.5:1.
+    for (final dark in [false, true]) {
+      test('colorScheme.error on page surfaces (${dark ? 'dark' : 'light'})',
+          () {
+        AyurezeTheme.updateThemeMode(dark);
+        addTearDown(() => AyurezeTheme.updateThemeMode(false));
+        final scheme =
+            (dark ? AyurezeTheme.darkTheme() : AyurezeTheme.lightTheme())
+                .colorScheme;
+        for (final bg in [
+          AyurezeTheme.canvas,
+          AyurezeTheme.surface,
+          AyurezeTheme.surfaceMuted,
+        ]) {
+          expect(contrastRatio(scheme.error.toARGB32(), bg.toARGB32()),
+              greaterThanOrEqualTo(4.5),
+              reason: '${scheme.error} on $bg');
+        }
+        expect(
+            contrastRatio(scheme.onError.toARGB32(), scheme.error.toARGB32()),
+            greaterThanOrEqualTo(4.5));
+      });
+    }
+  });
+
+  group('page accent', () {
+    for (final dark in [false, true]) {
+      test(
+          'accent is visible on every page surface '
+          '(${dark ? 'dark' : 'light'})', () {
+        AyurezeTheme.updateThemeMode(dark);
+        addTearDown(() => AyurezeTheme.updateThemeMode(false));
+        for (final bg in [
+          AyurezeTheme.canvas,
+          AyurezeTheme.surface,
+          AyurezeTheme.surfaceMuted,
+        ]) {
+          // 3:1 is the WCAG threshold for UI components like spinners.
+          expect(contrastRatio(AyurezeTheme.accent.toARGB32(), bg.toARGB32()),
+              greaterThanOrEqualTo(3),
+              reason: 'accent on $bg');
+        }
+      });
+    }
+  });
+
+  group('in-call surfaces (always dark)', () {
+    test('callForeground clears AA on both ends of the waiting gradient', () {
+      // The waiting text used textPrimary, which is dark ink in light mode:
+      // 1.45:1 on teal-900.
+      for (final stop in AyurezeTheme.callWaitingGradient.colors) {
+        expect(
+          contrastRatio(
+              AyurezeTheme.callForeground.toARGB32(), stop.toARGB32()),
+          greaterThanOrEqualTo(4.5),
+          reason: 'on $stop',
+        );
+      }
+      expect(
+        contrastRatio(AyurezeTheme.callForeground.toARGB32(),
+            AyurezeTheme.callBackground.toARGB32()),
+        greaterThanOrEqualTo(4.5),
+      );
+    });
+  });
+
+  group('type scale', () {
+    test('the textTheme is built on the size tokens, in both modes', () {
+      for (final raw in [
+        AyurezeTheme.lightTheme(),
+        AyurezeTheme.darkTheme(),
+      ]) {
+        // As Theme.of(context) sees it: sizes the theme leaves unset
+        // (bodySmall, labelSmall) come from the typography geometry.
+        final theme = ThemeData.localize(
+            raw, raw.typography.geometryThemeFor(ScriptCategory.englishLike));
+        final t = theme.textTheme;
+        expect(t.headlineLarge!.fontSize, AyurezeTheme.text3xl);
+        expect(t.headlineMedium!.fontSize, AyurezeTheme.text2xl);
+        expect(t.headlineSmall!.fontFamily, AyurezeTheme.serifFamily);
+        expect(t.headlineMedium!.fontFamily, AyurezeTheme.serifFamily);
+        expect(t.titleLarge!.fontSize, AyurezeTheme.textXl);
+        expect(t.titleMedium!.fontSize, AyurezeTheme.textLg);
+        expect(t.bodyLarge!.fontSize, AyurezeTheme.textBase);
+        expect(t.bodyMedium!.fontSize, AyurezeTheme.textMd);
+        expect(t.bodySmall!.fontSize, AyurezeTheme.textSm);
+        expect(t.labelSmall!.fontSize, AyurezeTheme.textXs);
+      }
+    });
+
+    test('app bar titles are the same size in light and dark mode', () {
+      // Were 22 (light) vs 18 (dark), so titles jumped on a theme switch.
+      expect(AyurezeTheme.lightTheme().appBarTheme.titleTextStyle!.fontSize,
+          AyurezeTheme.darkTheme().appBarTheme.titleTextStyle!.fontSize);
+    });
   });
 
   group('brand accent pairs (shade 100 foreground on shade 10 tint)', () {

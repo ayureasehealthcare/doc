@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/config/env.dart';
 
@@ -37,9 +37,10 @@ class AstraConfig {
   /// Brain/AI endpoints
   static const String brainChat = 'brain/chat';
   static const String brainHealth = 'brain/health';
-  static const String brainDoctorSummary = 'brain/doctor-summary';
-  static const String brainAnalyzeSafety = 'brain/analyze-safety';
-  static const String brainExtractSchedule = 'brain/extract-schedule';
+  // Underscores, as astra serves them; the hyphenated forms 404.
+  static const String brainDoctorSummary = 'brain/doctor_summary';
+  static const String brainAnalyzeSafety = 'brain/analyze_safety';
+  static const String brainExtractSchedule = 'brain/extract_schedule';
   static const String brainProfileAnalysis = 'brain/profile-analysis';
   static const String brainGenerateWellness = 'brain/generate-wellness';
 
@@ -82,7 +83,6 @@ class AstraConfig {
 
   /// Health checks
   static const String health = 'health';
-  static const String healthReady = 'health/ready';
 
   // ============================================================
   // TIMEOUT CONFIGURATION

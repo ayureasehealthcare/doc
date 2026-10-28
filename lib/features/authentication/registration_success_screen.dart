@@ -21,7 +21,7 @@ class RegistrationSuccessScreen extends StatefulWidget {
   });
 
   @override
-  _RegistrationSuccessScreenState createState() =>
+  State<RegistrationSuccessScreen> createState() =>
       _RegistrationSuccessScreenState();
 }
 
@@ -79,7 +79,8 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
       backgroundColor: AyurezeTheme.canvas,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
+          padding:
+              const EdgeInsets.symmetric(horizontal: AyurezeTheme.space3xl),
           child: Column(
             children: [
               const Spacer(flex: 2),
@@ -96,8 +97,8 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
                     children: [
                       Text(
                         "Welcome, Dr. ${widget.doctorName}!",
-                        style: AyurezeTheme.font(
-                            28, FontWeight.w800, AyurezeTheme.textPrimary,
+                        style: AyurezeTheme.font(AyurezeTheme.text3xl,
+                            FontWeight.w800, AyurezeTheme.textPrimary,
                             letterSpacing: -1),
                         textAlign: TextAlign.center,
                       ),
@@ -209,12 +210,12 @@ class _RegistrationSuccessScreenState extends State<RegistrationSuccessScreen>
           child: Text(
             value,
             style: AyurezeTheme.font(
-              isPrimary ? 18 : 14,
+              isPrimary ? AyurezeTheme.textXl : AyurezeTheme.textMd,
               isPrimary || isStatus ? FontWeight.w800 : FontWeight.w500,
               isStatus
                   ? AyurezeTheme.warning
                   : (isPrimary
-                      ? AyurezeTheme.healingGreen100
+                      ? AyurezeTheme.iconPrimary
                       : AyurezeTheme.textPrimary),
             ),
             textAlign: TextAlign.right,

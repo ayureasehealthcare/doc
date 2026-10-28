@@ -41,13 +41,13 @@ class OslerDropdown extends StatelessWidget {
           decoration: InputDecoration(
             filled: true,
             fillColor: AyurezeTheme.surfaceMuted,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            contentPadding: const EdgeInsets.symmetric(
+                horizontal: AyurezeTheme.spaceXl, vertical: 18),
             prefixIcon: prefixIcon != null
                 ? HugeIcon(
                     icon: prefixIcon!,
                     size: 20,
-                    color: AyurezeTheme.healingGreen100)
+                    color: AyurezeTheme.iconPrimary)
                 : null,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg),

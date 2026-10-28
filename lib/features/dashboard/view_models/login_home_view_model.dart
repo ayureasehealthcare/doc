@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/models/today_appointment.dart';
 import 'package:doctro/models/payment.dart';
 import 'package:doctro/models/review.dart';

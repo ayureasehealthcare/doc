@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/features/authentication/SignIn.dart';
+import 'package:doctro/features/authentication/sign_in.dart';
 import 'package:doctro/features/shell/app_shell.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 
 /// Picks the first screen the app shows: the dashboard when a session is
 /// already stored, sign-in otherwise.
@@ -84,27 +85,48 @@ class _BrandIntro extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    // Same opening as the patient app: Swastu waking on the cream canvas
+    // under a soft sage halo, with the serif AyurEze name.
     return Positioned.fill(
       child: DecoratedBox(
-        decoration: const BoxDecoration(gradient: AyurezeTheme.auroraGradient),
+        decoration: BoxDecoration(
+          color: AyurezeTheme.canvas,
+          gradient: RadialGradient(
+            radius: 0.7,
+            colors: [
+              AyurezeTheme.healingGreen10.withValues(alpha: 0.9),
+              AyurezeTheme.canvas,
+            ],
+          ),
+        ),
         child: Center(
-          child: ClipRRect(
-            borderRadius: AyurezeTheme.borderRadius2xl,
-            child: Image.asset(
-              'assets/images/appIcon.png',
-              width: 112,
-              height: 112,
-              fit: BoxFit.cover,
-            ),
-          )
-              .animate()
-              .scale(
-                begin: const Offset(0.6, 0.6),
-                end: const Offset(1, 1),
-                duration: 450.ms,
-                curve: Curves.easeOutBack,
-              )
-              .fadeIn(duration: 350.ms),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Swastu(mood: SwastuMood.waking, size: 132)
+                  .animate()
+                  .scale(
+                    begin: const Offset(0.8, 0.8),
+                    end: const Offset(1, 1),
+                    duration: 450.ms,
+                    curve: Curves.easeOutBack,
+                  )
+                  .fadeIn(duration: 350.ms),
+              const SizedBox(height: AyurezeTheme.spaceLg),
+              Text(
+                'AyurEze',
+                style: textTheme.headlineLarge
+                    ?.copyWith(color: AyurezeTheme.iconPrimary),
+              ),
+              const SizedBox(height: AyurezeTheme.spaceXs),
+              Text(
+                'Calm, connected Ayurvedic practice',
+                style: textTheme.bodyMedium
+                    ?.copyWith(color: AyurezeTheme.textSecondary),
+              ),
+            ],
+          ).animate().fadeIn(duration: 300.ms),
         ),
       ),
     ).animate().fadeOut(delay: 500.ms, duration: 400.ms);

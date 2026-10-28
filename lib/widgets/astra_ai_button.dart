@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/swastu.dart';
 import 'package:doctro/features/consultation/astra_chat/astra_chat_page.dart';
 
 /// Astra AI Quick Access Button
@@ -60,11 +61,12 @@ class AstraAIFloatingButton extends StatelessWidget {
                   // Pulsing effect
                   _PulsingEffect(size: size),
 
-                  // Icon
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedBrain01,
-                    color: Colors.white,
-                    size: size * 0.5,
+                  // Swastu, still (this button sits on many screens).
+                  Swastu(
+                    mood: SwastuMood.happy,
+                    size: size * 0.62,
+                    named: false,
+                    idleMotion: false,
                   ),
                 ],
               ),
@@ -166,10 +168,10 @@ class AstraAIInlineButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
       child: InkWell(
         onTap: onPressed,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusXl),
         child: Container(
           padding: const EdgeInsets.symmetric(
               horizontal: AyurezeTheme.spaceMd, vertical: AyurezeTheme.spaceSm),
@@ -187,7 +189,7 @@ class AstraAIInlineButton extends StatelessWidget {
                 style: TextStyle(
                   color: AyurezeTheme.healingGreen50,
                   fontWeight: FontWeight.w600,
-                  fontSize: 13,
+                  fontSize: AyurezeTheme.textMd,
                 ),
               ),
             ],
@@ -277,7 +279,8 @@ class _AstraAIStatusIndicatorState extends State<AstraAIStatusIndicator> {
     return GestureDetector(
       onTap: _checkHealth,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AyurezeTheme.spaceMd, vertical: 6),
         decoration: BoxDecoration(
           color: _isHealthy
               ? AyurezeTheme.healingGreen50.withValues(alpha: 0.1)

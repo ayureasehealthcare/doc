@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/core/astra/suggestions/suggestion_model.dart';
 import 'package:doctro/core/astra/navigation/app_router.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 
 /// AI Suggestions Card Widget
 ///
@@ -73,7 +74,8 @@ class AISuggestionsCard extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+      padding: const EdgeInsets.fromLTRB(AyurezeTheme.spaceLg,
+          AyurezeTheme.spaceMd, AyurezeTheme.spaceSm, AyurezeTheme.spaceSm),
       decoration: BoxDecoration(
         color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
         borderRadius: const BorderRadius.only(
@@ -93,12 +95,13 @@ class AISuggestionsCard extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: AyurezeTheme.textMd,
                 fontWeight: FontWeight.w600,
                 color: AyurezeTheme.textPrimary,
               ),
             ),
           ),
+          const ContentOriginBadge(origin: ContentOrigin.astraSuggestion),
           _buildCollapsibleButton(context),
         ],
       ),
@@ -146,7 +149,8 @@ class AISuggestionsCard extends StatelessWidget {
       child: InkWell(
         onTap: () => _handleSuggestionTap(suggestion),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AyurezeTheme.spaceLg, vertical: 10),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -190,7 +194,7 @@ class AISuggestionsCard extends StatelessWidget {
     return Text(
       suggestion.title,
       style: TextStyle(
-        fontSize: 13,
+        fontSize: AyurezeTheme.textMd,
         fontWeight: FontWeight.w500,
         color: AyurezeTheme.textPrimary,
       ),
@@ -203,7 +207,7 @@ class AISuggestionsCard extends StatelessWidget {
       child: Text(
         suggestion.description!,
         style: TextStyle(
-          fontSize: 12,
+          fontSize: AyurezeTheme.textSm,
           color: AyurezeTheme.textSecondary,
         ),
         maxLines: 2,
@@ -218,16 +222,16 @@ class AISuggestionsCard extends StatelessWidget {
     }
 
     return Container(
-      margin: const EdgeInsets.only(left: 8),
+      margin: const EdgeInsets.only(left: AyurezeTheme.spaceSm),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: suggestion.priorityColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusXs),
       ),
       child: Text(
         suggestion.priority.label,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: AyurezeTheme.textXs,
           fontWeight: FontWeight.w500,
           color: suggestion.priorityColor,
         ),
@@ -270,7 +274,7 @@ class AISuggestionsCard extends StatelessWidget {
             Text(
               '+$count more suggestions',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: AyurezeTheme.textSm,
                 color: AyurezeTheme.textSecondary,
               ),
             ),
@@ -367,7 +371,7 @@ class AISuggestionBadge extends StatelessWidget {
               Text(
                 suggestion.title,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: AyurezeTheme.textSm,
                   fontWeight: FontWeight.w500,
                   color: suggestion.color,
                 ),
@@ -401,7 +405,7 @@ class AISuggestionDot extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
           color: (color ?? Colors.green).withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AyurezeTheme.radiusMd),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -415,7 +419,7 @@ class AISuggestionDot extends StatelessWidget {
             Text(
               count.toString(),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: AyurezeTheme.textXs,
                 fontWeight: FontWeight.bold,
                 color: color ?? Colors.green,
               ),

@@ -21,7 +21,7 @@ class GlassSurface extends StatelessWidget {
   const GlassSurface({
     super.key,
     required this.child,
-    this.radius = AyurezeTheme.radiusXl,
+    this.radius = AyurezeTheme.radiusCard,
     this.blur = 18,
     this.padding,
     this.margin,

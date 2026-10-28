@@ -7,15 +7,14 @@ import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/core/constants/app_string.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/theme/ayureze_date_picker.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
-import 'package:doctro/models/EducationCertificate.dart';
-import 'package:doctro/models/EducationModel.dart';
-import 'package:doctro/models/Treatment.dart';
-import 'package:doctro/models/UpdateProfile.dart';
+import 'package:doctro/models/education_certificate.dart';
+import 'package:doctro/models/education_model.dart';
+import 'package:doctro/models/treatment.dart';
 import 'package:doctro/models/categories.dart';
-import 'package:doctro/models/doctor_profile.dart';
+import 'package:doctro/models/astra_doctor_mapper.dart';
 import 'package:doctro/models/expertise.dart';
 import 'package:doctro/models/hospital.dart';
 import 'package:doctro/models/update_profile_image.dart';
@@ -24,21 +23,26 @@ import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/services/astra_api_service.dart';
+import 'package:doctro/services/doctor_id_resolver.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
 import 'package:doctro/widgets/osler_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+  const ProfileScreen({super.key, this.fetchDoctor});
+
+  /// Loads the doctor record; defaults to [AstraApiService.getDoctorProfile].
+  /// Tests pass a fake so the screen can render without a server.
+  final Future<Map<String, dynamic>> Function(String doctorId)? fetchDoctor;
 
   @override
-  _ProfileScreen createState() => _ProfileScreen();
+  State<ProfileScreen> createState() => _ProfileScreen();
 }
 
 //profile image
@@ -50,6 +54,13 @@ String? image;
 
 class _ProfileScreen extends State<ProfileScreen> {
   Future? doctorLoader;
+
+  /// Why the profile couldn't be loaded, shown instead of an empty form.
+  String? _loadError;
+
+  /// Values of the fields astra can't store, as loaded. [updateProfile]
+  /// diffs against these to tell the doctor which edits were not saved.
+  Map<String, String> _unsupportedAtLoad = const {};
 
   //Add List Data
   List<EducationModel> educationList = [];
@@ -79,7 +90,7 @@ class _ProfileScreen extends State<ProfileScreen> {
   DateTime? _selectedDate;
   String newDateApiPass = "";
   String? showFormat = '';
-  var temp;
+  String? temp;
   List<String> selectedHospitals = [];
 
   //Set Stepper
@@ -159,7 +170,7 @@ class _ProfileScreen extends State<ProfileScreen> {
     Future.delayed(Duration.zero, () {
       if (!mounted) return;
       setState(() {
-        doctorLoader = treatment();
+        doctorLoader = Future.wait([treatment(), doctorProfile()]);
         name = SharedPreferenceHelper.getString(Preferences.name);
         isFilled = SharedPreferenceHelper.getInt(Preferences.is_filled);
         image = SharedPreferenceHelper.getString(Preferences.image);
@@ -191,6 +202,14 @@ class _ProfileScreen extends State<ProfileScreen> {
       body: FutureBuilder(
           future: doctorLoader,
           builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done &&
+                _loadError != null) {
+              return OslerStateView.error(
+                title: "Couldn't load your profile",
+                message: _loadError,
+                onRetry: () => setState(() => doctorLoader = doctorProfile()),
+              );
+            }
             if (snapshot.connectionState == ConnectionState.done) {
               return Theme(
                 data: Theme.of(context).copyWith(
@@ -328,9 +347,9 @@ class _ProfileScreen extends State<ProfileScreen> {
                 ),
               );
             } else {
-              return const Center(
+              return Center(
                 child: CircularProgressIndicator(
-                  color: AyurezeTheme.forestDeep,
+                  color: AyurezeTheme.iconPrimary,
                 ),
               );
             }
@@ -401,113 +420,124 @@ class _ProfileScreen extends State<ProfileScreen> {
     );
   }
 
-  Future<BaseModel<UpdateProfile>> updateProfile() async {
-    var eEducationList = JsonEncoder().convert(educationList);
-    var cCertificateList = JsonEncoder().convert(certificateList);
+  /// The fields of this screen that astra's doctor update
+  /// (UpdateDoctorRequest) can't store, keyed by the label shown to the
+  /// doctor. Only name, video call fee and description are saved.
+  Map<String, String> _unsupportedFields() => {
+        "Date of birth": _pDob.text,
+        "Gender": _genderSelect ?? "",
+        "Education":
+            [_pDegree.text, _pCollege.text, _pCollegeYear.text].join("|"),
+        "Certificates": [_pCertificate.text, _pCertificateYear.text].join("|"),
+        "Experience": _pExperience.text,
+        "Audio call fee": _aAppointmentFees.text,
+        "Time slot": _pTimeSlot.text,
+        "Working hours": "${_pStartTime.text}|${_pEndTime.text}",
+        "Revenue model": _pBasedOn.text,
+        "Popular": _selectedPopular ?? "",
+        "Hospitals": [
+          for (final h in hospitalReq)
+            if (h.isSelected == true) h.id.toString()
+        ].join(","),
+      };
 
-    //pass date formate
-    if (_selectedDate != null) {
-      temp = '$_selectedDate';
-    } else {
-      temp = '$showFormat';
+  Future<void> updateProfile() async {
+    final doctorId =
+        SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+    if (doctorId == null) {
+      OslerToast.error(context,
+          "We couldn't find your doctor ID. Please sign in again, then save your profile.");
+      return;
     }
-
-    String hospitalIds = '';
-    List<String> data = [];
-    for (int i = 0; i < hospitalReq.length; i++) {
-      if (hospitalReq[i].isSelected == true) {
-        data.add(hospitalReq[i].id.toString());
-      }
-    }
-    if (data.isEmpty) {
-      data.add("1");
-    }
-
-    for (int j = 0; j < data.length; j++) {
-      if (data.length <= 1) {
-        hospitalIds = data[j];
-      } else {
-        hospitalIds += '${data[j]},';
-      }
-    }
-
-    if (data.length > 1) {
-      String result = hospitalIds.substring(0, hospitalIds.length - 1);
-      hospitalIds = "$result ";
-    }
-
-    newDateApiPass = DateFormat('yyyy-MM-dd')
-        .format(DateFormat('dd-MM-yyyy').parse(_pDob.text));
-    Map<String, dynamic> body = {
-      "name": _pName.text,
-      "treatment_id": 1, // Default value as it is removed from UI
-      "category_id": 1,
-      "expertise_id": 1,
-      "hospital_id": hospitalIds,
-      "dob": newDateApiPass,
-      "gender": _genderSelect,
-      "education": eEducationList,
-      "certificate": cCertificateList,
-      "experience": _pExperience.text,
-      "appointment_fees": _aAppointmentFees.text,
-      "video_appointment_fees": _vAppointmentFees.text,
-      "start_time": _pStartTime.text.toLowerCase(),
-      "end_time": _pEndTime.text.toLowerCase(),
-      "timeslot": _pTimeSlot.text,
-      "desc": _pDesc.text,
-      "based_on": _pBasedOn.text,
-      "is_popular": _selectedPopular ==
-              getTranslated(context, AppString.popular_yes).toString()
-          ? 1
-          : 0
-    };
-    UpdateProfile response;
+    // PUT doctors/{id} accepts name, phone, specialization,
+    // consultation_fee, available_days, available_times and bio. This screen
+    // has name, description (bio) and the video call fee (the app's
+    // consultations are video calls, so that fee is consultation_fee).
+    // Everything else is diffed below and reported as not saved.
+    final unsaved = AstraDoctorMapper.changedFields(
+        _unsupportedAtLoad, _unsupportedFields());
     try {
-      response = await RestClient(await RetroApi().dioData(context))
-          .updateProfile(body);
+      await AstraApiService().updateDoctorProfile(
+        doctorId,
+        AstraDoctorMapper.updateBody(
+          name: _pName.text,
+          fee: _vAppointmentFees.text,
+          bio: _pDesc.text,
+        ),
+      );
       // The preference write is a side effect, not a UI action, so it stays
       // outside the guard. Only the context uses need mounted.
       SharedPreferenceHelper.setInt(Preferences.is_filled, 1);
+      SharedPreferenceHelper.setString(Preferences.name, _pName.text);
       if (mounted) {
         Navigator.pushNamed(context, "loginHome");
-        OslerToast.success(context, response.msg!);
+        if (unsaved.isEmpty) {
+          OslerToast.success(context, "Profile saved");
+        } else {
+          OslerToast.info(context, AstraDoctorMapper.unsavedMessage(unsaved));
+        }
       }
-    } catch (error) {
-      // print("Exception occur: $error stackTrace: $stacktrace");
-      return BaseModel()..setException(ServerError.withError(error: error));
+    } on AstraApiException catch (e) {
+      if (mounted) OslerToast.error(context, e.message);
+    } catch (e) {
+      if (mounted) {
+        OslerToast.error(
+            context, "Couldn't save your profile. Please try again.");
+      }
     }
-    return BaseModel()..data = response;
   }
 
-  // The legacy REST endpoint this used to call (Apis.doctor_profile) is
+  // The legacy REST endpoint this used to call (GET doctor_profile) is
   // permanently dead - confirmed 404 on the real backend. The real doctor
   // record lives at GET /api/v1/api/doctors/{doctor_id} (AstraApiService.
-  // getDoctorProfile, confirmed live 2026-10-13 with a real test account)
-  // and only has name/email/phone/gender/dob/specialization/photo_url/
-  // certificate_url/is_face_verified - none of the richer Laravel-era
-  // fields this screen also edits (hospital, education/certificate lists,
-  // fees, timeslot, based-on, popularity). Those controllers are simply
-  // left at their default empty text rather than force-unwrapping a field
-  // that no longer exists in the response.
-  Future<BaseModel<DoctorProfile>> doctorProfile() async {
+  // getDoctorProfile). Its response schema is undocumented; an earlier
+  // check (2026-10-13, a real test account) saw name/email/phone/gender/
+  // dob/specialization/photo_url/certificate_url/is_face_verified under
+  // `data`. AstraDoctor.fromResponse reads it defensively. Fields with no
+  // astra counterpart (hospital, education/certificate lists, audio fee,
+  // timeslot, hours, based-on, popularity) stay at their empty defaults.
+  Future<void> doctorProfile() async {
+    final doctorId =
+        SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+    if (doctorId == null) {
+      _loadError =
+          "We couldn't find your doctor ID. Please sign in again to load your profile.";
+      return;
+    }
     try {
-      final doctorId = SharedPreferenceHelper.getString(Preferences.doctorId);
-      if (doctorId.isEmpty) {
-        return BaseModel()
-          ..setException(
-              ServerError.withError(error: Exception('No doctor id saved')));
+      final fetch = widget.fetchDoctor ?? AstraApiService().getDoctorProfile;
+      Map<String, dynamic> record;
+      try {
+        record = await fetch(doctorId);
+      } on AstraApiException catch (e) {
+        // The stored id can be one astra doesn't know (see
+        // DoctorIdResolver); find the right one and try once more.
+        if (e.statusCode != 404 || widget.fetchDoctor != null) rethrow;
+        final resolved = await DoctorIdResolver.ensure();
+        if (resolved == null) {
+          _loadError = "Your doctor profile isn't set up on the Astra server "
+              "yet. Please contact support to have it created.";
+          return;
+        }
+        record = await fetch(resolved);
+      }
+      final doctor = AstraDoctor.fromResponse(record);
+      if (!mounted) return;
+
+      _pName.text = doctor.name ?? _pName.text;
+      final gender = doctor.gender?.toLowerCase();
+      if (gender != null && this.gender.contains(gender)) {
+        _genderSelect = gender;
+      }
+      _pDesc.text = doctor.bio ?? _pDesc.text;
+      if (doctor.experienceYears != null) {
+        _pExperience.text = doctor.experienceText;
+      }
+      if (doctor.consultationFee != null) {
+        _vAppointmentFees.text = doctor.feeText;
       }
 
-      final json = await AstraApiService().getDoctorProfile(doctorId);
-      final data = json['data'] is Map
-          ? Map<String, dynamic>.from(json['data'])
-          : <String, dynamic>{};
-      if (!mounted) return BaseModel()..data = DoctorProfile.fromJson(json);
-
-      _pName.text = (data['name'] as String?) ?? _pName.text;
-      _genderSelect = (data['gender'] as String?) ?? _genderSelect;
-
-      final rawDob = data['dob'] as String?;
+      final rawDob = doctor.dob;
       if (rawDob != null && rawDob.isNotEmpty) {
         showFormat = rawDob;
         try {
@@ -528,10 +558,12 @@ class _ProfileScreen extends State<ProfileScreen> {
         }
       }
 
-      setState(() {});
-      return BaseModel()..data = DoctorProfile.fromJson(json);
-    } catch (error) {
-      return BaseModel()..setException(ServerError.withError(error: error));
+      _unsupportedAtLoad = _unsupportedFields();
+      setState(() => _loadError = null);
+    } on AstraApiException catch (e) {
+      _loadError = e.message;
+    } catch (_) {
+      _loadError = "Check your connection and try again.";
     }
   }
 
@@ -547,7 +579,6 @@ class _ProfileScreen extends State<ProfileScreen> {
           hospitalReq.add(response.data![i]);
         }
       });
-      doctorProfile();
     } catch (error) {
       // print("Exception occur: $error stackTrace: $stacktrace");
       return BaseModel()..setException(ServerError.withError(error: error));
@@ -612,32 +643,30 @@ class _ProfileScreen extends State<ProfileScreen> {
       context: context,
       builder: (BuildContext bc) {
         return SafeArea(
-          child: Container(
-            child: Wrap(
-              children: <Widget>[
-                ListTile(
-                    leading: HugeIcon(icon: AppIcons.photo),
-                    title: Text(
-                      getTranslated(context, AppString.choose_image_gallery)
-                          .toString(),
-                    ),
-                    onTap: () {
-                      proImageFromGallery();
-                      Navigator.of(context).pop();
-                    }),
-                ListTile(
-                  leading: HugeIcon(icon: AppIcons.camera),
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                  leading: HugeIcon(icon: AppIcons.photo),
                   title: Text(
-                    getTranslated(context, AppString.choose_image_camera)
+                    getTranslated(context, AppString.choose_image_gallery)
                         .toString(),
                   ),
                   onTap: () {
-                    proImageFromCamera();
+                    proImageFromGallery();
                     Navigator.of(context).pop();
-                  },
+                  }),
+              ListTile(
+                leading: HugeIcon(icon: AppIcons.camera),
+                title: Text(
+                  getTranslated(context, AppString.choose_image_camera)
+                      .toString(),
                 ),
-              ],
-            ),
+                onTap: () {
+                  proImageFromCamera();
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
           ),
         );
       },
@@ -831,12 +860,10 @@ class _ProfileScreen extends State<ProfileScreen> {
                       _completeYear.clear();
                       Navigator.pop(context);
                     } else {
-                      Fluttertoast.showToast(
-                        msg: getTranslated(context, AppString.please_fill_data)
-                            .toString(),
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                      );
+                      OslerToast.warning(
+                          context,
+                          getTranslated(context, AppString.please_fill_data)
+                              .toString());
                     }
                   });
                 },
@@ -916,12 +943,10 @@ class _ProfileScreen extends State<ProfileScreen> {
                       _year.clear();
                       Navigator.pop(context);
                     } else {
-                      Fluttertoast.showToast(
-                        msg: getTranslated(context, AppString.please_fill_data)
-                            .toString(),
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                      );
+                      OslerToast.warning(
+                          context,
+                          getTranslated(context, AppString.please_fill_data)
+                              .toString());
                     }
                   });
                 },
@@ -1060,196 +1085,178 @@ class _ProfileStep1PersonalInfoState extends State<_ProfileStep1PersonalInfo> {
       child: Form(
         key: widget.formKey,
         child: SingleChildScrollView(
-          child: Container(
-            child: Column(
-              children: [
-                Container(
-                  alignment: Alignment.topLeft,
-                  margin: EdgeInsets.only(top: width * 0.01),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        getTranslated(context, AppString.profile_doctor_name)
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.topLeft,
+                margin: EdgeInsets.only(top: width * 0.01),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      getTranslated(context, AppString.profile_doctor_name)
+                          .toString(),
+                      style: TextStyle(
+                          fontSize: width * 0.04,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    TextFormField(
+                      controller: widget.nameController,
+                      enableInteractiveSelection: false,
+                      keyboardType: TextInputType.name,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp("[a-zA-Z ]")),
+                      ],
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: AyurezeTheme.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: getTranslated(
+                                context, AppString.profile_enter_name_hint)
                             .toString(),
-                        style: TextStyle(
-                            fontSize: width * 0.04,
+                        hintStyle: TextStyle(
+                            fontSize: width * 0.035,
                             color: AyurezeTheme.textSecondary),
                       ),
-                      TextFormField(
-                        controller: widget.nameController,
-                        enableInteractiveSelection: false,
-                        keyboardType: TextInputType.name,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp("[a-zA-Z ]")),
-                        ],
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: AyurezeTheme.textPrimary),
-                        decoration: InputDecoration(
-                          hintText: getTranslated(
-                                  context, AppString.profile_enter_name_hint)
-                              .toString(),
-                          hintStyle: TextStyle(
-                              fontSize: width * 0.035,
-                              color: AyurezeTheme.textSecondary),
-                        ),
-                        validator: (String? value) {
-                          if (value!.isEmpty) {
-                            return getTranslated(context,
-                                    AppString.please_enter_profile_valid_name)
-                                .toString();
-                          } else if (value.trim().isEmpty) {
-                            return getTranslated(
-                                    context, AppString.please_enter_valid_name)
-                                .toString();
-                          }
-                          return null;
-                        },
-                        onSaved: (String? name) {},
-                      ),
-                    ],
-                  ),
+                      validator: (String? value) {
+                        if (value!.isEmpty) {
+                          return getTranslated(context,
+                                  AppString.please_enter_profile_valid_name)
+                              .toString();
+                        } else if (value.trim().isEmpty) {
+                          return getTranslated(
+                                  context, AppString.please_enter_valid_name)
+                              .toString();
+                        }
+                        return null;
+                      },
+                      onSaved: (String? name) {},
+                    ),
+                  ],
                 ),
-                Container(
-                  alignment: Alignment.topLeft,
-                  margin: EdgeInsets.only(top: width * 0.01),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        getTranslated(context, AppString.profile_date_of_birth)
-                            .toString(),
-                        style: TextStyle(
-                            fontSize: width * 0.04,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      TextFormField(
-                        textCapitalization: TextCapitalization.words,
-                        enableInteractiveSelection: false,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AyurezeTheme.textSecondary,
-                                ),
-                        controller: widget.dobController,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          hintText: getTranslated(
-                                  context, AppString.profile_date_of_birth_hint)
-                              .toString(),
-                          hintStyle: TextStyle(
-                            fontSize: width * 0.04,
+              ),
+              Container(
+                alignment: Alignment.topLeft,
+                margin: EdgeInsets.only(top: width * 0.01),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      getTranslated(context, AppString.profile_date_of_birth)
+                          .toString(),
+                      style: TextStyle(
+                          fontSize: width * 0.04,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    TextFormField(
+                      textCapitalization: TextCapitalization.words,
+                      enableInteractiveSelection: false,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: AyurezeTheme.textSecondary,
                           ),
+                      controller: widget.dobController,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        hintText: getTranslated(
+                                context, AppString.profile_date_of_birth_hint)
+                            .toString(),
+                        hintStyle: TextStyle(
+                          fontSize: width * 0.04,
+                          color: AyurezeTheme.textSecondary,
                         ),
-                        validator: (String? value) {
-                          if (value!.isEmpty) {
-                            return getTranslated(
-                                    context, AppString.please_enter_birth_date)
-                                .toString();
-                          }
-                          return null;
-                        },
-                        onTap: widget.onDobTap,
                       ),
-                    ],
-                  ),
+                      // Optional: astra can't store this field yet.
+                      onTap: widget.onDobTap,
+                    ),
+                  ],
                 ),
-                const SizedBox.shrink(),
-                Divider(
-                  height: 4,
-                ),
-                Container(
-                  alignment: Alignment.topLeft,
-                  margin: EdgeInsets.only(top: width * 0.02),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        getTranslated(context, AppString.profile_gender)
-                            .toString(),
-                        style: TextStyle(
-                            fontSize: width * 0.038,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      OslerDropdown(
-                        label: '',
-                        hint: getTranslated(
-                                context, AppString.profile_gender_hint)
-                            .toString(),
-                        value: _genderSelect,
-                        items: widget.genderOptions,
-                        onChanged: (value) {
-                          setState(() => _genderSelect = value);
-                          widget.onGenderChanged(value);
-                        },
-                        validator: (value) {
-                          if (_genderSelect == null) {
-                            return getTranslated(context,
-                                    AppString.please_enter_profile_valid_name)
-                                .toString();
-                          }
-                          return null;
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  alignment: Alignment.topLeft,
-                  margin: EdgeInsets.only(top: width * 0.02),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        getTranslated(context, AppString.profile_description)
-                            .toString(),
-                        style: TextStyle(
-                            fontSize: width * 0.04,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      TextFormField(
-                        controller: widget.descriptionController,
-                        enableInteractiveSelection: false,
-                        keyboardType: TextInputType.name,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp("[a-zA-Z &.,]")),
-                        ],
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: AyurezeTheme.textPrimary),
-                        decoration: InputDecoration(
-                          hintText: getTranslated(
-                                  context, AppString.profile_description_hint)
+              ),
+              const SizedBox.shrink(),
+              Divider(
+                height: 4,
+              ),
+              Container(
+                alignment: Alignment.topLeft,
+                margin: EdgeInsets.only(top: width * 0.02),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      getTranslated(context, AppString.profile_gender)
+                          .toString(),
+                      style: TextStyle(
+                          fontSize: width * 0.038,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    OslerDropdown(
+                      label: '',
+                      hint:
+                          getTranslated(context, AppString.profile_gender_hint)
                               .toString(),
-                          hintStyle: TextStyle(
-                              fontSize: width * 0.035,
-                              color: AyurezeTheme.textSecondary),
-                        ),
-                        validator: (String? value) {
-                          if (value!.isEmpty) {
-                            return getTranslated(
-                                    context, AppString.please_enter_description)
-                                .toString();
-                          } else if (value.trim().isEmpty) {
-                            return getTranslated(context,
-                                    AppString.please_enter_valid_description)
-                                .toString();
-                          }
-                          return null;
-                        },
-                        onSaved: (String? name) {},
-                      ),
-                    ],
-                  ),
+                      value: _genderSelect,
+                      items: widget.genderOptions,
+                      onChanged: (value) {
+                        setState(() => _genderSelect = value);
+                        widget.onGenderChanged(value);
+                      },
+                      // Optional: astra can't store this field yet.
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Container(
+                alignment: Alignment.topLeft,
+                margin: EdgeInsets.only(top: width * 0.02),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      getTranslated(context, AppString.profile_description)
+                          .toString(),
+                      style: TextStyle(
+                          fontSize: width * 0.04,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    TextFormField(
+                      controller: widget.descriptionController,
+                      enableInteractiveSelection: false,
+                      keyboardType: TextInputType.name,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp("[a-zA-Z &.,]")),
+                      ],
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: AyurezeTheme.textPrimary),
+                      decoration: InputDecoration(
+                        hintText: getTranslated(
+                                context, AppString.profile_description_hint)
+                            .toString(),
+                        hintStyle: TextStyle(
+                            fontSize: width * 0.035,
+                            color: AyurezeTheme.textSecondary),
+                      ),
+                      validator: (String? value) {
+                        if (value!.isEmpty) {
+                          return getTranslated(
+                                  context, AppString.please_enter_description)
+                              .toString();
+                        } else if (value.trim().isEmpty) {
+                          return getTranslated(context,
+                                  AppString.please_enter_valid_description)
+                              .toString();
+                        }
+                        return null;
+                      },
+                      onSaved: (String? name) {},
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -1294,291 +1301,237 @@ class _ProfileStep2Education extends StatelessWidget {
     return Form(
       key: formKey,
       child: SingleChildScrollView(
-        child: Container(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.01),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.profile_degree)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    TextFormField(
-                      controller: degreeController,
-                      keyboardType: TextInputType.text,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(
-                                context, AppString.profile_degree_hint)
-                            .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_degree)
-                              .toString();
-                        } else if (value.trim().isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_valid_degree)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.01),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.profile_college)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    TextFormField(
-                      controller: collegeController,
-                      keyboardType: TextInputType.text,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(
-                                context, AppString.profile_college_hint)
-                            .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_college)
-                              .toString();
-                        } else if (value.trim().isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_valid_college)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.01),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(
-                              context, AppString.profile_year_of_completion)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    TextFormField(
-                      controller: collegeYearController,
-                      keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp("[0-9]"))
-                      ],
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText:
-                            getTranslated(context, AppString.profile_year_hint)
-                                .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(context,
-                                  AppString.please_enter_year_of_completion)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  onAddEducation(context);
-                },
-                child: Container(
-                  margin: EdgeInsets.only(top: height * 0.01),
-                  height: width * 0.10,
-                  width: width * 0.35,
-                  child: Row(
-                    children: [
-                      Card(
-                        color: AyurezeTheme.border,
-                        shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AyurezeTheme.radiusPill)),
-                        child: HugeIcon(
-                            icon: AppIcons.add,
-                            size: width * 0.06,
-                            color: AyurezeTheme.actionButtonPrimary),
-                      ),
-                      Text(getTranslated(
-                              context, AppString.profile_add_more_button)
-                          .toString())
-                    ],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.01),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_degree).toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
                   ),
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.03),
-                child: Column(
-                  children: [
-                    Text(
-                      getTranslated(
-                              context, AppString.profile_dialog_certificate)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
+                  TextFormField(
+                    controller: degreeController,
+                    keyboardType: TextInputType.text,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText:
+                          getTranslated(context, AppString.profile_degree_hint)
+                              .toString(),
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
-                    )
-                  ],
-                ),
-              ),
-              TextFormField(
-                controller: certificateController,
-                keyboardType: TextInputType.text,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AyurezeTheme.textPrimary),
-                decoration: InputDecoration(
-                  hintText: getTranslated(
-                          context, AppString.profile_dialog_certificate_hint)
-                      .toString(),
-                  hintStyle: TextStyle(
-                      fontSize: width * 0.035,
-                      color: AyurezeTheme.textSecondary),
-                ),
-                validator: (String? value) {
-                  if (value!.isEmpty) {
-                    return getTranslated(
-                            context, AppString.dialog_please_enter_certificate)
-                        .toString();
-                  } else if (value.trim().isEmpty) {
-                    return getTranslated(context,
-                            AppString.dialog_please_enter_valid_certificate)
-                        .toString();
-                  }
-                  return null;
-                },
-                onSaved: (String? name) {},
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  children: [
-                    Text(
-                      getTranslated(context,
-                              AppString.profile_dialog_certificate_year)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    )
-                  ],
-                ),
-              ),
-              TextFormField(
-                controller: certificateYearController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp("[0-9]"))
+                    ),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
                 ],
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: AyurezeTheme.textPrimary),
-                decoration: InputDecoration(
-                  hintText: getTranslated(context,
-                          AppString.profile_dialog_certificate_year_hint)
-                      .toString(),
-                  hintStyle: TextStyle(
-                      fontSize: width * 0.035,
-                      color: AyurezeTheme.textSecondary),
-                ),
-                validator: (String? value) {
-                  if (value!.isEmpty) {
-                    return getTranslated(context,
-                            AppString.dialog_please_enter_certificate_year)
-                        .toString();
-                  }
-                  return null;
-                },
-                onSaved: (String? name) {},
               ),
-              Container(
-                margin: EdgeInsets.only(top: height * 0.02),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.01),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_college)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    controller: collegeController,
+                    keyboardType: TextInputType.text,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText:
+                          getTranslated(context, AppString.profile_college_hint)
+                              .toString(),
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.01),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_year_of_completion)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    controller: collegeYearController,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[0-9]"))
+                    ],
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText:
+                          getTranslated(context, AppString.profile_year_hint)
+                              .toString(),
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                onAddEducation(context);
+              },
+              child: Container(
+                margin: EdgeInsets.only(top: height * 0.01),
                 height: width * 0.10,
                 width: width * 0.35,
-                child: GestureDetector(
-                  onTap: () {
-                    onAddCertificate(context);
-                  },
-                  child: Row(
-                    children: [
-                      Card(
-                        color: AyurezeTheme.border,
-                        shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AyurezeTheme.radiusPill)),
-                        child: HugeIcon(
-                            icon: AppIcons.add,
-                            size: width * 0.06,
-                            color: AyurezeTheme.actionButtonPrimary),
-                      ),
-                      Text(getTranslated(
-                              context, AppString.profile_add_more_button)
-                          .toString())
-                    ],
-                  ),
+                child: Row(
+                  children: [
+                    Card(
+                      color: AyurezeTheme.border,
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AyurezeTheme.radiusPill)),
+                      child: HugeIcon(
+                          icon: AppIcons.add,
+                          size: width * 0.06,
+                          color: AyurezeTheme.actionButtonPrimary),
+                    ),
+                    Text(getTranslated(
+                            context, AppString.profile_add_more_button)
+                        .toString())
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.03),
+              child: Column(
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_dialog_certificate)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  )
+                ],
+              ),
+            ),
+            TextFormField(
+              controller: certificateController,
+              keyboardType: TextInputType.text,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AyurezeTheme.textPrimary),
+              decoration: InputDecoration(
+                hintText: getTranslated(
+                        context, AppString.profile_dialog_certificate_hint)
+                    .toString(),
+                hintStyle: TextStyle(
+                    fontSize: width * 0.035, color: AyurezeTheme.textSecondary),
+              ),
+              // Optional: astra can't store this field yet.
+              onSaved: (String? name) {},
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                children: [
+                  Text(
+                    getTranslated(
+                            context, AppString.profile_dialog_certificate_year)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  )
+                ],
+              ),
+            ),
+            TextFormField(
+              controller: certificateYearController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp("[0-9]"))
+              ],
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: AyurezeTheme.textPrimary),
+              decoration: InputDecoration(
+                hintText: getTranslated(
+                        context, AppString.profile_dialog_certificate_year_hint)
+                    .toString(),
+                hintStyle: TextStyle(
+                    fontSize: width * 0.035, color: AyurezeTheme.textSecondary),
+              ),
+              // Optional: astra can't store this field yet.
+              onSaved: (String? name) {},
+            ),
+            Container(
+              margin: EdgeInsets.only(top: height * 0.02),
+              height: width * 0.10,
+              width: width * 0.35,
+              child: GestureDetector(
+                onTap: () {
+                  onAddCertificate(context);
+                },
+                child: Row(
+                  children: [
+                    Card(
+                      color: AyurezeTheme.border,
+                      shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AyurezeTheme.radiusPill)),
+                      child: HugeIcon(
+                          icon: AppIcons.add,
+                          size: width * 0.06,
+                          color: AyurezeTheme.actionButtonPrimary),
+                    ),
+                    Text(getTranslated(
+                            context, AppString.profile_add_more_button)
+                        .toString())
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1631,359 +1584,313 @@ class _ProfileStep3ProfessionalDetails extends StatelessWidget {
     return Form(
       key: formKey,
       child: SingleChildScrollView(
-        child: Container(
-          child: Column(
-            children: [
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.profile_experience)
+        child: Column(
+          children: [
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_experience)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    enableInteractiveSelection: false,
+                    controller: experienceController,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[0-9]")),
+                    ],
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: getTranslated(
+                              context, AppString.profile_experience_hint)
                           .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    TextFormField(
-                      enableInteractiveSelection: false,
-                      controller: experienceController,
-                      keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp("[0-9]")),
-                      ],
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(
-                                context, AppString.profile_experience_hint)
-                            .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_experience)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
+                ],
               ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Video call fee",
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    TextFormField(
-                      enableInteractiveSelection: false,
-                      controller: videoFeeController,
-                      keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp("[0-9]")),
-                      ],
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(context,
-                                AppString.profile_appointment_fees_hint)
-                            .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(context,
-                                  AppString.please_enter_appointment_fees)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Audio call fee",
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    TextFormField(
-                      enableInteractiveSelection: false,
-                      controller: audioFeeController,
-                      keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp("[0-9]")),
-                      ],
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(context,
-                                AppString.profile_appointment_fees_hint)
-                            .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(context,
-                                  AppString.please_enter_appointment_fees)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.profile_time_slot)
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Video call fee",
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    enableInteractiveSelection: false,
+                    controller: videoFeeController,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[0-9]")),
+                    ],
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: getTranslated(
+                              context, AppString.profile_appointment_fees_hint)
                           .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
                           color: AyurezeTheme.textSecondary),
                     ),
-                    TextFormField(
-                      enableInteractiveSelection: false,
-                      controller: timeSlotController,
-                      keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp("[0-9]")),
-                      ],
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(
-                                context, AppString.profile_time_slot_hint)
+                    validator: (String? value) {
+                      if (value!.isEmpty) {
+                        return getTranslated(context,
+                                AppString.please_enter_appointment_fees)
+                            .toString();
+                      }
+                      return null;
+                    },
+                    onSaved: (String? name) {},
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Audio call fee",
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    enableInteractiveSelection: false,
+                    controller: audioFeeController,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[0-9]")),
+                    ],
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: getTranslated(
+                              context, AppString.profile_appointment_fees_hint)
+                          .toString(),
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_time_slot)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    enableInteractiveSelection: false,
+                    controller: timeSlotController,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp("[0-9]")),
+                    ],
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: getTranslated(
+                              context, AppString.profile_time_slot_hint)
+                          .toString(),
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.revenue_model).toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  DropdownButtonFormField<String>(
+                    initialValue:
+                        ["Commission"].contains(basedOnController.text)
+                            ? basedOnController.text
+                            : null,
+                    hint: Text(
+                        getTranslated(context, AppString.revenue_model_hint)
+                            .toString()),
+                    items: ["Commission"].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: onBasedOnChanged,
+                    // Optional: astra can't store this field yet.
+                    decoration: InputDecoration(
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_start_time)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    enableInteractiveSelection: false,
+                    controller: startTimeController,
+                    readOnly: true,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: getTranslated(
+                              context, AppString.profile_start_time_hint)
+                          .toString(),
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    onTap: () => onPickStartTime(context),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_end_time)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  TextFormField(
+                    enableInteractiveSelection: false,
+                    controller: endTimeController,
+                    readOnly: true,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: AyurezeTheme.textPrimary),
+                    decoration: InputDecoration(
+                      hintText: getTranslated(
+                              context, AppString.profile_end_time_hint)
+                          .toString(),
+                      hintStyle: TextStyle(
+                          fontSize: width * 0.035,
+                          color: AyurezeTheme.textSecondary),
+                    ),
+                    onTap: () => onPickEndTime(context),
+                    // Optional: astra can't store this field yet.
+                    onSaved: (String? name) {},
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              alignment: Alignment.topLeft,
+              margin: EdgeInsets.only(top: width * 0.02),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    getTranslated(context, AppString.profile_popular)
+                        .toString(),
+                    style: TextStyle(
+                        fontSize: width * 0.038,
+                        color: AyurezeTheme.textSecondary),
+                  ),
+                  DropdownButton(
+                    hint: Text(getTranslated(context, AppString.profile_popular)
+                        .toString()),
+                    value: selectedPopular == '0'
+                        ? getTranslated(context, AppString.popular_no)
+                            .toString()
+                        : getTranslated(context, AppString.popular_yes)
                             .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_time_slot)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
+                    isExpanded: true,
+                    iconSize: 35,
+                    onChanged: onPopularChanged,
+                    items: popularOptions.map((popular) {
+                      return DropdownMenuItem(
+                        value: popular,
+                        child: Text(popular),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.revenue_model)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    DropdownButtonFormField<String>(
-                      initialValue:
-                          ["Commission"].contains(basedOnController.text)
-                              ? basedOnController.text
-                              : null,
-                      hint: Text(
-                          getTranslated(context, AppString.revenue_model_hint)
-                              .toString()),
-                      items: ["Commission"].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: onBasedOnChanged,
-                      validator: (value) {
-                        if (basedOnController.text.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_based_on)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      decoration: InputDecoration(
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.profile_start_time)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    TextFormField(
-                      enableInteractiveSelection: false,
-                      controller: startTimeController,
-                      readOnly: true,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(
-                                context, AppString.profile_start_time_hint)
-                            .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      onTap: () => onPickStartTime(context),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_start_time)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.profile_end_time)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    TextFormField(
-                      enableInteractiveSelection: false,
-                      controller: endTimeController,
-                      readOnly: true,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: AyurezeTheme.textPrimary),
-                      decoration: InputDecoration(
-                        hintText: getTranslated(
-                                context, AppString.profile_end_time_hint)
-                            .toString(),
-                        hintStyle: TextStyle(
-                            fontSize: width * 0.035,
-                            color: AyurezeTheme.textSecondary),
-                      ),
-                      onTap: () => onPickEndTime(context),
-                      validator: (String? value) {
-                        if (value!.isEmpty) {
-                          return getTranslated(
-                                  context, AppString.please_enter_end_time)
-                              .toString();
-                        }
-                        return null;
-                      },
-                      onSaved: (String? name) {},
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(top: width * 0.02),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      getTranslated(context, AppString.profile_popular)
-                          .toString(),
-                      style: TextStyle(
-                          fontSize: width * 0.038,
-                          color: AyurezeTheme.textSecondary),
-                    ),
-                    DropdownButton(
-                      hint: Text(
-                          getTranslated(context, AppString.profile_popular)
-                              .toString()),
-                      value: selectedPopular == '0'
-                          ? getTranslated(context, AppString.popular_no)
-                              .toString()
-                          : getTranslated(context, AppString.popular_yes)
-                              .toString(),
-                      isExpanded: true,
-                      iconSize: 35,
-                      onChanged: onPopularChanged,
-                      items: popularOptions.map((popular) {
-                        return DropdownMenuItem(
-                          value: popular,
-                          child: Text(popular),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -2024,12 +1931,12 @@ class _ProfileHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
+                    onTap: onBack,
                     child: HugeIcon(
                       icon: AppIcons.back,
                       size: 20,
                       color: Colors.white,
                     ),
-                    onTap: onBack,
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -2134,7 +2041,9 @@ class _ProfileHeader extends StatelessWidget {
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium
-                              ?.copyWith(color: Colors.white, height: 1.05),
+                              ?.copyWith(
+                                color: Colors.white,
+                              ),
                         ),
                         const SizedBox(height: 6),
                         Text(

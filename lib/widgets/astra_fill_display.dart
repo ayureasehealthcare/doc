@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/services/astra_api_service.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 
 /// Widget to display Astra Fill health intake records submitted by patient
 /// This shows symptoms, vitals, medical history that patient filled in their app
@@ -16,7 +17,7 @@ class AstraFillDisplayWidget extends StatefulWidget {
   });
 
   @override
-  _AstraFillDisplayWidgetState createState() => _AstraFillDisplayWidgetState();
+  State<AstraFillDisplayWidget> createState() => _AstraFillDisplayWidgetState();
 }
 
 class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
@@ -109,8 +110,9 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
             Expanded(
               child: Text(
                 "No health intake data available. Patient hasn't filled Astra form yet.",
-                style:
-                    TextStyle(color: AyurezeTheme.textSecondary, fontSize: 13),
+                style: TextStyle(
+                    color: AyurezeTheme.textSecondary,
+                    fontSize: AyurezeTheme.textMd),
               ),
             ),
           ],
@@ -161,7 +163,12 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AyurezeTheme.radiusLg),
           gradient: LinearGradient(
-            colors: [AyurezeTheme.purple.withValues(alpha: 0.05), Colors.white],
+            // Ends on the themed surface, not white: a white end stranded the
+            // dark-mode (light) text on a near-white corner.
+            colors: [
+              AyurezeTheme.purple.withValues(alpha: 0.05),
+              AyurezeTheme.surface,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -181,68 +188,74 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                   borderRadius: BorderRadius.vertical(
                       top: Radius.circular(AyurezeTheme.radiusLg)),
                 ),
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: EdgeInsets.all(AyurezeTheme.spaceSm),
-                      decoration: BoxDecoration(
-                        color: AyurezeTheme.purple,
-                        borderRadius:
-                            BorderRadius.circular(AyurezeTheme.radiusSm),
-                      ),
-                      child: HugeIcon(
-                          icon: HugeIcons.strokeRoundedSparkles,
-                          color: Colors.white,
-                          size: 20),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Astra AI Health Intake",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  color: AyurezeTheme.purple,
-                                ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(AyurezeTheme.spaceSm),
+                          decoration: BoxDecoration(
+                            color: AyurezeTheme.purple,
+                            borderRadius:
+                                BorderRadius.circular(AyurezeTheme.radiusSm),
                           ),
-                          if (timestamp.isNotEmpty)
-                            Text(
-                              "Submitted by patient",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.copyWith(color: AyurezeTheme.textSecondary),
-                            ),
+                          child: HugeIcon(
+                              icon: HugeIcons.strokeRoundedSparkles,
+                              color: Colors.white,
+                              size: 20),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Astra AI Health Intake",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: AyurezeTheme.purple,
+                                    ),
+                              ),
+                              if (timestamp.isNotEmpty)
+                                Text(
+                                  "Submitted by patient",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                          color: AyurezeTheme.textSecondary),
+                                ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        HugeIcon(
+                          icon: _isExpanded
+                              ? HugeIcons.strokeRoundedArrowUp01
+                              : HugeIcons.strokeRoundedArrowDown01,
+                          color: AyurezeTheme.purple,
+                        ),
+                      ],
+                    ),
+                    // Badges get their own wrapping line, so the title row is
+                    // just icon + title + chevron. Next to the severity pill
+                    // the title had ~100px and wrapped to three lines.
+                    Padding(
+                      padding: const EdgeInsets.only(top: AyurezeTheme.spaceSm),
+                      child: Wrap(
+                        spacing: AyurezeTheme.spaceSm,
+                        runSpacing: AyurezeTheme.spaceXs,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          const ContentOriginBadge(
+                              origin: ContentOrigin.astraSuggestion),
+                          if (severityScore != null)
+                            SeverityPill(score: severityScore),
                         ],
                       ),
-                    ),
-                    if (severityScore != null)
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: _getSeverityColor(severityScore),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "Severity: $severityScore/10",
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                      ),
-                    SizedBox(width: 8),
-                    HugeIcon(
-                      icon: _isExpanded
-                          ? HugeIcons.strokeRoundedArrowUp01
-                          : HugeIcons.strokeRoundedArrowDown01,
-                      color: AyurezeTheme.purple,
                     ),
                   ],
                 ),
@@ -315,7 +328,7 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                                 "${hasBp ? '⚠️ Blood Pressure\n' : ''}"
                                 "${pastHistory.toString().isNotEmpty ? 'Details: $pastHistory' : ''}"
                             .trim(),
-                        iconColor: AyurezeTheme.forestDeep,
+                        iconColor: AyurezeTheme.iconPrimary,
                       ),
 
                     // Previous Treatment
@@ -428,11 +441,12 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
             runSpacing: 8,
             children: items
                 .map((item) => Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: AyurezeTheme.spaceMd, vertical: 6),
                       decoration: BoxDecoration(
                         color: chipColor,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius:
+                            BorderRadius.circular(AyurezeTheme.radiusXl),
                         border:
                             Border.all(color: textColor.withValues(alpha: 0.3)),
                       ),
@@ -440,7 +454,7 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                         item,
                         style: TextStyle(
                             color: textColor,
-                            fontSize: 13,
+                            fontSize: AyurezeTheme.textMd,
                             fontWeight: FontWeight.w500),
                       ),
                     ))
@@ -516,7 +530,7 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
                 ?.copyWith(color: AyurezeTheme.textSecondary)),
         Text(value,
             style: TextStyle(
-                fontSize: 13,
+                fontSize: AyurezeTheme.textMd,
                 fontWeight: FontWeight.bold,
                 color: AyurezeTheme.textPrimary)),
       ],
@@ -556,15 +570,8 @@ class _AstraFillDisplayWidgetState extends State<AstraFillDisplayWidget> {
       title: "Medical History",
       items: conditions,
       chipColor: AyurezeTheme.surfaceMuted,
-      textColor: AyurezeTheme.forestDeep,
+      textColor: AyurezeTheme.textPrimary,
     );
-  }
-
-  Color _getSeverityColor(dynamic score) {
-    int severity = score is int ? score : int.tryParse(score.toString()) ?? 0;
-    if (severity <= 3) return AyurezeTheme.healingGreen50;
-    if (severity <= 6) return AyurezeTheme.warning;
-    return AyurezeTheme.danger;
   }
 }
 
@@ -610,27 +617,18 @@ class AstraFillCompactWidget extends StatelessWidget {
                 ),
                 Spacer(),
                 if (severityScore != null)
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: AyurezeTheme.spaceSm,
-                        vertical: AyurezeTheme.spaceXs),
-                    decoration: BoxDecoration(
-                      color: _getSeverityColor(severityScore),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      "$severityScore/10",
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                  ),
+                  SeverityPill(score: severityScore, compact: true),
               ],
             ),
+            const SizedBox(height: AyurezeTheme.spaceXs),
+            const ContentOriginBadge(origin: ContentOrigin.astraSuggestion),
             ...[
               SizedBox(height: 8),
               Text(
                 "Symptoms: ${symptoms.join(', ')}",
-                style: TextStyle(fontSize: 13, color: AyurezeTheme.textPrimary),
+                style: TextStyle(
+                    fontSize: AyurezeTheme.textMd,
+                    color: AyurezeTheme.textPrimary),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -640,11 +638,48 @@ class AstraFillCompactWidget extends StatelessWidget {
       ),
     );
   }
+}
 
-  Color _getSeverityColor(dynamic score) {
-    int severity = score is int ? score : int.tryParse(score.toString()) ?? 0;
-    if (severity <= 3) return AyurezeTheme.healingGreen50;
-    if (severity <= 6) return AyurezeTheme.warning;
-    return AyurezeTheme.danger;
+/// Severity of a patient's intake as a tint-pair pill (shade 10 behind its
+/// shade 100 ink, 8:1 or better in both themes). It used white text on the
+/// band colour, which was 1.9-4.9:1 across the three bands.
+class SeverityPill extends StatelessWidget {
+  final dynamic score;
+  final bool compact;
+
+  const SeverityPill({super.key, required this.score, this.compact = false});
+
+  static int parse(dynamic score) =>
+      score is int ? score : int.tryParse(score.toString()) ?? 0;
+
+  /// (background, foreground) for the band [score] falls in.
+  static (Color, Color) colorsFor(dynamic score) {
+    final severity = parse(score);
+    if (severity <= 3) {
+      return (AyurezeTheme.healingGreen10, AyurezeTheme.healingGreen100);
+    }
+    if (severity <= 6) {
+      return (AyurezeTheme.sunshineYellow10, AyurezeTheme.sunshineYellow100);
+    }
+    return (AyurezeTheme.remoteRed10, AyurezeTheme.remoteRed100);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (bg, fg) = colorsFor(score);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AyurezeTheme.spaceMd,
+        vertical: AyurezeTheme.spaceXs,
+      ),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AyurezeTheme.radiusPill),
+      ),
+      child: Text(
+        compact ? "$score/10" : "Severity: $score/10",
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg),
+      ),
+    );
   }
 }

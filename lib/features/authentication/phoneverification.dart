@@ -3,7 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
-import 'package:doctro/models/ResentOtp.dart';
+import 'package:doctro/models/resent_otp.dart';
 import 'package:doctro/models/otp_verify.dart';
 import 'package:doctro/network/api_header.dart';
 import 'package:doctro/network/base_model.dart';
@@ -15,7 +15,7 @@ import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 import 'package:doctro/features/consultation/chat/providers/auth_provider.dart';
 import 'package:doctro/features/authentication/professional_registration_screen.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 
 class PhoneVerificationScreen extends StatefulWidget {
@@ -24,7 +24,7 @@ class PhoneVerificationScreen extends StatefulWidget {
   const PhoneVerificationScreen({super.key, this.data});
 
   @override
-  _PhoneVerificationScreenState createState() =>
+  State<PhoneVerificationScreen> createState() =>
       _PhoneVerificationScreenState();
 }
 
@@ -75,7 +75,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
         leading: IconButton(
           icon: HugeIcon(
               icon: HugeIcons.strokeRoundedArrowLeft01,
-              color: AyurezeTheme.forestDeep,
+              color: AyurezeTheme.iconPrimary,
               size: 20),
           onPressed: () => Navigator.pushNamed(context, 'SignIn'),
         ),
@@ -115,7 +115,6 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
                         getTranslated(context, AppString.otp_verification_title)
                             .toString(),
                         style: textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
                           color: AyurezeTheme.textPrimary,
                         ),
                         textAlign: TextAlign.center,
@@ -165,7 +164,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
                                 BorderRadius.circular(AyurezeTheme.radiusMd),
                             color: AyurezeTheme.surface,
                             border: Border.all(
-                              color: AyurezeTheme.forestDeep,
+                              color: AyurezeTheme.iconPrimary,
                               width: 1.5,
                             ),
                           ),
@@ -203,7 +202,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen>
                                   context, AppString.phone_resend_new_code)
                               .toString(),
                           style: textTheme.titleSmall?.copyWith(
-                            color: AyurezeTheme.forestDeep,
+                            color: AyurezeTheme.textPrimary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

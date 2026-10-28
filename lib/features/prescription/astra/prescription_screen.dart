@@ -3,12 +3,14 @@ import 'package:doctro/core/constants/app_icons.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:doctro/services/astra_api_service.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_card.dart';
 import 'package:doctro/widgets/osler_dropdown.dart';
 import 'package:doctro/core/constants/preferences.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/widgets/astra_fill_display.dart';
+import 'package:doctro/features/prescription/astra/prescription_payload.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:convert';
@@ -21,6 +23,10 @@ class PrescriptionScreen extends StatefulWidget {
   final String? doctorId;
   final Map<String, dynamic>? astraFillData;
 
+  /// Pre-fill the dosage suggestion, which astra needs both of.
+  final int? patientAge;
+  final String? patientGender;
+
   const PrescriptionScreen({
     super.key,
     required this.patientId,
@@ -28,10 +34,12 @@ class PrescriptionScreen extends StatefulWidget {
     this.patientPhone,
     this.doctorId,
     this.astraFillData,
+    this.patientAge,
+    this.patientGender,
   });
 
   @override
-  _PrescriptionScreenState createState() => _PrescriptionScreenState();
+  State<PrescriptionScreen> createState() => _PrescriptionScreenState();
 }
 
 class _PrescriptionScreenState extends State<PrescriptionScreen>
@@ -75,6 +83,11 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
     super.dispose();
   }
 
+  /// The diagnosis text Astra pre-filled from the patient's intake, so the
+  /// field can say whether it still shows Astra's draft or the doctor's own
+  /// words.
+  String? _astraDiagnosisDraft;
+
   void _processAstraFillData(Map<String, dynamic> astraFill) {
     if (astraFill['extracted_symptoms'] != null) {
       dynamic symptoms = astraFill['extracted_symptoms'];
@@ -83,6 +96,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
             (symptoms is List) ? symptoms.join(', ') : symptoms.toString();
         _diagnosisController.text =
             "Possible condition related to: $symptomsText";
+        _astraDiagnosisDraft = _diagnosisController.text;
       }
     }
   }
@@ -121,16 +135,16 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
             ? variants.first as Map<String, dynamic>
             : null;
 
-    final dynamic variantId = medicine['shopify_variant_id'] ??
-        medicine['variant_id'] ??
-        medicine['id'] ??
-        firstVariant?['id'];
+    final String? variantId = PrescriptionPayload.variantIdOf(medicine);
 
-    final dynamic variantPrice = medicine['price'] ?? firstVariant?['price'];
+    final dynamic variantPrice = medicine['price_numeric'] ??
+        medicine['price'] ??
+        firstVariant?['price'];
 
     setState(() {
       _medicines.add({
-        "medicine_name": medicine['medicine_name'] ?? medicine['title'],
+        "medicine_name":
+            medicine['medicine_name'] ?? medicine['name'] ?? medicine['title'],
         "shopify_variant_id": variantId,
         "price": variantPrice,
         "dosage": "1 tablet",
@@ -155,7 +169,27 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
         TextEditingController(text: (med['dosage'] ?? '1 tablet').toString());
     final TextEditingController durationController =
         TextEditingController(text: (med['duration_days'] ?? 5).toString());
+    // Stored as astra's codes (twice_daily); the dropdown shows labels.
+    // It used to be handed the code as its value, which isn't one of its
+    // items, and saved the label back instead of the code.
+    const frequencies = {
+      'once_daily': 'Once daily',
+      'twice_daily': 'Twice daily',
+      'thrice_daily': 'Thrice daily',
+    };
     String frequency = (med['frequency'] ?? 'twice_daily').toString();
+    if (!frequencies.containsKey(frequency)) {
+      frequency = frequencies.entries
+          .firstWhere((e) => e.value == frequency,
+              orElse: () => frequencies.entries.elementAt(1))
+          .key;
+    }
+    final ageController =
+        TextEditingController(text: widget.patientAge?.toString() ?? '');
+    String? gender = widget.patientGender?.toLowerCase();
+    if (gender != 'male' && gender != 'female') gender = null;
+    String? suggestion;
+    bool suggesting = false;
     final textTheme = Theme.of(context).textTheme;
 
     await showDialog(
@@ -189,11 +223,15 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                   OslerDropdown(
                     label: '',
                     hint: "Select frequency",
-                    value: frequency,
-                    items: const ['Once daily', 'Twice daily', 'Thrice daily'],
+                    value: frequencies[frequency],
+                    items: frequencies.values.toList(),
                     onChanged: (v) {
-                      if (v != null) {
-                        setLocalState(() => frequency = v);
+                      final code = frequencies.entries
+                          .where((e) => e.value == v)
+                          .map((e) => e.key)
+                          .firstOrNull;
+                      if (code != null) {
+                        setLocalState(() => frequency = code);
                       }
                     },
                   ),
@@ -205,6 +243,104 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                       labelText: "Duration (days)",
                       labelStyle: textTheme.bodyMedium
                           ?.copyWith(color: AyurezeTheme.textSecondary),
+                    ),
+                  ),
+                  const SizedBox(height: AyurezeTheme.spaceLg),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Astra dosage suggestion",
+                        style: textTheme.labelLarge
+                            ?.copyWith(color: AyurezeTheme.textPrimary)),
+                  ),
+                  const SizedBox(height: AyurezeTheme.spaceMd),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: ageController,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(labelText: "Age"),
+                        ),
+                      ),
+                      const SizedBox(width: AyurezeTheme.spaceSm),
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          initialValue: gender,
+                          decoration:
+                              const InputDecoration(labelText: "Gender"),
+                          items: const [
+                            DropdownMenuItem(
+                                value: 'male', child: Text('Male')),
+                            DropdownMenuItem(
+                                value: 'female', child: Text('Female')),
+                          ],
+                          onChanged: (v) => setLocalState(() => gender = v),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AyurezeTheme.spaceSm),
+                  if (suggestion != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(AyurezeTheme.spaceMd),
+                      decoration: BoxDecoration(
+                        color: AyurezeTheme.healingGreen10,
+                        borderRadius:
+                            BorderRadius.circular(AyurezeTheme.radiusMd),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const ContentOriginBadge(
+                              origin: ContentOrigin.astraSuggestion),
+                          const SizedBox(height: AyurezeTheme.spaceXs),
+                          Text(suggestion!,
+                              style: textTheme.bodyMedium?.copyWith(
+                                  color: AyurezeTheme.healingGreen100)),
+                        ],
+                      ),
+                    ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: suggesting
+                          ? null
+                          : () async {
+                              final age =
+                                  int.tryParse(ageController.text.trim());
+                              if (age == null || gender == null) {
+                                setLocalState(() => suggestion =
+                                    "Enter the patient's age and gender "
+                                        "first.");
+                                return;
+                              }
+                              setLocalState(() => suggesting = true);
+                              String text;
+                              try {
+                                text = PrescriptionPayload.dosageText(
+                                    await _astraApiService.suggestDosage(
+                                  medicineName:
+                                      (med['medicine_name'] ?? '').toString(),
+                                  patientAge: age,
+                                  patientGender: gender!,
+                                  symptoms: _symptoms(),
+                                ));
+                              } on AstraApiException catch (e) {
+                                text = "Couldn't get a suggestion: "
+                                    "${e.message}";
+                              } catch (_) {
+                                text = "Couldn't get a suggestion. "
+                                    "Try again.";
+                              }
+                              if (!context.mounted) return;
+                              setLocalState(() {
+                                suggesting = false;
+                                suggestion = text;
+                              });
+                            },
+                      child:
+                          Text(suggesting ? "Asking Astra…" : "Suggest dosage"),
                     ),
                   ),
                 ],
@@ -235,13 +371,24 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
               },
               child: Text("Save",
                   style: textTheme.labelLarge?.copyWith(
-                      color: AyurezeTheme.healingGreen100,
+                      color: AyurezeTheme.textPrimary,
                       fontWeight: FontWeight.bold)),
             ),
           ],
         );
       },
     );
+  }
+
+  /// Symptoms for the dosage suggestion: Astra's intake if there is one,
+  /// else the diagnosis text.
+  List<String> _symptoms() {
+    final fromIntake = widget.astraFillData?['extracted_symptoms'];
+    if (fromIntake is List && fromIntake.isNotEmpty) {
+      return fromIntake.map((s) => s.toString()).toList();
+    }
+    final diagnosis = _diagnosisController.text.trim();
+    return diagnosis.isEmpty ? const [] : [diagnosis];
   }
 
   Future<void> _submitPrescription() async {
@@ -267,32 +414,32 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
         throw Exception("Doctor ID missing. Please re-login once.");
       }
 
-      bool allHaveShopify = _medicines.every((m) =>
-          m['shopify_variant_id'] != null &&
-          m['shopify_variant_id'].toString().isNotEmpty);
+      final bool allHaveShopify =
+          _medicines.every(PrescriptionPayload.isLinked);
 
-      final payload = {
-        "doctor_id": doctorId,
-        "patient_id": widget.patientId,
-        "patient_name": widget.patientName,
-        "patient_phone": widget.patientPhone,
-        "diagnosis": _diagnosisController.text,
-        "medicines": _medicines,
-        "lifestyle_advice": "Rest and hydration",
-        "auto_process": true,
-        "create_shopify_cart": allHaveShopify,
-        "signature_image": base64Encode(_signatureBytes!),
-      };
+      // Saved to astra's review queue (status pending_review, no
+      // automation). The doctor approves it from Prescriptions to approve,
+      // which runs the cart, reminders and patient notification.
+      final payload = PrescriptionPayload.create(
+        doctorId: doctorId,
+        patientId: widget.patientId,
+        patientName: widget.patientName,
+        patientPhone: widget.patientPhone,
+        diagnosis: _diagnosisController.text,
+        medicines: _medicines,
+        signatureBase64: base64Encode(_signatureBytes!),
+        autoProcess: false,
+      );
 
-      await _astraApiService.executePrescriptionWorkflow(payload);
+      await _astraApiService.draftPrescription(payload);
 
       if (!mounted) return;
 
-      String msg = "Prescription Sent via WhatsApp!";
-      if (allHaveShopify) {
-        msg += " & Shopify Cart Created!";
-      } else {
-        msg += "\n(Note: Some items were not in stock, Shopify cart skipped)";
+      String msg = "Saved for your approval. Approve it in "
+          "Prescriptions to approve to send it to the patient.";
+      if (!allHaveShopify) {
+        msg += "\nSome medicines aren't linked to the store, so they "
+            "can't go in the patient's cart.";
       }
 
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -337,7 +484,8 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
       isScrollControlled: true,
       backgroundColor: AyurezeTheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AyurezeTheme.radius2xl)),
       ),
       builder: (context) => SearchMedicineSheet(
         onSelect: (medicine) {
@@ -355,27 +503,37 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
     return Scaffold(
       backgroundColor: AyurezeTheme.canvas,
       appBar: AppBar(
-        title: Text(
-          "Prescription for ${widget.patientName}",
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: AyurezeTheme.textPrimary,
-          ),
+        // Patient name on its own line: "Prescription for <name>" was
+        // truncated mid-name on phones.
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Prescription",
+              style: textTheme.titleLarge
+                  ?.copyWith(color: AyurezeTheme.textPrimary),
+            ),
+            Text(
+              widget.patientName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: textTheme.bodyMedium
+                  ?.copyWith(color: AyurezeTheme.textSecondary),
+            ),
+          ],
         ),
         backgroundColor: AyurezeTheme.canvas,
         leading: IconButton(
           icon: HugeIcon(
-              icon: AppIcons.back,
-              color: AyurezeTheme.healingGreen100,
-              size: 20),
+              icon: AppIcons.back, color: AyurezeTheme.iconPrimary, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         elevation: 0,
       ),
       body: _isLoading && _patientData == null
           ? Center(
-              child: CircularProgressIndicator(
-                  color: AyurezeTheme.healingGreen100))
+              child: CircularProgressIndicator(color: AyurezeTheme.iconPrimary))
           : Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 800),
@@ -399,8 +557,38 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                             hintText: "Enter clinical diagnosis",
                             suffixIcon: HugeIcon(
                                 icon: HugeIcons.strokeRoundedStethoscope02,
-                                color: AyurezeTheme.healingGreen100),
+                                size: 22,
+                                color: AyurezeTheme.iconPrimary),
                           ),
+                        ),
+                        ValueListenableBuilder<TextEditingValue>(
+                          valueListenable: _diagnosisController,
+                          builder: (context, value, _) {
+                            final origin = ContentOrigin.forDraft(value.text,
+                                astraDraft: _astraDiagnosisDraft);
+                            if (origin == null) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                  top: AyurezeTheme.spaceSm),
+                              child: Row(
+                                children: [
+                                  ContentOriginBadge(origin: origin),
+                                  if (origin ==
+                                      ContentOrigin.astraSuggestion) ...[
+                                    const SizedBox(width: AyurezeTheme.spaceSm),
+                                    Expanded(
+                                      child: Text(
+                                        "Drafted from the patient's intake. "
+                                        "Review before prescribing.",
+                                        style: textTheme.bodySmall?.copyWith(
+                                            color: AyurezeTheme.textSecondary),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 20),
                         Text(
@@ -417,7 +605,8 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                           bool noShopify = med['shopify_variant_id'] == null;
 
                           return OslerCard(
-                            margin: const EdgeInsets.only(bottom: 10),
+                            margin: const EdgeInsets.only(
+                                bottom: AyurezeTheme.spaceMd),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(
                                   vertical: AyurezeTheme.spaceSm),
@@ -470,8 +659,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                                               icon:
                                                   HugeIcons.strokeRoundedEdit02,
                                               size: 18,
-                                              color:
-                                                  AyurezeTheme.healingGreen100),
+                                              color: AyurezeTheme.iconPrimary),
                                           tooltip: "Edit dosage",
                                           onPressed: () =>
                                               _editMedicineDetails(idx),
@@ -504,13 +692,15 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                                                   idx, val!),
                                         ),
                                         const Spacer(),
-                                        if (med['price'] != null)
+                                        if (PrescriptionPayload.priceLabel(
+                                                med['price']) !=
+                                            null)
                                           Text(
-                                            "₹ ${med['price']}",
+                                            PrescriptionPayload.priceLabel(
+                                                med['price'])!,
                                             style:
                                                 textTheme.titleMedium?.copyWith(
-                                              color:
-                                                  AyurezeTheme.healingGreen100,
+                                              color: AyurezeTheme.textPrimary,
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
@@ -593,7 +783,7 @@ class _PrescriptionScreenState extends State<PrescriptionScreen>
                         ),
                         const SizedBox(height: 20),
                         OslerButton(
-                          text: "Submit & Automate (PDF + WhatsApp)",
+                          text: "Save for approval",
                           isLoading: _isLoading,
                           onPressed: _submitPrescription,
                         ),
@@ -612,7 +802,7 @@ class SearchMedicineSheet extends StatefulWidget {
   const SearchMedicineSheet({super.key, required this.onSelect});
 
   @override
-  _SearchMedicineSheetState createState() => _SearchMedicineSheetState();
+  State<SearchMedicineSheet> createState() => _SearchMedicineSheetState();
 }
 
 class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
@@ -639,13 +829,7 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
   Future<void> _loadAvailableMedicines() async {
     setState(() => _isLoading = true);
     try {
-      List results = await _astraApiService.getAvailableMedicines();
-      if (results.isEmpty) {
-        final all = await _astraApiService.getAllShopifyProducts();
-        if (all['success'] == true && all['products'] is List) {
-          results = List.from(all['products']);
-        }
-      }
+      final List results = await _astraApiService.getAvailableMedicines();
       if (mounted) {
         setState(() => _results = results);
       }
@@ -730,17 +914,17 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AyurezeTheme.healingGreen100))
+                        strokeWidth: 2, color: AyurezeTheme.iconPrimary))
               else
                 TextButton.icon(
                   onPressed: _syncShopify,
                   icon: HugeIcon(
                       icon: HugeIcons.strokeRoundedReload,
                       size: 16,
-                      color: AyurezeTheme.healingGreen100),
+                      color: AyurezeTheme.iconPrimary),
                   label: Text("Sync Shopify",
                       style: textTheme.labelLarge
-                          ?.copyWith(color: AyurezeTheme.healingGreen100)),
+                          ?.copyWith(color: AyurezeTheme.textPrimary)),
                 ),
             ],
           ),
@@ -750,7 +934,7 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
             decoration: InputDecoration(
               hintText: "Type medicine name",
               prefixIcon: HugeIcon(
-                  icon: AppIcons.search, color: AyurezeTheme.healingGreen100),
+                  icon: AppIcons.search, color: AyurezeTheme.iconPrimary),
             ),
             onChanged: _onSearchChanged,
           ),
@@ -759,21 +943,26 @@ class _SearchMedicineSheetState extends State<SearchMedicineSheet> {
             child: _isLoading
                 ? Center(
                     child: CircularProgressIndicator(
-                        color: AyurezeTheme.healingGreen100))
+                        color: AyurezeTheme.iconPrimary))
                 : ListView.builder(
                     itemCount: _results.length,
                     itemBuilder: (context, index) {
                       final item = _results[index];
                       return ListTile(
                         title: Text(
-                          item['medicine_name'] ?? item['title'] ?? 'Unknown',
+                          item['medicine_name'] ??
+                              item['name'] ??
+                              item['title'] ??
+                              'Unknown',
                           style: textTheme.bodyLarge?.copyWith(
                             color: AyurezeTheme.textPrimary,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         subtitle: Text(
-                          "₹ ${item['price'] ?? '0'}",
+                          PrescriptionPayload.priceLabel(
+                                  item['price_numeric'] ?? item['price']) ??
+                              'Price pending',
                           style: textTheme.bodySmall
                               ?.copyWith(color: AyurezeTheme.textSecondary),
                         ),
@@ -796,7 +985,7 @@ class DoctorSignaturePad extends StatefulWidget {
   const DoctorSignaturePad({super.key, required this.onChanged});
 
   @override
-  _DoctorSignaturePadState createState() => _DoctorSignaturePadState();
+  State<DoctorSignaturePad> createState() => _DoctorSignaturePadState();
 }
 
 class _DoctorSignaturePadState extends State<DoctorSignaturePad> {
@@ -859,7 +1048,7 @@ class SignaturePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AyurezeTheme.healingGreen100
+      ..color = AyurezeTheme.iconPrimary
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 3.0;
 

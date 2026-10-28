@@ -41,12 +41,18 @@ void main() {
       'name': 'Test Doctor',
       'is_filled': 1,
       'image': '',
+      'doctorId': 'doc-123',
     });
     await SharedPreferenceHelper.initWithPreferences(
         await SharedPreferences.getInstance());
 
     await tester.pumpWidget(MaterialApp(
-      home: const ProfileScreen(),
+      // The profile loads from astra's GET doctors/{id}; no server in tests.
+      home: ProfileScreen(
+        fetchDoctor: (id) async => {
+          'data': {'name': 'Test Doctor', 'gender': 'Male', 'bio': 'Ayurveda'},
+        },
+      ),
       locale: const Locale('en', 'US'),
       supportedLocales: supportedLocales,
       localizationsDelegates: const [

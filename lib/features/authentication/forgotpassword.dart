@@ -114,9 +114,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                                 .toString(),
                                             style: textTheme.headlineMedium
                                                 ?.copyWith(
-                                              fontWeight: FontWeight.w800,
                                               color: Colors.white,
-                                              letterSpacing: -0.5,
                                             ),
                                           ),
                                           const SizedBox(height: 10),
@@ -165,7 +163,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                                                       .strokeRoundedMailAtSign01,
                                                   size: 20,
                                                   color:
-                                                      AyurezeTheme.forestDeep),
+                                                      AyurezeTheme.iconPrimary),
                                             ),
                                             validator: (String? value) {
                                               if (value == null ||

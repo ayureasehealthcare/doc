@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:doctro/core/constants/app_icons.dart';
 import 'package:doctro/core/constants/app_string.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/core/localization/localization_constant.dart';
 
@@ -12,13 +12,15 @@ import 'package:doctro/widgets/glass_surface.dart';
 import 'package:doctro/widgets/osler_button.dart';
 import 'package:doctro/widgets/osler_loader.dart';
 import 'package:doctro/widgets/osler_toast.dart';
+import 'package:doctro/widgets/patient_wellness_section.dart';
+import 'package:doctro/widgets/sharing_consent_guard.dart';
 
 import 'package:doctro/features/prescription/astra/prescription_screen.dart';
 import 'package:doctro/features/consultation/chat/constants/firestore_constants.dart';
 import 'package:doctro/features/consultation/chat/models/user_chat.dart';
 import 'package:doctro/features/consultation/chat/pages/chat_page.dart';
 import 'package:doctro/features/consultation/chat/providers/home_provider.dart';
-import 'package:doctro/features/consultation/videoCall/video_Call.dart';
+import 'package:doctro/features/consultation/videoCall/video_call.dart';
 import 'package:doctro/features/dashboard/view_models/patient_information_view_model.dart';
 
 import 'package:flutter/material.dart';
@@ -28,10 +30,10 @@ import 'package:full_screen_image_null_safe/full_screen_image_null_safe.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class patientDetailsScreen extends StatelessWidget {
+class PatientDetailsScreen extends StatelessWidget {
   final int? id;
 
-  const patientDetailsScreen({super.key, this.id});
+  const PatientDetailsScreen({super.key, this.id});
 
   @override
   Widget build(BuildContext context) {
@@ -110,7 +112,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
         leading: IconButton(
           icon: HugeIcon(
             icon: HugeIcons.strokeRoundedArrowLeft01,
-            color: AyurezeTheme.forestDeep,
+            color: AyurezeTheme.iconPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -154,7 +156,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
           final astraFillData = vm.astraFillData;
           final astraCaseId = vm.astraCaseId;
 
-          return FadeTransition(
+          final content = FadeTransition(
             opacity: _fadeAnim,
             child: SlideTransition(
               position: _slideAnim,
@@ -205,7 +207,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                   width: 20,
                                                   height: 20,
                                                   colorFilter: ColorFilter.mode(
-                                                    AyurezeTheme.forestDeep,
+                                                    AyurezeTheme.iconPrimary,
                                                     BlendMode.srcIn,
                                                   ),
                                                 ),
@@ -276,7 +278,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                   width: 20,
                                                   height: 20,
                                                   colorFilter: ColorFilter.mode(
-                                                    AyurezeTheme.forestDeep,
+                                                    AyurezeTheme.iconPrimary,
                                                     BlendMode.srcIn,
                                                   ),
                                                 ),
@@ -328,7 +330,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                             AppString.information_amount,
                                           ).toString(),
                                           value:
-                                              "${SharedPreferenceHelper.getString(Preferences.currency_symbol)}${amount ?? 0}",
+                                              "${(SharedPreferenceHelper.getStringOrNull(Preferences.currency_symbol) ?? '')}${amount ?? 0}",
                                         ),
                                         Container(
                                           width: 1,
@@ -402,10 +404,12 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                               ),
                               labelColor: AyurezeTheme.textPrimary,
                               unselectedLabelColor: AyurezeTheme.textSecondary,
-                              labelStyle: AyurezeTheme.font(13, FontWeight.w700,
-                                  AyurezeTheme.textPrimary),
-                              unselectedLabelStyle: AyurezeTheme.font(13,
-                                  FontWeight.w500, AyurezeTheme.textSecondary),
+                              labelStyle: AyurezeTheme.font(AyurezeTheme.textMd,
+                                  FontWeight.w700, AyurezeTheme.textPrimary),
+                              unselectedLabelStyle: AyurezeTheme.font(
+                                  AyurezeTheme.textMd,
+                                  FontWeight.w500,
+                                  AyurezeTheme.textSecondary),
                               tabs: [
                                 Tab(
                                   text: getTranslated(
@@ -533,8 +537,8 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                     AppString
                                                         .information_cancel_status,
                                                   ).toString(),
-                                                  customColor:
-                                                      AyurezeTheme.remoteRed50,
+                                                  customColor: AyurezeTheme
+                                                      .remoteRedFill,
                                                   onPressed: () {
                                                     vm.statusChangeRequest(
                                                       "cancel",
@@ -652,6 +656,15 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
 
                                       const SizedBox(height: 16),
 
+                                      // TODO(astra-backend): keyed on the
+                                      // Laravel user id, same as Astra Fill
+                                      // above; confirm the wellness endpoint
+                                      // uses that id and not an Astra uid.
+                                      if (userId != null)
+                                        PatientWellnessSection(
+                                          patientId: userId.toString(),
+                                        ),
+
                                       _buildInfoCard(
                                         context,
                                         title: getTranslated(
@@ -746,7 +759,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                               icon: HugeIcons
                                                   .strokeRoundedSparkles,
                                               size: 40,
-                                              color: AyurezeTheme.forestDeep,
+                                              color: AyurezeTheme.iconPrimary,
                                             ),
                                             const SizedBox(height: 12),
                                             Text(
@@ -806,6 +819,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                                                       patientPhone: phoneNo,
                                                       astraFillData:
                                                           astraFillData,
+                                                      patientAge: age,
                                                     ),
                                                   ),
                                                 );
@@ -828,6 +842,13 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
               ),
             ),
           );
+
+          // Companion case/journey data (the Astra case card, wellness) is
+          // shown under a consent check - never assuming full access.
+          return SharingConsentGuard(
+            patientId: userId?.toString(),
+            child: content,
+          );
         },
       ),
     );
@@ -843,7 +864,8 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
       context: context,
       backgroundColor: AyurezeTheme.surface,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius:
+            BorderRadius.vertical(top: Radius.circular(AyurezeTheme.radiusXl)),
       ),
       builder: (BuildContext bc) {
         return SafeArea(
@@ -853,7 +875,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
               children: <Widget>[
                 ListTile(
                   leading: HugeIcon(
-                      icon: AppIcons.call, color: AyurezeTheme.forestDeep),
+                      icon: AppIcons.call, color: AyurezeTheme.iconPrimary),
                   title: Text(
                     getTranslated(context, "call_text").toString(),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -876,7 +898,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                   ListTile(
                     leading: HugeIcon(
                       icon: HugeIcons.strokeRoundedVideo01,
-                      color: AyurezeTheme.forestDeep,
+                      color: AyurezeTheme.iconPrimary,
                     ),
                     title: Text(
                       getTranslated(context, "video_call").toString(),
@@ -954,7 +976,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
                 borderRadius: BorderRadius.circular(AyurezeTheme.radiusMd),
               ),
               child: HugeIcon(
-                  icon: icon, size: 20, color: AyurezeTheme.forestDeep),
+                  icon: icon, size: 20, color: AyurezeTheme.iconPrimary),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1000,7 +1022,7 @@ class _PatientDetailsScreenBodyState extends State<_PatientDetailsScreenBody>
         children: [
           Row(
             children: [
-              HugeIcon(icon: icon, size: 20, color: AyurezeTheme.forestDeep),
+              HugeIcon(icon: icon, size: 20, color: AyurezeTheme.iconPrimary),
               const SizedBox(width: 8),
               Text(
                 title,

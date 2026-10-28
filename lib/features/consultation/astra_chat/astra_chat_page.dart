@@ -7,7 +7,9 @@ import 'package:doctro/core/astra/astra_core.dart';
 import 'package:doctro/core/astra/widgets/widgets.dart';
 import 'package:doctro/theme/app_motion.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
-import 'package:doctro/widgets/osler_loader.dart';
+import 'package:doctro/widgets/osler_state_view.dart';
+import 'package:doctro/widgets/swastu.dart';
+import 'package:doctro/widgets/content_origin_badge.dart';
 
 /// Astra AI Chat Page
 ///
@@ -147,26 +149,15 @@ class _AstraChatPageState extends State<AstraChatPage> {
       leading: IconButton(
         icon: HugeIcon(
           icon: HugeIcons.strokeRoundedArrowLeft01,
-          color: AyurezeTheme.forestDeep,
+          color: AyurezeTheme.iconPrimary,
         ),
         onPressed: () => Navigator.pop(context),
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Astra Brain icon
-          Container(
-            padding: const EdgeInsets.all(AyurezeTheme.spaceSm),
-            decoration: BoxDecoration(
-              color: AyurezeTheme.healingGreen50.withValues(alpha: 0.2),
-              shape: BoxShape.circle,
-            ),
-            child: HugeIcon(
-              icon: HugeIcons.strokeRoundedBrain01,
-              color: AyurezeTheme.healingGreen50,
-              size: 20,
-            ),
-          ),
+          // Swastu is Astra's face, as in the patient app.
+          const Swastu(mood: SwastuMood.listening, size: 40, named: false),
           const SizedBox(width: 10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -189,12 +180,36 @@ class _AstraChatPageState extends State<AstraChatPage> {
         ],
       ),
       centerTitle: true,
+      // Every reply on this screen is Astra's, so it is labelled once here
+      // rather than on each bubble.
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(36),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: AyurezeTheme.spaceSm),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const ContentOriginBadge(origin: ContentOrigin.astraSuggestion),
+              const SizedBox(width: AyurezeTheme.spaceSm),
+              Flexible(
+                child: Text(
+                  'Replies are not clinical decisions',
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AyurezeTheme.textSecondary,
+                      ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
       actions: [
         // More options
         PopupMenuButton<String>(
           icon: HugeIcon(
               icon: HugeIcons.strokeRoundedMoreVertical,
-              color: AyurezeTheme.forestDeep),
+              color: AyurezeTheme.iconPrimary),
           onSelected: (value) => _handleMenuAction(value),
           itemBuilder: (context) => [
             const PopupMenuItem(
@@ -230,9 +245,11 @@ class _AstraChatPageState extends State<AstraChatPage> {
         return Container(
           padding: const EdgeInsets.symmetric(
               horizontal: AyurezeTheme.spaceLg, vertical: AyurezeTheme.spaceSm),
+          // Tint pairs (shade 10 behind shade 100) read in both themes;
+          // orange-on-pale-orange did not.
           color: controller.isBrainHealthy
-              ? AyurezeTheme.healingGreen50.withValues(alpha: 0.1)
-              : Colors.orange.withValues(alpha: 0.1),
+              ? AyurezeTheme.healingGreen10
+              : AyurezeTheme.sunshineYellow10,
           child: Row(
             children: [
               HugeIcon(
@@ -241,8 +258,8 @@ class _AstraChatPageState extends State<AstraChatPage> {
                     : HugeIcons.strokeRoundedAlert01,
                 size: 16,
                 color: controller.isBrainHealthy
-                    ? AyurezeTheme.healingGreen50
-                    : Colors.orange,
+                    ? AyurezeTheme.healingGreen100
+                    : AyurezeTheme.sunshineYellow100,
               ),
               const SizedBox(width: 8),
               Text(
@@ -251,8 +268,8 @@ class _AstraChatPageState extends State<AstraChatPage> {
                     : 'Astra Brain is offline',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: controller.isBrainHealthy
-                          ? AyurezeTheme.healingGreen50
-                          : Colors.orange,
+                          ? AyurezeTheme.healingGreen100
+                          : AyurezeTheme.sunshineYellow100,
                     ),
               ),
               const Spacer(),
@@ -262,7 +279,7 @@ class _AstraChatPageState extends State<AstraChatPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(controller.errorMessage!),
-                        backgroundColor: Colors.orange,
+                        backgroundColor: AyurezeTheme.remoteRedFill,
                       ),
                     );
                   },
@@ -283,7 +300,7 @@ class _AstraChatPageState extends State<AstraChatPage> {
     return Consumer<AstraController>(
       builder: (context, controller, _) {
         if (!controller.isInitialized) {
-          return const Center(child: OslerLoader());
+          return const OslerLoadingView(message: 'Connecting to Astra…');
         }
 
         if (controller.messages.isEmpty) {
@@ -316,22 +333,12 @@ class _AstraChatPageState extends State<AstraChatPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(AyurezeTheme.space2xl),
-                decoration: BoxDecoration(
-                  color: AyurezeTheme.healingGreen50.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedBrain01,
-                  size: 64,
-                  color: AyurezeTheme.healingGreen50,
-                ),
-              ),
-              const SizedBox(height: 24),
+              const Swastu(mood: SwastuMood.greeting, size: 140),
+              const SizedBox(height: AyurezeTheme.space2xl),
               Text(
                 'Chat with Astra AI',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AyurezeTheme.textPrimary,
                     ),
               ),
@@ -444,7 +451,7 @@ class _AstraChatPageState extends State<AstraChatPage> {
                     color: controller.isStreaming
                         ? Colors.red
                         : (_useStreaming
-                            ? AyurezeTheme.healingGreen50
+                            ? AyurezeTheme.accent
                             : AyurezeTheme.textSecondary),
                   ),
                   onPressed: controller.isLoading
@@ -471,23 +478,23 @@ class _AstraChatPageState extends State<AstraChatPage> {
                     enabled: !controller.isLoading && !controller.isStreaming,
                     decoration: InputDecoration(
                       hintText: 'Ask Astra AI...',
-                      hintStyle: TextStyle(color: AyurezeTheme.textSecondary),
+                      // The theme's warm filled field, as a pill.
                       border: OutlineInputBorder(
                         borderRadius:
-                            BorderRadius.circular(AyurezeTheme.radiusXl),
-                        borderSide: BorderSide(color: AyurezeTheme.border),
+                            BorderRadius.circular(AyurezeTheme.radiusPill),
+                        borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius:
-                            BorderRadius.circular(AyurezeTheme.radiusXl),
-                        borderSide: BorderSide(color: AyurezeTheme.border),
+                            BorderRadius.circular(AyurezeTheme.radiusPill),
+                        borderSide: const BorderSide(color: Colors.transparent),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius:
-                            BorderRadius.circular(AyurezeTheme.radiusXl),
+                            BorderRadius.circular(AyurezeTheme.radiusPill),
                         borderSide: BorderSide(
-                          color: AyurezeTheme.healingGreen50,
-                          width: 2,
+                          color: AyurezeTheme.accent,
+                          width: 1.5,
                         ),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
@@ -506,9 +513,9 @@ class _AstraChatPageState extends State<AstraChatPage> {
                 // Send button
                 Container(
                   decoration: BoxDecoration(
-                    color: controller.isLoading || controller.isStreaming
-                        ? Colors.grey
-                        : AyurezeTheme.healingGreen50,
+                    // White glyph -> healingGreenFill (5.78:1); the mint
+                    // was 1.9:1. Kept while busy so the white spinner shows.
+                    color: AyurezeTheme.healingGreenFill,
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(

@@ -89,7 +89,7 @@ class _AppShellState extends State<AppShell> {
         currentIndex: _index,
         onTap: _select,
         backgroundColor: AyurezeTheme.surface,
-        selectedItemColor: AyurezeTheme.healingGreen100,
+        selectedItemColor: AyurezeTheme.iconPrimary,
         unselectedItemColor: AyurezeTheme.textSecondary,
         items: [
           for (final destination in _destinations)

@@ -386,7 +386,7 @@ packages:
     source: hosted
     version: "4.10.1"
   collection:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: collection
       sha256: "2f5709ae4d3d59dd8f7cd309b4e023046b57d8a6c82130785d2b0e5868084e76"
@@ -1429,7 +1429,7 @@ packages:
     source: hosted
     version: "3.11.3"
   permission_handler:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: permission_handler
       sha256: "59adad729136f01ea9e35a48f5d1395e25cba6cea552249ddbe9cf950f5d7849"
@@ -1501,7 +1501,7 @@ packages:
     source: hosted
     version: "5.0.2"
   pip_view:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: pip_view
       sha256: "1ba2abcc3229dc6df72e6f23e263c966f9b0fbf3cb6a4b87bbef01ad9a930c81"

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,7 +10,7 @@ import 'dart:io' show Platform;
 import 'package:doctro/features/consultation/chat/providers/auth_provider.dart'
     as chat;
 import 'package:doctro/core/constants/common_function.dart';
-import 'package:doctro/core/constants/prefConstatnt.dart';
+import 'package:doctro/core/constants/pref_constant.dart';
 import 'package:doctro/core/constants/preferences.dart';
 import 'package:doctro/models/login.dart';
 import 'package:doctro/network/api_header.dart';
@@ -17,6 +18,7 @@ import 'package:doctro/network/base_model.dart';
 import 'package:doctro/network/network_api.dart';
 import 'package:doctro/network/server_error.dart';
 import 'package:doctro/services/astra_api_service.dart';
+import 'package:doctro/services/doctor_id_resolver.dart';
 import 'package:doctro/models/setting.dart';
 import 'package:doctro/widgets/osler_toast.dart';
 import 'package:doctro/theme/ayureze_theme.dart';
@@ -362,6 +364,13 @@ class SignInViewModel extends ChangeNotifier {
         Preferences.user_name, response.data!.name ?? '');
     SharedPreferenceHelper.setString(
         Preferences.doctorId, response.data!.id.toString());
+    // The session's user id may not be the id astra's doctor records use;
+    // swap in the one astra knows (the profile also retries on a 404).
+    unawaited(DoctorIdResolver.ensure().then<String?>((id) => id,
+        onError: (Object e) {
+      debugPrint('Doctor id resolution failed (non-fatal): $e');
+      return null;
+    }));
 
     Provider.of<chat.AuthProvider>(context, listen: false).handleSignIn();
 
@@ -375,8 +384,9 @@ class SignInViewModel extends ChangeNotifier {
 
   Future<void> _registerFcmToken() async {
     try {
-      final doctorId = SharedPreferenceHelper.getString(Preferences.doctorId);
-      if (doctorId.isEmpty) return;
+      final doctorId =
+          SharedPreferenceHelper.getStringOrNull(Preferences.doctorId);
+      if (doctorId == null) return;
 
       String? token =
           SharedPreferenceHelper.getString(Preferences.messageToken);
@@ -476,9 +486,14 @@ class SignInViewModel extends ChangeNotifier {
         return BaseModel()..setException(ServerError.withError(error: error));
       }
       CommonFunction.hideDialog(context);
-      // Fallback message for Missing Endpoint (404)
-      OslerToast.error(context,
-          "Failed to connect to Astra API (404/Missing Endpoint). Please ensure the backend route exists.");
+      // This used to claim "404/Missing Endpoint" for every failure, wrong
+      // password and no network included.
+      debugPrint('Astra sign-in failed: $error');
+      OslerToast.error(
+          context,
+          error is AstraApiException
+              ? "Couldn't sign in to Astra: ${error.message}"
+              : "Couldn't sign in. Please try again.");
       return BaseModel()..setException(ServerError.withError(error: error));
     }
     return BaseModel()..data = response;
